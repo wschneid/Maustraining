@@ -322,6 +322,18 @@
   .memcard.flip::before{content:none;}
   .memcard.match{background:var(--success-soft);border-color:var(--success);cursor:default;}
   .memcard.match::before{content:none;}
+  /* shold PacMan */
+  .pacboard{flex:1;border-radius:12px;position:relative;overflow:hidden;cursor:pointer;
+    background:radial-gradient(circle at 30% 20%,#102a52,#0a1838 70%);box-shadow:inset 0 0 50px rgba(0,0,0,.4);min-height:330px;}
+  .pdot{position:absolute;width:12px;height:12px;border-radius:50%;background:#ffd479;box-shadow:0 0 6px rgba(255,212,121,.8);transform:translate(-50%,-50%);}
+  .pdot.power{width:20px;height:20px;background:#ff7b9c;box-shadow:0 0 10px rgba(255,123,156,.9);}
+  .pac{position:absolute;width:34px;height:34px;border-radius:50%;background:#ffd400;transform:translate(-50%,-50%);
+    display:grid;place-items:center;font-size:1.4rem;box-shadow:0 0 14px rgba(255,212,0,.7);z-index:3;transition:opacity .15s;}
+  .pac.hit{animation:pacHit .5s;}
+  .pac.safe{opacity:.55;}
+  @keyframes pacHit{0%,100%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.3);}}
+  .ghost{position:absolute;width:30px;height:30px;transform:translate(-50%,-50%);display:grid;place-items:center;font-size:1.5rem;z-index:2;
+    filter:drop-shadow(0 0 6px rgba(255,120,120,.6));}
   .infobox{background:var(--hint-soft);border:1px solid #f0d9b8;border-radius:10px;padding:11px 13px;font-size:.84rem;color:#8a5616;line-height:1.45;}
 
   @media (max-width:640px){
@@ -427,6 +439,7 @@ const STATIONS = [
   {id:"start", short:"Start",       icon:"🏁"},
   {id:"s0",    short:"Zeigen",      icon:"🎯",  title:"Zeigen & Stoppen",  desc:"Genau bewegen, ruhig halten"},
   {id:"s1",    short:"Klick",       icon:"👆",  title:"Linksklick",        desc:"Auswählen & treffen"},
+  {id:"shold", short:"Halten",      icon:"🟡",  title:"Halten & Steuern",  desc:"Linke Taste halten, PacMan lenken"},
   {id:"s2",    short:"Doppelklick", icon:"⚡",  title:"Doppelklick",       desc:"Öffnen"},
   {id:"s3",    short:"Rechtsklick", icon:"📋",  title:"Rechtsklick",       desc:"Menü & Untermenü"},
   {id:"s4",    short:"Scrollen",    icon:"🎡",  title:"Scrollen",          desc:"Rad & Mausradklick"},
@@ -444,6 +457,7 @@ const STATIONS = [
   {id:"s16",   short:"PopUps",      icon:"💬",  title:"PopUps & Dialoge",  desc:"Schließen & bestätigen"},
   {id:"s17",   short:"Menü",        icon:"📜",  title:"Menüleiste",        desc:"Datei & Bearbeiten"},
   {id:"s18",   short:"Memory",      icon:"🧠",  title:"Memory",            desc:"Paare finden"},
+  {id:"sfiles",short:"Dateien",     icon:"🗂️", title:"Dateien verschieben",desc:"Ziehen zwischen Ordnern"},
   {id:"exam",  short:"Prüfung",     icon:"🏆",  title:"Prüfung",           desc:"Alles zusammen!"}
 ];
 const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam").findIndex(s=>s.id===id)+1;
@@ -516,6 +530,8 @@ const BADGES = {
   streak5:        {icon:"🔥", title:"5er-Serie"},
   explorer:       {icon:"🧭", title:"Entdecker"},
   bonus_fan:      {icon:"🎁", title:"Bonus-Fan"},
+  pac_hero:       {icon:"🟡", title:"Festhalter"},
+  file_master:    {icon:"🗂️", title:"Datei-Manager"},
   champion:       {icon:"🏆", title:"Maus-Champion"}
 };
 
@@ -869,7 +885,7 @@ SCREENS.s2=(stage)=>{
   const N=stationNumber("s2");
   function roundChests(){
     stage.innerHTML="";
-    setInstruction(`Station ${N} · Der Doppelklick (1/2)`,
+    setInstruction(`Station ${N} · Der Doppelklick (1/3)`,
       "Zum <b>Öffnen</b> klickst du zweimal schnell hintereinander auf dieselbe Stelle. Öffne alle Geschenke mit einem Doppelklick!");
     setHint("Tipp: zweimal kurz hintereinander klicken – die Maus dabei nicht bewegen.","");
     const TOTAL=dCount(5,4);let opened=0;setCounter(`0/${TOTAL}`,"geöffnet");
@@ -887,7 +903,7 @@ SCREENS.s2=(stage)=>{
   }
   function roundList(){
     stage.innerHTML="";
-    setInstruction(`Station ${N} · Ordner öffnen (2/2)`,
+    setInstruction(`Station ${N} · Ordner öffnen (2/3)`,
       "So öffnet man in Windows Ordner und Dateien: per Doppelklick auf die Zeile. <b>Öffne alle vier Ordner.</b>");
     setHint("Doppelklick direkt auf eine Zeile.","");
     const rows=[["📁","Bilder"],["📁","Musik"],["📁","Schule"],["📄","liesmich.txt"]];
@@ -899,13 +915,42 @@ SCREENS.s2=(stage)=>{
       row.addEventListener("click",()=>{if(row.classList.contains("open"))return;const now=performance.now();
         if(now-last<=state.dblTolerance&&last>0){row.classList.remove("selected");row.classList.add("open");
           row.querySelector(".st").textContent="geöffnet ✓";opened++;sfx.good();setCounter(`${opened}/${rows.length}`,"geöffnet");last=0;
-          if(opened===rows.length)completeStation("s2","Stark! Du beherrschst den Doppelklick. ⚡");
+          if(opened===rows.length){sfx.good();setHint("Alle offen! Jetzt wird's gemischt.","good");later(roundMixed,800);}
           else setHint(`Geöffnet! Noch ${rows.length-opened}.`,"good");
         }else{$$(".frow",list).forEach(x=>x.classList.remove("selected"));row.classList.add("selected");
           setHint("Ausgewählt ✓ – jetzt noch ein zweites Mal schnell klicken!","warn");last=now;
           later(()=>{if(!row.classList.contains("open"))row.classList.remove("selected");},state.dblTolerance+50);}});
       list.appendChild(row);});
     stage.appendChild(list);
+  }
+  function roundMixed(){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Auswählen oder Öffnen (3/3)`,
+      "Jetzt gemischt: <b>Ordner</b> mit <b>Doppelklick öffnen</b>, <b>Bilder</b> mit <b>einem Klick</b> nur <b>auswählen</b>. Erledige alle vier.");
+    setHint("Ordner = Doppelklick, Bild = ein Klick.","");
+    const rows=[{em:"📁",name:"Urlaub",want:"open"},{em:"🖼️",name:"Foto1.jpg",want:"select"},
+      {em:"📁",name:"Schule",want:"open"},{em:"🖼️",name:"Foto2.jpg",want:"select"}];
+    let done=0;setCounter(`0/${rows.length}`,"erledigt");
+    const list=document.createElement("div");list.className="filelist";
+    list.innerHTML=`<div class="fhead">📂 Dieser PC › Gemischt</div>`;stage.appendChild(list);
+    function finish(row,label){row.classList.remove("selected");row.classList.add("open");
+      row.querySelector(".st").textContent=label;done++;sfx.good();setCounter(`${done}/${rows.length}`,"erledigt");
+      if(done===rows.length)completeStation("s2","Auswählen und Öffnen – du kennst den Unterschied! ⚡");
+      else setHint(`Richtig! Noch ${rows.length-done}.`,"good");}
+    rows.forEach(rw=>{const row=document.createElement("div");row.className="frow";
+      row.innerHTML=`<span class="em">${rw.em}</span><span>${rw.name}</span><span class="st">…</span>`;
+      let last=0,timer=null;
+      row.addEventListener("click",()=>{if(row.classList.contains("open"))return;const now=performance.now();
+        if(now-last<=state.dblTolerance&&last>0){if(timer){clearTimeout(timer);timer=null;}last=0;
+          if(rw.want==="open")finish(row,"geöffnet ✓");
+          else{row.classList.remove("selected");registerAttempt(false);setHint("Ein Bild nur <b>einmal</b> anklicken zum Auswählen.","warn");}
+        }else{last=now;
+          timer=later(()=>{timer=null;if(row.classList.contains("open"))return;
+            if(rw.want==="select")finish(row,"ausgewählt ✓");
+            else{row.classList.add("selected");setHint("Ein Ordner braucht einen <b>Doppelklick</b> zum Öffnen.","warn");
+              later(()=>{if(!row.classList.contains("open"))row.classList.remove("selected");},600);}
+          },state.dblTolerance+30);}});
+      list.appendChild(row);});
   }
   roundChests();
 };
@@ -1081,7 +1126,7 @@ SCREENS.s6=(stage)=>{
   const N=stationNumber("s6");
   function roundSort(){
     stage.innerHTML="";
-    setInstruction(`Station ${N} · Ziehen & Ablegen (1/2)`,
+    setInstruction(`Station ${N} · Ziehen & Ablegen (1/3)`,
       "Drücke die linke Taste auf einer Datei, <b>halte sie gedrückt</b>, ziehe sie zum passenden Ordner und <b>lass dort los</b>. Sortiere alles ein!");
     setHint("Halten – ziehen – über dem Ordner loslassen.","");
     const FILES=[{em:"🐶",name:"Hund.jpg",type:"bilder"},{em:"🎵",name:"Lied.mp3",type:"musik"},{em:"📄",name:"Brief.txt",type:"texte"},
@@ -1091,13 +1136,24 @@ SCREENS.s6=(stage)=>{
   }
   function roundTrash(){
     stage.innerHTML="";
-    setInstruction(`Station ${N} · Aufräumen (2/2)`,
+    setInstruction(`Station ${N} · Aufräumen (2/3)`,
       "Jetzt wird aufgeräumt: Ziehe die <b>kaputten oder doppelten Dateien</b> in den <b>Papierkorb 🗑️</b> – und die guten Bilder in den Bilder-Ordner.");
     setHint("Müll in den Papierkorb, Bilder in den Ordner.","");
     const FILES=[{em:"🐶",name:"Foto1.jpg",type:"bilder"},{em:"❌",name:"kaputt.tmp",type:"muell"},{em:"🌅",name:"Foto2.jpg",type:"bilder"},
       {em:"♻️",name:"alt.bak",type:"muell"},{em:"🐱",name:"Foto3.jpg",type:"bilder"},{em:"🗑️",name:"leer.tmp",type:"muell"}];
     const FOLDERS=[{type:"bilder",nm:"Bilder"},{type:"muell",nm:"Papierkorb",bin:true}];
-    build(FILES,FOLDERS,"Aufräumen – richtig zuordnen:",()=>completeStation("s6","Sortiert und aufgeräumt – Ziehen & Ablegen sitzt! ✋"),"Alles erledigt!");
+    build(FILES,FOLDERS,"Aufräumen – richtig zuordnen:",roundVideos,"Alles aufgeräumt! Weiter geht’s.");
+  }
+  function roundVideos(){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Vier Ordner (3/3)`,
+      "Zum Schluss mit vier Ordnern – jetzt sind auch <b>Videos 🎬</b> dabei. Ziehe jede Datei zum richtigen Ordner.");
+    setHint("Auf die Datei-Endung achten: .mp4 → Videos, .mp3 → Musik …","");
+    const FILES=[{em:"🎬",name:"Film.mp4",type:"videos"},{em:"🐶",name:"Hund.jpg",type:"bilder"},{em:"🎵",name:"Lied.mp3",type:"musik"},
+      {em:"📄",name:"Brief.txt",type:"texte"},{em:"🎞️",name:"Clip.mp4",type:"videos"},{em:"🏞️",name:"Berg.jpg",type:"bilder"},
+      {em:"🎶",name:"Song.mp3",type:"musik"},{em:"📝",name:"Notiz.txt",type:"texte"}];
+    const FOLDERS=[{type:"bilder",nm:"Bilder"},{type:"musik",nm:"Musik"},{type:"texte",nm:"Texte"},{type:"videos",nm:"Videos"}];
+    build(FILES,FOLDERS,"Diese Dateien einsortieren:",()=>completeStation("s6","Sortiert und aufgeräumt – Ziehen & Ablegen sitzt! ✋"),"Alles erledigt!");
   }
   function build(FILES,FOLDERS,trayLabel,onDone,doneMsg){
     const TOTAL=FILES.length;let placed=0;setCounter(`0/${TOTAL}`,"sortiert");
@@ -1187,60 +1243,76 @@ SCREENS.s7=(stage)=>{
 /* ---------- S8: Regler & Leiste ziehen ---------- */
 SCREENS.s8=(stage)=>{
   const N=stationNumber("s8");
-  setInstruction(`Station ${N} · Regler ziehen`,
-    "Regler bewegt man, indem man den <b>runden Griff anfasst, gedrückt hält und schiebt</b>. Schiebe jeden Griff genau in das <b>grüne Feld</b>.");
-  setHint("Griff anfassen, halten und ins grüne Feld schieben.","");
-  const rows=[{ic:"🔊",nm:"Lautstärke",target:0.8},{ic:"☀️",nm:"Helligkeit",target:0.35},{ic:"🐢",nm:"Tempo",target:0.6}];
-  let ok=0;setCounter(`0/${rows.length}`,"eingestellt");
-  const wrap=document.createElement("div");wrap.className="sliderstage";stage.appendChild(wrap);
-  rows.forEach(rw=>{
-    const row=document.createElement("div");row.className="sliderrow";
-    row.innerHTML=`<span class="ico">${rw.ic}</span><span class="nm">${rw.nm}</span>
-      <div class="track"><div class="zone"></div><div class="thumb"></div></div>`;
-    wrap.appendChild(row);
-    const track=row.querySelector(".track"),thumb=row.querySelector(".thumb"),zone=row.querySelector(".zone");
-    const ZW=0.16*diff().size; // halbe Zonenbreite (Anteil) – schwerer = schmaler
-    let val=Math.random()*0.25; // Startwert links
-    function place(){ const w=track.clientWidth; thumb.style.left=(val*w)+"px";
-      zone.style.left=((rw.target-ZW)*w)+"px";zone.style.width=(ZW*2*w)+"px"; }
-    requestAnimationFrame(place);
-    addEventListener("resize",place);
-    let solved=false;
-    thumb.addEventListener("mousedown",e=>{
-      const tr=track.getBoundingClientRect();
-      dragMove(e,ev=>{val=Math.max(0,Math.min(1,(ev.clientX-tr.left)/tr.width));thumb.style.left=(val*track.clientWidth)+"px";
-        const inZone=Math.abs(val-rw.target)<=ZW;row.classList.toggle("ok",inZone);
-      },()=>{const inZone=Math.abs(val-rw.target)<=ZW;
-        if(inZone&&!solved){solved=true;row.classList.add("ok");ok++;sfx.step();setCounter(`${ok}/${rows.length}`,"eingestellt");
-          if(ok===rows.length)completeStation("s8","Alle Regler genau eingestellt – präzises Ziehen! 🎚️");
-          else setHint(`Genau im grünen Feld! Noch ${rows.length-ok}.`,"good");}
-        else if(!inZone){if(solved){solved=false;row.classList.remove("ok");ok=Math.max(0,ok-1);setCounter(`${ok}/${rows.length}`,"eingestellt");}
-          setHint("Schiebe den Griff genau ins grüne Feld.","warn");}});
+  function makeRound(rows,zwBase,label,onDone){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Regler ziehen (${label})`,
+      "Regler bewegt man, indem man den <b>runden Griff anfasst, gedrückt hält und schiebt</b>. Schiebe jeden Griff genau in das <b>grüne Feld</b>.");
+    setHint("Griff anfassen, halten und ins grüne Feld schieben.","");
+    let ok=0;setCounter(`0/${rows.length}`,"eingestellt");
+    const wrap=document.createElement("div");wrap.className="sliderstage";stage.appendChild(wrap);
+    rows.forEach(rw=>{
+      const row=document.createElement("div");row.className="sliderrow";
+      row.innerHTML=`<span class="ico">${rw.ic}</span><span class="nm">${rw.nm}</span>
+        <div class="track"><div class="zone"></div><div class="thumb"></div></div>`;
+      wrap.appendChild(row);
+      const track=row.querySelector(".track"),thumb=row.querySelector(".thumb"),zone=row.querySelector(".zone");
+      const ZW=zwBase*diff().size;
+      let val=Math.random()*0.2;
+      function place(){ const w=track.clientWidth; thumb.style.left=(val*w)+"px";
+        zone.style.left=((rw.target-ZW)*w)+"px";zone.style.width=(ZW*2*w)+"px"; }
+      requestAnimationFrame(place);
+      let solved=false;
+      thumb.addEventListener("mousedown",e=>{
+        const tr=track.getBoundingClientRect();
+        dragMove(e,ev=>{val=Math.max(0,Math.min(1,(ev.clientX-tr.left)/tr.width));thumb.style.left=(val*track.clientWidth)+"px";
+          const inZone=Math.abs(val-rw.target)<=ZW;row.classList.toggle("ok",inZone);
+        },()=>{const inZone=Math.abs(val-rw.target)<=ZW;
+          if(inZone&&!solved){solved=true;row.classList.add("ok");ok++;sfx.step();setCounter(`${ok}/${rows.length}`,"eingestellt");
+            if(ok===rows.length)onDone();
+            else setHint(`Genau im grünen Feld! Noch ${rows.length-ok}.`,"good");}
+          else if(!inZone){if(solved){solved=false;row.classList.remove("ok");ok=Math.max(0,ok-1);setCounter(`${ok}/${rows.length}`,"eingestellt");}
+            setHint("Schiebe den Griff genau ins grüne Feld.","warn");}});
+      });
     });
-  });
+  }
+  function round1(){ makeRound([{ic:"🔊",nm:"Lautstärke",target:0.8},{ic:"☀️",nm:"Helligkeit",target:0.35},{ic:"🐢",nm:"Tempo",target:0.6}],0.16,"1/2",
+    ()=>{sfx.good();setHint("Runde geschafft! Jetzt etwas kniffliger.","good");later(round2,700);}); }
+  function round2(){ makeRound([{ic:"🌡️",nm:"Wärme",target:0.55},{ic:"🔆",nm:"Kontrast",target:0.7},{ic:"🎚️",nm:"Bässe",target:0.3},{ic:"⏱️",nm:"Dauer",target:0.85}],0.12,"2/2",
+    ()=>completeStation("s8","Alle Regler genau eingestellt – präzises Ziehen! 🎚️")); }
+  round1();
 };
 
 /* ---------- S9: Malen durch Ziehen ---------- */
 SCREENS.s9=(stage)=>{
   const N=stationNumber("s9");
-  setInstruction(`Station ${N} · Malen mit der Maus`,
-    "Wie in einem Malprogramm: <b>Drücke die linke Taste und wische über die hellblauen Felder</b>, ohne loszulassen. Male das ganze Muster aus!");
-  setHint("Gedrückt halten und über die hellblauen Felder wischen.","");
   const W=13,H=11,cell=24;
-  const grid=document.createElement("div");grid.className="paintgrid";grid.style.gridTemplateColumns=`repeat(${W},${cell}px)`;
-  const wrap=document.createElement("div");wrap.className="paintwrap";wrap.appendChild(grid);stage.appendChild(wrap);
-  // Herz-Form bestimmen
+  // Formeln je Form
   function inHeart(cx,cy){const a=(cx+0.5)/W*2.8-1.4,b=1.4-(cy+0.5)/H*2.8;const v=Math.pow(a*a+b*b-1,3)-a*a*b*b*b;return v<=0;}
-  const cells=[];let targetCount=0;
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=document.createElement("div");c.className="cell";
-    if(inHeart(x,y)){c.classList.add("target");c.dataset.target="1";targetCount++;}grid.appendChild(c);cells.push(c);}
-  let painted=0;setCounter(`0/${targetCount}`,"Felder");
-  function paintAt(el){if(!el||!el.classList||!el.classList.contains("cell"))return;
-    if(el.classList.contains("paint"))return;el.classList.add("paint");
-    if(el.dataset.target){painted++;sfx.step();setCounter(`${painted}/${targetCount}`,"Felder");
-      if(painted===targetCount)completeStation("s9","Ein ganzes Herz gemalt – tolle Mausführung! 🎨");}}
-  grid.addEventListener("mousedown",e=>{e.preventDefault();paintAt(e.target);
-    dragMove(e,ev=>{const t=document.elementFromPoint(ev.clientX,ev.clientY);paintAt(t);},null);});
+  const STAR_PTS=(()=>{const p=[];for(let i=0;i<10;i++){const r=i%2===0?0.96:0.42,a=-Math.PI/2+i*Math.PI/5;p.push([Math.cos(a)*r,Math.sin(a)*r]);}return p;})();
+  function inStar(cx,cy){const px=(cx+0.5)/W*2-1,py=((cy+0.5)/H*2-1)*0.92;let inside=false;
+    for(let i=0,j=STAR_PTS.length-1;i<STAR_PTS.length;j=i++){const xi=STAR_PTS[i][0],yi=STAR_PTS[i][1],xj=STAR_PTS[j][0],yj=STAR_PTS[j][1];
+      const it=((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi);if(it)inside=!inside;}return inside;}
+  function makeRound(shapeFn,label,name,onDone){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Malen mit der Maus (${label})`,
+      `Wie in einem Malprogramm: <b>Drücke die linke Taste und wische über die hellblauen Felder</b>, ohne loszulassen. Male das ganze ${name} aus!`);
+    setHint("Gedrückt halten und über die hellblauen Felder wischen.","");
+    const grid=document.createElement("div");grid.className="paintgrid";grid.style.gridTemplateColumns=`repeat(${W},${cell}px)`;
+    const wrap=document.createElement("div");wrap.className="paintwrap";wrap.appendChild(grid);stage.appendChild(wrap);
+    let targetCount=0;
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=document.createElement("div");c.className="cell";
+      if(shapeFn(x,y)){c.classList.add("target");c.dataset.target="1";targetCount++;}grid.appendChild(c);}
+    let painted=0;setCounter(`0/${targetCount}`,"Felder");
+    function paintAt(el){if(!el||!el.classList||!el.classList.contains("cell"))return;
+      if(el.classList.contains("paint"))return;el.classList.add("paint");
+      if(el.dataset.target){painted++;sfx.step();setCounter(`${painted}/${targetCount}`,"Felder");
+        if(painted===targetCount)onDone();}}
+    grid.addEventListener("mousedown",e=>{e.preventDefault();paintAt(e.target);
+      dragMove(e,ev=>{const t=document.elementFromPoint(ev.clientX,ev.clientY);paintAt(t);},null);});
+  }
+  function round1(){ makeRound(inHeart,"1/2","Herz ❤️",()=>{sfx.good();setHint("Herz fertig! Jetzt noch ein Stern.","good");later(round2,700);}); }
+  function round2(){ makeRound(inStar,"2/2","Stern ⭐",()=>completeStation("s9","Herz und Stern gemalt – tolle Mausführung! 🎨")); }
+  round1();
 };
 
 /* ---------- S10: Umschalt-Klick (Bereichsauswahl) ---------- */
@@ -1255,6 +1327,8 @@ SCREENS.s10=(stage)=>{
   function selectRange(a,b){clearSel();for(let i=Math.min(a,b);i<=Math.max(a,b);i++)rows[i].classList.add("sel");}
   function selected(){return rows.filter(r=>r.classList.contains("sel")).map(r=>+r.dataset.i);}
   function check(){const s=selected();const ok=s.length===target.length&&s.every((v,i)=>v===target[i]);
+    if(ok){sfx.step();if(round<3){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(round+1),800);}
+      else completeStation("s10","Bereichsauswahl mit der Umschalt-Taste sitzt! 📑");}}
     if(ok){sfx.step();if(round<2){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(2),800);}
       else completeStation("s10","Bereichsauswahl mit der Umschalt-Taste sitzt! 📑");}
     else{sfx.soft();const a=target[0]+1,b=target[target.length-1]+1;
@@ -1262,14 +1336,18 @@ SCREENS.s10=(stage)=>{
       // Strg-Klick-Station – klar sagen, welcher Bereich gesucht ist.
       setHint(`Das ist noch nicht der richtige Bereich. Klicke <b>Lied ${a}</b> an und dann mit gedrückter <b>Umschalt-Taste (⇧)</b> auf <b>Lied ${b}</b>.`,"warn");}}
   function setRound(r){round=r;anchor=null;clearSel();
-    if(r===1){target=[1,2,3,4];setCounter("1/2","Runde");
-      setInstruction(`Station ${N} · Umschalt-Klick (1/2)`,
+    if(r===1){target=[1,2,3,4];setCounter("1/3","Runde");
+      setInstruction(`Station ${N} · Umschalt-Klick (1/3)`,
         "So markiert man einen ganzen Bereich: Klicke <b>Lied 2</b> an, halte dann die <b>Umschalt-Taste (⇧)</b> gedrückt und klicke <b>Lied 5</b>. Alles dazwischen wird mitmarkiert.");
       setHint("Erst Lied 2 anklicken, dann mit gedrückter Umschalt-Taste Lied 5.","");}
-    else{target=[4,5,6,7];setCounter("2/2","Runde");
-      setInstruction(`Station ${N} · Umschalt-Klick (2/2)`,
+    else if(r===2){target=[4,5,6,7];setCounter("2/3","Runde");
+      setInstruction(`Station ${N} · Umschalt-Klick (2/3)`,
         "Noch einmal: Markiere den Bereich von <b>Lied 5</b> bis <b>Lied 8</b> mit Klick und Umschalt-Klick.");
-      setHint("Lied 5 anklicken, dann Umschalt gedrückt halten und Lied 8 anklicken.","");}}
+      setHint("Lied 5 anklicken, dann Umschalt gedrückt halten und Lied 8 anklicken.","");}
+    else{target=[0,1,2];setCounter("3/3","Runde");
+      setInstruction(`Station ${N} · Umschalt-Klick (3/3)`,
+        "Zum Schluss: Markiere die ersten drei – <b>Lied 1</b> bis <b>Lied 3</b> mit Klick und Umschalt-Klick.");
+      setHint("Lied 1 anklicken, dann Umschalt gedrückt halten und Lied 3 anklicken.","");}}
   rows.forEach(r=>r.addEventListener("click",e=>{const i=+r.dataset.i;
     if(e.shiftKey&&anchor!=null){selectRange(anchor,i);check();}
     else if(anchor!=null&&i!==anchor){
@@ -1293,14 +1371,14 @@ SCREENS.s11=(stage)=>{
   stage.appendChild(prompt);stage.appendChild(card);
   function norm(s){return (s||"").replace(/\s+/g," ").trim().replace(/[.»«]/g,"").trim();}
   function setRound(r){round=r;if(window.getSelection)window.getSelection().removeAllRanges();
-    target=(r===1)?sentences[1]:sentences[0];setCounter(`${r}/2`,"Runde");
-    setInstruction(`Station ${N} · Text markieren (${r}/2)`, r===1
+    target=(r===1)?sentences[1]:(r===2)?sentences[0]:sentences[2];setCounter(`${r}/3`,"Runde");
+    setInstruction(`Station ${N} · Text markieren (${r}/3)`, r===1
       ? "Text markiert man, indem man mit <b>gedrückter linker Taste über die Wörter fährt</b>. Markiere genau diesen Satz:"
       : "Sehr gut! Markiere nun genau diesen Satz:");
     prompt.innerHTML=`Markiere: <b>»${target}«</b>`;
     setHint("Am Satzanfang die Taste drücken, bis zum Punkt ziehen, dann loslassen.","");}
   function onUp(){later(()=>{const sel=norm(window.getSelection().toString());if(!sel)return;const t=norm(target);
-    if(sel===t){sfx.step();if(round<2){setHint("Genau dieser Satz – perfekt! 🎉","good");later(()=>setRound(2),800);}
+    if(sel===t){sfx.step();if(round<3){setHint("Genau dieser Satz – perfekt! 🎉","good");later(()=>setRound(round+1),800);}
       else completeStation("s11","Text markieren durch Ziehen – stark! 🖍️");}
     else if(t.includes(sel))setHint("Fast! Du hast noch nicht den ganzen Satz erwischt – zieh bis zum Punkt.","warn");
     else setHint("Das ist zu viel oder der falsche Satz. Markiere genau den geforderten Satz.","warn");},10);}
@@ -1353,20 +1431,24 @@ SCREENS.s13=(stage)=>{
     row.innerHTML=`<span class="grip">⋮⋮</span><span class="em">${it.em}</span><span>${it.label}</span>`;
     row.addEventListener("mousedown",e=>startDrag(e,row));list.appendChild(row);});}
   function check(){const cur=order();const ok=cur.every((k,i)=>k===correct[i]);
-    if(ok){sfx.step();if(round===1){setHint("Reihenfolge stimmt – klasse! 🎉","good");later(()=>setRound(2),800);}
+    if(ok){sfx.step();if(round<3){setHint("Reihenfolge stimmt – klasse! 🎉","good");later(()=>setRound(round+1),800);}
       else completeStation("s13","Listen per Ziehen umsortieren – jetzt bist du ein echter Maus-Profi! 🔀");}
     else setHint("Noch nicht ganz – zieh die Einträge in die richtige Reihenfolge.","warn");}
   function place(items){let sh=shuffle(items);while(sh.every((it,i)=>it.key===correct[i]))sh=shuffle(items);render(sh);}
   function setRound(r){round=r;
-    if(r===1){correct=["1","2","3","4","5"];setCounter("1/2","Runde");
-      setInstruction(`Station ${N} · Umsortieren (1/2)`,
+    if(r===1){correct=["1","2","3","4","5"];setCounter("1/3","Runde");
+      setInstruction(`Station ${N} · Umsortieren (1/3)`,
         "Einträge lassen sich per Ziehen umsortieren: <b>Fasse eine Zeile an, halte gedrückt und schiebe sie nach oben oder unten.</b> Bringe die Zahlen in die Reihenfolge <b>1, 2, 3, 4, 5</b>.");
       setHint("Zeilen anfassen und in die richtige Reihenfolge ziehen.","");
       place([{key:"1",em:"1️⃣",label:"Eins"},{key:"2",em:"2️⃣",label:"Zwei"},{key:"3",em:"3️⃣",label:"Drei"},{key:"4",em:"4️⃣",label:"Vier"},{key:"5",em:"5️⃣",label:"Fünf"}]);}
-    else{correct=["mo","di","mi","do","fr"];setCounter("2/2","Runde");
-      setInstruction(`Station ${N} · Umsortieren (2/2)`,"Jetzt die Wochentage: Bringe sie per Ziehen in die richtige Reihenfolge von <b>Montag bis Freitag</b>.");
+    else if(r===2){correct=["mo","di","mi","do","fr"];setCounter("2/3","Runde");
+      setInstruction(`Station ${N} · Umsortieren (2/3)`,"Jetzt die Wochentage: Bringe sie per Ziehen in die richtige Reihenfolge von <b>Montag bis Freitag</b>.");
       setHint("Tage anfassen und richtig sortieren.","");
-      place([{key:"mo",em:"📅",label:"Montag"},{key:"di",em:"📅",label:"Dienstag"},{key:"mi",em:"📅",label:"Mittwoch"},{key:"do",em:"📅",label:"Donnerstag"},{key:"fr",em:"📅",label:"Freitag"}]);}}
+      place([{key:"mo",em:"📅",label:"Montag"},{key:"di",em:"📅",label:"Dienstag"},{key:"mi",em:"📅",label:"Mittwoch"},{key:"do",em:"📅",label:"Donnerstag"},{key:"fr",em:"📅",label:"Freitag"}]);}
+    else{correct=["xs","s","m","l","xl"];setCounter("3/3","Runde");
+      setInstruction(`Station ${N} · Umsortieren (3/3)`,"Zum Schluss der Größe nach: Bringe sie per Ziehen von <b>klein nach groß</b>.");
+      setHint("Vom kleinsten zum größten Punkt sortieren.","");
+      place([{key:"xs",em:"·",label:"Winzig"},{key:"s",em:"•",label:"Klein"},{key:"m",em:"⚫",label:"Mittel"},{key:"l",em:"🔵",label:"Groß"},{key:"xl",em:"🟠",label:"Riesig"}]);}}
   setRound(1);
 };
 
@@ -1379,7 +1461,7 @@ SCREENS.s14=(stage)=>{
   const area=document.createElement("div");area.className="scrollarea linkpara";br.appendChild(area);
   stage.appendChild(prompt);stage.appendChild(br);
   const LINKS=[["Tiere","tiere"],["Wetter","wetter"],["Sport","sport"],["Musik","musik"],["Weltall","weltall"]];
-  const rounds=["wetter","weltall","sport"];let r=0;
+  const rounds=["wetter","weltall","sport","musik","tiere"];let r=0;
   area.innerHTML=`<h3>Klick dich durch das Internet</h3>
     <p>Unterstrichene, blaue Wörter sind <b>Links</b>. Klickst du darauf, gelangst du auf eine andere Seite.
     Hier sind ein paar: ${LINKS.map(l=>`<a data-key="${l[1]}">${l[0]}</a>`).join(" · ")}.</p>
@@ -1405,7 +1487,7 @@ SCREENS.s15=(stage)=>{
     ["🌦️","Wetter","Morgen scheint die Sonne bei 22 Grad."],
     ["⚽","Sport","Das Spiel endete 3:2 nach einem späten Tor."],
     ["🎵","Musik","Auf der Bühne spielte eine laute Gitarre."]];
-  const rounds=[2,0,3];let r=0;
+  const rounds=[2,0,3,1];let r=0;
   const box=document.createElement("div");box.className="tabsbox";
   const row=document.createElement("div");row.className="tabrow";
   const panel=document.createElement("div");panel.className="tabpanel";
@@ -1440,7 +1522,10 @@ SCREENS.s16=(stage)=>{
      instr:'Vorsicht! Du willst NICHT löschen. Klicke <b>„Abbrechen"</b>, um nichts zu verändern.'},
     {title:"💬 Werbung",body:"Tolle Mäuse zu gewinnen – jetzt klicken!",want:"x",
      buttons:[{lbl:"Mehr erfahren",cls:"btn-ghost",key:"more"}],closable:true,
-     instr:'Dieses PopUp ist Werbung. Schließe es über das <b>×</b> oben rechts, ohne auf die Werbung zu klicken.'}
+     instr:'Dieses PopUp ist Werbung. Schließe es über das <b>×</b> oben rechts, ohne auf die Werbung zu klicken.'},
+    {title:"💾 Speichern",body:"Möchtest du deine Änderungen speichern?",want:"save",
+     buttons:[{lbl:"Nicht speichern",cls:"btn-ghost",key:"nosave"},{lbl:"Speichern",cls:"btn-primary",key:"save"}],
+     instr:'Du hast etwas Wichtiges bearbeitet. Klicke <b>„Speichern"</b>, damit nichts verloren geht.'}
   ];
   let t=0;
   function render(){const task=tasks[t];setCounter(`${t+1}/${tasks.length}`,"Dialog");
@@ -1478,7 +1563,8 @@ SCREENS.s17=(stage)=>{
     Ansicht:[{icon:"🔍",label:"Vergrößern"},{icon:"🔭",label:"Verkleinern"},{icon:"🌑",label:"Dunkelmodus",key:"ansicht.dunkel"}]
   };
   const rounds=[{menu:"Datei",key:"datei.speichern",lbl:"Speichern",msg:"Gespeichert! 💾"},
-    {menu:"Bearbeiten",key:"bearbeiten.kopieren",lbl:"Kopieren",msg:"Kopiert! 📋"}];
+    {menu:"Bearbeiten",key:"bearbeiten.kopieren",lbl:"Kopieren",msg:"Kopiert! 📋"},
+    {menu:"Ansicht",key:"ansicht.dunkel",lbl:"Dunkelmodus",msg:"Dunkelmodus an! 🌑"}];
   let r=0;
   Object.keys(MENUS).forEach(name=>{const mb=document.createElement("div");mb.className="mb";mb.textContent=name;
     mb.addEventListener("click",e=>{e.stopPropagation();
@@ -1576,83 +1662,260 @@ SCREENS.bonus_memory=(stage)=>{
   }});
 };
 
+/* ---------- SHOLD: Halten & Steuern (PacMan) ---------- */
+SCREENS.shold=(stage)=>{
+  const N=stationNumber("shold");
+  setInstruction(`Station ${N} · Halten & Steuern`,
+    "Jetzt das <b>Festhalten</b>: Drücke die <b>linke Maustaste</b> und <b>halte sie gedrückt</b> – dann folgt PacMan deinem Zeiger. Lässt du los, bleibt er stehen. Sammle alle Punkte und weiche den Geistern 👻 aus.");
+  setHint("Linke Taste gedrückt halten und PacMan zu den Punkten führen.","");
+  const board=document.createElement("div");board.className="pacboard";stage.appendChild(board);
+  const W=()=>board.clientWidth,H=()=>board.clientHeight;
+  const START={x:42,y:42};
+  let px=START.x,py=START.y,tx=px,ty=py,held=false,wasCaught=false,invulnUntil=0;
+  const pac=document.createElement("div");pac.className="pac";pac.textContent="🟡";
+  pac.style.left=px+"px";pac.style.top=py+"px";board.appendChild(pac);
+  // Punkte
+  const DOTS=dCount(12,8);let got=0;setCounter(`0/${DOTS}`,"Punkte");
+  const dots=[];
+  for(let i=0;i<DOTS;i++){
+    const d=document.createElement("div");d.className="pdot";
+    const x=60+Math.random()*(W()-120),y=50+Math.random()*(H()-100);
+    d.style.left=x+"px";d.style.top=y+"px";board.appendChild(d);
+    dots.push({el:d,x,y,got:false});
+  }
+  // Geister
+  const ghostN = state.difficulty==="leicht"?1:state.difficulty==="schwer"?3:2;
+  const gspeed=(state.reduced?1.0:1.8)*diff().speed;
+  const ghosts=[];const gem=["👻","👾","🐙"];
+  for(let i=0;i<ghostN;i++){
+    const g=document.createElement("div");g.className="ghost";g.textContent=gem[i%gem.length];
+    const gx=W()-80-i*60,gy=H()-70,ang=Math.random()*Math.PI*2;
+    g.style.left=gx+"px";g.style.top=gy+"px";board.appendChild(g);
+    ghosts.push({el:g,x:gx,y:gy,vx:Math.cos(ang)*gspeed,vy:Math.sin(ang)*gspeed});
+  }
+  const pacSpeed=(state.reduced?2.4:3.6);
+  function onDown(e){ if(e.button!==0)return; e.preventDefault(); held=true; const r=board.getBoundingClientRect();tx=e.clientX-r.left;ty=e.clientY-r.top; }
+  function onMove(e){ const r=board.getBoundingClientRect();tx=e.clientX-r.left;ty=e.clientY-r.top; }
+  function onUp(){ if(held && got<DOTS) setHint("Losgelassen – PacMan steht. Taste wieder halten, um weiterzufahren.","warn"); held=false; }
+  board.addEventListener("mousedown",onDown);
+  document.addEventListener("mousemove",onMove);
+  document.addEventListener("mouseup",onUp);
+  function cleanup(){document.removeEventListener("mousemove",onMove);document.removeEventListener("mouseup",onUp);}
+  function resetPac(){px=START.x;py=START.y;held=false;wasCaught=true;invulnUntil=performance.now()+800;
+    pac.classList.add("hit","safe");later(()=>pac.classList.remove("hit"),500);later(()=>pac.classList.remove("safe"),800);
+    setHint("Erwischt! Deine Punkte bleiben – einfach weiter halten und ausweichen.","warn");}
+  (function loop(){
+    if(!board.isConnected){cleanup();return;}
+    const now=performance.now();
+    if(held){const dx=tx-px,dy=ty-py,dist=Math.hypot(dx,dy);
+      if(dist>1){const m=Math.min(pacSpeed,dist);px+=dx/dist*m;py+=dy/dist*m;}
+      px=Math.max(18,Math.min(W()-18,px));py=Math.max(18,Math.min(H()-18,py));
+      pac.style.left=px+"px";pac.style.top=py+"px";
+    }
+    // Punkte einsammeln
+    dots.forEach(d=>{if(d.got)return;if(Math.hypot(d.x-px,d.y-py)<22){d.got=true;d.el.remove();got++;sfx.step();
+      setCounter(`${got}/${DOTS}`,"Punkte");
+      if(got===DOTS){cleanup();stopLoop();
+        if(!wasCaught)unlock("pac_hero");
+        completeStation("shold","Stark festgehalten und sauber gesteuert! 🟡",{perfect:!wasCaught});}
+      else if(got%4===0)setHint(`Super! Noch ${DOTS-got} Punkte.`,"good");}});
+    // Geister bewegen + Kollision
+    ghosts.forEach(g=>{g.x+=g.vx;g.y+=g.vy;
+      if(g.x<16||g.x>W()-16)g.vx*=-1;if(g.y<16||g.y>H()-16)g.vy*=-1;
+      g.x=Math.max(16,Math.min(W()-16,g.x));g.y=Math.max(16,Math.min(H()-16,g.y));
+      g.el.style.left=g.x+"px";g.el.style.top=g.y+"px";
+      if(now>invulnUntil && Math.hypot(g.x-px,g.y-py)<26)resetPac();});
+    _raf=requestAnimationFrame(loop);
+  })();
+};
+
+/* ---------- SFILES: Dateien verschieben (Drag&Drop) ---------- */
+SCREENS.sfiles=(stage)=>{
+  const N=stationNumber("sfiles");
+  function buildDnD(FILES,FOLDERS,trayLabel,instrTitle,instrText,onDone){
+    stage.innerHTML="";
+    setInstruction(instrTitle,instrText);
+    setHint("Datei anfassen, halten, über dem Ziel loslassen.","");
+    const TOTAL=FILES.length;let placed=0;setCounter(`0/${TOTAL}`,"verschoben");
+    const wrap=document.createElement("div");wrap.className="sortwrap";
+    const tray=document.createElement("div");tray.className="tray";tray.innerHTML=`<div class="lab">${trayLabel}</div>`;
+    const folders=document.createElement("div");folders.className="folders";folders.style.gridTemplateColumns=`repeat(${FOLDERS.length},1fr)`;
+    wrap.appendChild(tray);wrap.appendChild(folders);stage.appendChild(wrap);
+    const fmap={};
+    FOLDERS.forEach(f=>{const el=document.createElement("div");el.className="folder";el.dataset.type=f.type;
+      el.innerHTML=`<div class="em">${f.em}</div><div class="nm">${f.nm}</div><div class="cnt" data-cnt>${f.bin?"":"leer"}</div>`;
+      folders.appendChild(el);fmap[f.type]={el,count:0,bin:f.bin};});
+    FILES.forEach(f=>{const el=document.createElement("div");el.className="draggable";el.dataset.type=f.type;
+      el.innerHTML=`<span class="em">${f.em}</span>${f.name}`;
+      el.addEventListener("mousedown",e=>{if(el.classList.contains("placed"))return;el.classList.add("dragging");
+        ghostDrag(e,`<span class="em">${f.em}</span>${f.name}`,{
+          onOver:(t)=>{$$(".folder",folders).forEach(x=>x.classList.remove("over"));const fo=t&&t.closest(".folder");if(fo)fo.classList.add("over");},
+          onDrop:(t)=>{el.classList.remove("dragging");$$(".folder",folders).forEach(x=>x.classList.remove("over"));
+            const fo=t&&t.closest(".folder");
+            if(fo&&fo.dataset.type===f.type){el.classList.add("placed");el.style.cursor="default";
+              const fe=fmap[f.type];fe.count++;
+              fe.el.querySelector("[data-cnt]").textContent=fe.bin?fe.count+" weg":fe.count+" Datei"+(fe.count>1?"en":"");
+              placed++;sfx.step();setCounter(`${placed}/${TOTAL}`,"verschoben");
+              if(placed===TOTAL)onDone();else setHint(`Richtig! Noch ${TOTAL-placed}.`,"good");
+            }else if(fo){registerAttempt(false);sfx.soft();setHint(`Das gehört nicht auf „${fo.querySelector(".nm").textContent}". Schau auf die Datei-Art.`,"warn");}
+            else setHint("Lass die Datei direkt über einem Ziel los.","warn");}});});
+      tray.appendChild(el);});
+  }
+  function round1(){
+    buildDnD(
+      [{em:"🐶",name:"Hund.jpg",type:"bilder"},{em:"🌅",name:"Foto.png",type:"bilder"},
+       {em:"📄",name:"Brief.txt",type:"doks"},{em:"📝",name:"Liste.txt",type:"doks"},
+       {em:"🎵",name:"Lied.mp3",type:"usb"},{em:"🎬",name:"Film.mp4",type:"usb"}],
+      [{type:"bilder",nm:"Bilder",em:"🖼️"},{type:"doks",nm:"Dokumente",em:"📁"},{type:"usb",nm:"USB-Stick",em:"💾"}],
+      "Diese Dateien an den richtigen Ort ziehen:",
+      `Station ${N} · Dateien verschieben (1/2)`,
+      "Dateien zieht man mit gedrückter Taste an ihren Platz. Bilder → <b>Bilder</b>, Texte → <b>Dokumente</b>, Musik/Filme → <b>USB-Stick 💾</b>.",
+      ()=>{sfx.step();setHint("Alles einsortiert! Weiter zum Aufräumen.","good");later(round2,800);}
+    );
+  }
+  function round2(){
+    buildDnD(
+      [{em:"🐱",name:"Katze.jpg",type:"usb"},{em:"🏞️",name:"Berg.jpg",type:"usb"},{em:"📑",name:"Wichtig.pdf",type:"usb"},
+       {em:"❌",name:"kaputt.tmp",type:"muell"},{em:"♻️",name:"alt.bak",type:"muell"},{em:"🗑️",name:"leer.tmp",type:"muell"}],
+      [{type:"usb",nm:"USB-Stick",em:"💾"},{type:"muell",nm:"Papierkorb",em:"🗑️",bin:true}],
+      "Aufräumen – sichern oder wegwerfen:",
+      `Station ${N} · Aufräumen (2/2)`,
+      "Jetzt aufräumen: Gute Dateien auf den <b>USB-Stick 💾</b> sichern, kaputte/leere in den <b>Papierkorb 🗑️</b>.",
+      ()=>{unlock("file_master");completeStation("sfiles","Dateien sicher verschoben und aufgeräumt – top! 🗂️");}
+    );
+  }
+  round1();
+};
+
 /* ---------- Prüfung (mit Bugfix) ---------- */
 SCREENS.exam=(stage)=>{
-  setInstruction("Prüfung · Der Tresor",
-    "Jetzt alles zusammen! Folge den Schritten rechts und knacke den Tresor. Du brauchst jeden Klick, den du gelernt hast.");
-  setHint("Beginne mit Schritt 1.","");
+  setInstruction("Prüfung · Der große Tresor",
+    "Jetzt alles zusammen! Folge den Schritten rechts und knacke den Tresor. Du brauchst alles, was du gelernt hast – Rechtsklick, Doppelklick, Scrollen, Menü, Regler und Ziehen.");
+  setHint("Beginne mit Schritt 1: Rechtsklick auf den freien Desktop.","");
+  let fault=false;
   const wrap=document.createElement("div");wrap.className="examwrap";
   wrap.innerHTML=`
-    <div class="examdesk"><div class="desktop" id="exDesk" style="min-height:330px">
+    <div class="examdesk"><div class="desktop" id="exDesk" style="min-height:360px">
       <div class="icons" id="exIcons"></div>
       <div class="window" id="exWin">
-        <div class="titlebar">📂 Aufgaben <span class="x" id="exClose" title="Schließen">×</span></div>
+        <div class="titlebar">📂 Tresorraum <span class="x" id="exClose" title="Schließen">×</span></div>
         <div class="wbody" id="exWinBody"></div>
       </div>
       <div class="taskbar"><span class="st-btn">⊞ Start</span><span>🖥️ Prüfungs-Desktop</span></div>
     </div></div>
     <div class="checklist"><h3>Deine Aufgaben</h3><ol id="exSteps">
-      <li data-step="0">Klicke den Ordner <b>Aufgaben</b> einmal an (auswählen).</li>
-      <li data-step="1">Öffne den Ordner <b>Aufgaben</b> mit einem Doppelklick.</li>
-      <li data-step="2">Scrolle im Fenster nach unten zum Schlüssel 🔑.</li>
-      <li data-step="3">Rechtsklick auf den Schlüssel → <b>Kopieren</b>.</li>
-      <li data-step="4">Ziehe den Schlüssel vom Desktop auf den Tresor 🔒.</li>
+      <li data-step="0"><b>Rechtsklick</b> auf den freien Desktop → <b>Neuer Ordner</b>.</li>
+      <li data-step="1">Klicke den Ordner <b>Tresorraum</b> einmal an (auswählen).</li>
+      <li data-step="2">Öffne <b>Tresorraum</b> mit einem <b>Doppelklick</b>.</li>
+      <li data-step="3"><b>Scrolle</b> im Fenster nach unten zum Schlüssel 🔑.</li>
+      <li data-step="4"><b>Rechtsklick</b> auf den Schlüssel → <b>Kopieren</b>.</li>
+      <li data-step="5">Knacke das <b>Zahlenschloss</b> – schiebe alle 3 Regler ins Grüne.</li>
+      <li data-step="6"><b>Ziehe</b> den Schlüssel auf den Tresor 🔒.</li>
     </ol></div>`;
   stage.appendChild(wrap);
-  const icons=$("#exIcons",wrap),win=$("#exWin",wrap),winBody=$("#exWinBody",wrap);
+  const exDesk=$("#exDesk",wrap),icons=$("#exIcons",wrap),win=$("#exWin",wrap),winBody=$("#exWinBody",wrap);
   let step=0;
   function activate(n){step=n;$$("#exSteps li",wrap).forEach(li=>{const s=+li.dataset.step;
     li.classList.toggle("active",s===n);li.classList.toggle("done",s<n);});}
-  activate(0);
+  function nope(msg){fault=true;sfx.soft();setHint(msg,"warn");}
 
   const safe=document.createElement("div");safe.className="icon";safe.dataset.role="safe";
   safe.innerHTML=`<span class="em">🔒</span><span class="lb">Tresor</span>`;
-  const folder=document.createElement("div");folder.className="icon";folder.dataset.role="folder";
-  folder.innerHTML=`<span class="em">📁</span><span class="lb">Aufgaben</span>`;
-  icons.appendChild(folder);icons.appendChild(safe);
+  icons.appendChild(safe);
+  let folder=null;
+  activate(0);
 
-  // Schließen-Knopf funktioniert immer (Bugfix)
+  // Schließen-Knopf funktioniert immer
   $("#exClose",wrap).addEventListener("click",()=>{win.style.display="none";});
 
+  // Schritt 0: Rechtsklick auf freien Desktop → Neuer Ordner „Tresorraum"
+  exDesk.addEventListener("contextmenu",e=>{
+    if(e.target.closest(".icon")||e.target.closest(".window"))return;e.preventDefault();
+    if(step!==0){nope("Diesen Schritt hast du schon – schau in der Liste, was als Nächstes dran ist.");return;}
+    showCtx(e.clientX,e.clientY,[
+      {icon:"👁️",label:"Anzeigen"},{icon:"🔄",label:"Aktualisieren"},{sep:true},
+      {icon:"📁",label:"Neuer Ordner",action:()=>{
+        folder=document.createElement("div");folder.className="icon pop";folder.dataset.role="folder";
+        folder.innerHTML=`<span class="em">📁</span><span class="lb">Tresorraum</span>`;
+        icons.insertBefore(folder,safe);sfx.step();
+        setHint("Ordner erstellt! Jetzt den Ordner einmal anklicken (Schritt 2).","good");activate(1);
+        folder.addEventListener("click",onFolderClick);}},
+      {icon:"⚙️",label:"Eigenschaften",key:"Alt+Enter"}]);
+  });
+  exDesk.addEventListener("click",e=>{if(step===0&&!e.target.closest(".ctxmenu")&&!e.target.closest(".icon"))
+    setHint("Für das Menü brauchst du die <b>rechte</b> Maustaste auf der freien Fläche.","warn");});
+
   let lastClick=0;
-  folder.addEventListener("click",()=>{const now=performance.now();
-    if(step===0){folder.classList.add("selected","pop");later(()=>folder.classList.remove("pop"),400);sfx.step();
-      setHint("Ausgewählt ✓ – jetzt öffnen mit Doppelklick (Schritt 2).","good");activate(1);lastClick=now;return;}
-    if(step===1){if(now-lastClick<=state.dblTolerance&&lastClick>0)openWindow();
-      else setHint("Fast! Für den Doppelklick zweimal schnell hintereinander klicken.","warn");lastClick=now;}});
+  function onFolderClick(){const now=performance.now();
+    if(step===1){folder.classList.add("selected","pop");later(()=>folder.classList.remove("pop"),400);sfx.step();
+      setHint("Ausgewählt ✓ – jetzt öffnen mit Doppelklick (Schritt 3).","good");activate(2);lastClick=now;return;}
+    if(step===2){if(now-lastClick<=state.dblTolerance&&lastClick>0)openWindow();
+      else setHint("Fast! Für den Doppelklick zweimal schnell hintereinander klicken.","warn");lastClick=now;}}
 
   function openWindow(){
-    sfx.good();win.style.display="block";setHint("Fenster offen! Scrolle nach unten zum Schlüssel (Schritt 3).","good");activate(2);
-    winBody.innerHTML=`<p><b>Aufgabenordner</b></p><p>In diesem Ordner liegt ein Schlüssel. Scrolle nach unten, bis du ihn siehst.</p>
+    sfx.good();win.style.display="block";setHint("Fenster offen! Scrolle nach unten zum Schlüssel (Schritt 4).","good");activate(3);
+    winBody.innerHTML=`<p><b>Tresorraum</b></p><p>Ganz unten liegt der Schlüssel. Scrolle mit dem Mausrad nach unten.</p>
       <p>Ein Doppelklick öffnet Ordner und Dateien.</p><p>Mit dem Scrollrad bewegst du den Inhalt.</p>
       <p>Du machst das großartig.</p><p>Gleich hast du den Schlüssel …</p><p>Noch ein kleines Stück nach unten.</p>
       <div style="text-align:center;margin-top:10px"><span class="icon" id="exKey" style="display:inline-flex;width:80px;height:84px;color:var(--ink)">
         <span class="em" style="filter:none">🔑</span><span class="lb">Schlüssel</span></span></div>`;
-    winBody.addEventListener("scroll",()=>{if(step===2&&winBody.scrollTop>60)setHint("Genau – gleich siehst du den Schlüssel.","good");});
+    winBody.addEventListener("scroll",()=>{if(step===3&&winBody.scrollTop>80){activate(4);
+      setHint("Schlüssel gefunden! Jetzt <b>Rechtsklick</b> auf den Schlüssel → Kopieren (Schritt 5).","good");}});
     const key=$("#exKey",winBody);
-    key.addEventListener("contextmenu",e=>{e.preventDefault();e.stopPropagation();if(step!==2)return;key.classList.add("selected");
+    key.addEventListener("contextmenu",e=>{e.preventDefault();e.stopPropagation();if(step!==4)return;key.classList.add("selected");
       showCtx(e.clientX,e.clientY,[{icon:"📂",label:"Öffnen"},
         {icon:"📋",label:"Kopieren",key:"Strg+C",action:()=>{sfx.step();copyKey();}},
         {icon:"✏️",label:"Umbenennen",key:"F2"},{icon:"🗑️",label:"Löschen"}]);});
-    key.addEventListener("click",()=>{if(step===2)setHint("Fast! Mache einen <b>Rechtsklick</b> auf den Schlüssel (Schritt 4).","warn");});
+    key.addEventListener("click",()=>{if(step===4)setHint("Fast! Mache einen <b>Rechtsklick</b> auf den Schlüssel (Schritt 5).","warn");});
   }
 
-  // BUGFIX: Fenster schließen und Schlüssel sichtbar auf den Desktop legen
+  let dk=null;
   function copyKey(){
-    activate(3);
-    win.style.display="none"; // Fenster schließt sich, Desktop ist frei
-    setHint("Kopiert! Der Schlüssel liegt jetzt auf dem Desktop. Ziehe ihn auf den Tresor (Schritt 5).","good");
-    const dk=document.createElement("div");dk.className="icon pop";dk.dataset.role="dragkey";
+    activate(5);win.style.display="none";
+    setHint("Kopiert! Der Schlüssel liegt auf dem Desktop. Aber zuerst: knacke das Zahlenschloss (Schritt 6).","good");
+    dk=document.createElement("div");dk.className="icon pop";dk.dataset.role="dragkey";
     dk.innerHTML=`<span class="em">🔑</span><span class="lb">Schlüssel</span>`;
     icons.appendChild(dk);
-    dk.addEventListener("mousedown",e=>{if(step!==3&&step!==4)return;dk.classList.add("dragging");
+    dk.addEventListener("mousedown",e=>{dk.classList.add("dragging");
       ghostDrag(e,`<span class="em">🔑</span>Schlüssel`,{
         onOver:(t)=>{safe.classList.toggle("selected",!!(t&&t.closest('[data-role="safe"]')));},
         onDrop:(t)=>{dk.classList.remove("dragging");safe.classList.remove("selected");
-          if(t&&t.closest('[data-role="safe"]')){dk.remove();safe.querySelector(".em").textContent="🔓";
-            safe.querySelector(".lb").textContent="Geöffnet!";safe.classList.add("pop");activate(5);
-            completeStation("exam","Der Tresor ist offen – Prüfung bestanden! 🏆");}
+          if(t&&t.closest('[data-role="safe"]')){
+            if(step<6){nope("Der Tresor ist noch verschlossen – knacke erst das Zahlenschloss!");return;}
+            dk.remove();safe.querySelector(".em").textContent="🔓";
+            safe.querySelector(".lb").textContent="Geöffnet!";safe.classList.add("pop");activate(7);
+            completeStation("exam","Der Tresor ist offen – Prüfung mit Bravour bestanden! 🏆",{perfect:!fault});}
           else setHint("Lass den Schlüssel direkt über dem Tresor los.","warn");}});});
+    showLock();
+  }
+
+  // Schritt 5: Zahlenschloss mit 3 Schiebereglern
+  function showLock(){
+    const lock=document.createElement("div");lock.dataset.role="lock";
+    lock.style.cssText="position:absolute;left:50%;top:14px;transform:translateX(-50%);width:min(280px,90%);background:#fbfdfe;border:1px solid #b9d4dd;border-radius:12px;box-shadow:0 14px 34px rgba(10,77,104,.3);padding:14px 16px;z-index:4;";
+    lock.innerHTML=`<div style="font-weight:700;color:var(--ocean-deep);margin-bottom:6px;">🔐 Zahlenschloss</div>
+      <div style="font-size:.78rem;color:var(--ink-soft);margin-bottom:10px;">Schiebe jeden Griff genau ins grüne Feld.</div>`;
+    const ZW=0.14*diff().size;const rows=[];
+    for(let i=0;i<3;i++){
+      const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;gap:8px;margin:10px 0;";
+      row.innerHTML=`<span style="width:20px;text-align:center;">${["①","②","③"][i]}</span>
+        <div class="track" style="flex:1;"><div class="zone"></div><div class="thumb"></div></div>`;
+      lock.appendChild(row);
+      const track=row.querySelector(".track"),thumb=row.querySelector(".thumb"),zone=row.querySelector(".zone");
+      const target=0.25+Math.random()*0.5;let val=Math.random()*0.15;let ok=false;
+      const place=()=>{const w=track.clientWidth;thumb.style.left=(val*w)+"px";zone.style.left=((target-ZW)*w)+"px";zone.style.width=(ZW*2*w)+"px";};
+      requestAnimationFrame(place);
+      thumb.addEventListener("mousedown",e=>{const tr=track.getBoundingClientRect();
+        dragMove(e,ev=>{val=Math.max(0,Math.min(1,(ev.clientX-tr.left)/tr.width));thumb.style.left=(val*track.clientWidth)+"px";
+          ok=Math.abs(val-target)<=ZW;row.classList.toggle("ok",ok);thumb.style.background=ok?"var(--success)":"var(--ocean-mid)";
+        },()=>{ok=Math.abs(val-target)<=ZW;if(ok)sfx.step();rows[i]=ok;checkLock();});});
+      rows[i]=false;
+    }
+    exDesk.appendChild(lock);
+    function checkLock(){ if(step===5 && rows.every(Boolean)){activate(6);sfx.good();
+      lock.querySelector("div").innerHTML="🔓 Schloss geknackt!";
+      setHint("Schloss offen! Jetzt den Schlüssel auf den Tresor ziehen (Schritt 7).","good");
+      later(()=>lock.remove(),700);} }
   }
 };
 
