@@ -35,6 +35,28 @@
     border-radius:10px;font-size:1.2rem;cursor:pointer;display:grid;place-items:center;}
   .gear:hover{background:rgba(255,255,255,.28);}
 
+  .hud{display:flex;align-items:center;gap:9px;color:#fff;white-space:nowrap;}
+  .hud .lvl{background:var(--ocean-bright);color:#06303f;font-weight:700;border-radius:999px;padding:4px 10px;font-size:.78rem;cursor:default;}
+  .hud .xpbar{position:relative;width:120px;height:13px;background:rgba(255,255,255,.2);border-radius:8px;overflow:hidden;}
+  .hud .xpfill{height:100%;width:0;background:linear-gradient(90deg,var(--hint),#ffd479);transition:width .45s ease;}
+  .hud .xptxt{position:absolute;inset:0;display:grid;place-items:center;font-size:.62rem;font-weight:700;color:#06303f;text-shadow:0 0 3px rgba(255,255,255,.5);}
+  .hud .coins{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:600;}
+  .xpfloat{position:fixed;z-index:90;transform:translateX(-50%);font-weight:800;color:var(--hint);
+    text-shadow:0 1px 4px rgba(0,0,0,.25);pointer-events:none;animation:rise 1.1s ease-out forwards;}
+  @keyframes rise{0%{opacity:0;transform:translate(-50%,6px) scale(.8);}20%{opacity:1;}100%{opacity:0;transform:translate(-50%,-34px) scale(1.1);}}
+  .toast{position:fixed;top:70px;right:18px;z-index:90;max-width:300px;background:#fff;border-left:5px solid var(--ocean-mid);
+    border-radius:10px;box-shadow:0 12px 30px rgba(10,77,104,.28);padding:12px 16px;font-size:.9rem;color:var(--ink);line-height:1.4;
+    opacity:0;transform:translateX(30px);transition:opacity .3s,transform .3s;}
+  .toast.show{opacity:1;transform:translateX(0);}
+  .toast.good{border-left-color:var(--success);}
+  .bot{transition:transform .15s;}
+  .bot.bot-happy{animation:botHappy .9s ease;}
+  .bot.bot-cheer{animation:botCheer .9s ease;}
+  .bot.bot-think{animation:botThink .9s ease;}
+  @keyframes botHappy{0%,100%{transform:translateY(0);}30%{transform:translateY(-7px);}60%{transform:translateY(-2px);}}
+  @keyframes botCheer{0%,100%{transform:rotate(0) scale(1);}25%{transform:rotate(-9deg) scale(1.12);}55%{transform:rotate(9deg) scale(1.12);}80%{transform:rotate(-4deg) scale(1.05);}}
+  @keyframes botThink{0%,100%{transform:rotate(0);}40%{transform:rotate(-6deg);}}
+
   main{flex:1;display:flex;justify-content:center;padding:22px 18px 30px;}
   .card{background:var(--card);width:min(980px,100%);border-radius:var(--radius);box-shadow:var(--shadow);
     overflow:hidden;display:flex;flex-direction:column;}
@@ -249,6 +271,7 @@
   .urkunde .nameline .cap{font-size:.74rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
   .urkunde .badges{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:18px 0;}
   .urkunde .badge{background:var(--success-soft);color:var(--success);border-radius:20px;padding:5px 11px;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:6px;}
+  .urkunde .badge.ach{background:#fbf0e2;color:#8a5616;border:1px solid #f0d9b8;}
   .urkunde .foot{display:flex;justify-content:space-between;margin-top:22px;font-size:.82rem;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;}
 
   .overlay{position:fixed;inset:0;background:rgba(10,40,53,.45);z-index:80;display:none;align-items:center;justify-content:center;padding:18px;}
@@ -263,6 +286,42 @@
   .toleranceval{font-weight:700;color:var(--ocean-mid);}
   .switch{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.95rem;color:var(--ink);}
   .switch input{width:20px;height:20px;accent-color:var(--ocean-mid);}
+
+  /* S14 Links */
+  .linkpara a{color:var(--ocean-mid);text-decoration:underline;cursor:pointer;font-weight:600;}
+  .linkpara a:hover{color:var(--ocean-deep);background:var(--ocean-pale);border-radius:4px;}
+  .linkpara a.done{color:var(--success);}
+  /* S15 Tabs */
+  .tabsbox{flex:1;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:#fff;min-height:300px;}
+  .tabrow{display:flex;background:var(--ocean-pale);border-bottom:1px solid var(--line);gap:2px;padding:6px 6px 0;flex-wrap:wrap;}
+  .tab{padding:9px 16px;border-radius:8px 8px 0 0;cursor:pointer;font-size:.9rem;color:var(--ink-soft);background:#eef6f9;border:1px solid transparent;border-bottom:none;}
+  .tab:hover{background:#fff;}
+  .tab.active{background:#fff;color:var(--ocean-deep);font-weight:700;border-color:var(--line);}
+  .tabpanel{flex:1;padding:18px 22px;color:var(--ink-soft);line-height:1.6;}
+  .tabpanel h3{color:var(--ocean-deep);margin-top:0;}
+  /* S16 Dialoge */
+  .dlgstage{flex:1;position:relative;border-radius:12px;background:repeating-linear-gradient(45deg,#eef6f9,#eef6f9 14px,#e6f0f4 14px,#e6f0f4 28px);min-height:300px;display:grid;place-items:center;}
+  .dlg{width:min(340px,90%);background:#fff;border-radius:12px;box-shadow:0 18px 44px rgba(10,77,104,.3);overflow:hidden;border:1px solid #b9d4dd;}
+  .dlg .dh{background:linear-gradient(90deg,var(--ocean-deep),var(--ocean-mid));color:#fff;padding:9px 14px;font-size:.92rem;display:flex;align-items:center;gap:8px;}
+  .dlg .dh .x{margin-left:auto;width:20px;height:20px;border-radius:4px;background:rgba(255,255,255,.25);display:grid;place-items:center;cursor:pointer;}
+  .dlg .dh .x:hover{background:#e25555;}
+  .dlg .db{padding:18px 16px;font-size:.95rem;color:var(--ink-soft);line-height:1.5;}
+  .dlg .df{display:flex;justify-content:flex-end;gap:10px;padding:0 16px 16px;}
+  /* S17 Menüleiste */
+  .appwin{flex:1;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column;min-height:300px;}
+  .menubar{display:flex;gap:2px;background:var(--ocean-pale);border-bottom:1px solid var(--line);padding:4px 6px;}
+  .menubar .mb{padding:7px 14px;border-radius:7px;cursor:pointer;font-size:.9rem;color:var(--ink);}
+  .menubar .mb:hover,.menubar .mb.open{background:var(--ocean-mid);color:#fff;}
+  .docarea{flex:1;padding:20px;color:var(--ink-soft);line-height:1.6;}
+  /* S18 + Bonus Memory */
+  .memgrid{display:grid;gap:10px;align-content:center;justify-content:center;flex:1;}
+  .memcard{width:74px;height:74px;border-radius:12px;background:var(--ocean-mid);display:grid;place-items:center;font-size:2rem;cursor:pointer;
+    color:transparent;box-shadow:0 4px 12px rgba(10,77,104,.18);transition:transform .15s,background .15s;user-select:none;}
+  .memcard::before{content:"❓";color:#fff;}
+  .memcard.flip{background:#fff;border:2px solid var(--ocean-bright);color:initial;}
+  .memcard.flip::before{content:none;}
+  .memcard.match{background:var(--success-soft);border-color:var(--success);cursor:default;}
+  .memcard.match::before{content:none;}
   .infobox{background:var(--hint-soft);border:1px solid #f0d9b8;border-radius:10px;padding:11px 13px;font-size:.84rem;color:#8a5616;line-height:1.45;}
 
   @media (max-width:640px){
@@ -270,13 +329,16 @@
     .instruct{flex-wrap:wrap;}
     .counter{order:3;}
     .folders{grid-template-columns:repeat(2,1fr);}
+    .hud .xpbar{width:70px;}
+    .hud .coins{display:none;}
   }
   @media (prefers-reduced-motion:reduce){
     .flutter,.findme,.icon,.chest .em,.mole{animation:none!important;transition:none!important;}
     .scrollarea{scroll-behavior:auto;}
+    .xpfloat,.bot.bot-happy,.bot.bot-cheer,.bot.bot-think{animation:none!important;}
   }
   @media print{
-    header.app,.footbar,.instruct,.gear,.overlay{display:none!important;}
+    header.app,.footbar,.instruct,.gear,.overlay,.toast,.xpfloat{display:none!important;}
     body,main,.card{background:#fff!important;box-shadow:none!important;}
     main{padding:0;} .play{padding:0;}
     .urkunde{border-color:#000;max-width:100%;}
@@ -289,6 +351,11 @@
 <header class="app">
   <div class="brand"><span class="glyph">🖱️</span><span>Maus-Führerschein<small>Bedienung Schritt für Schritt üben</small></span></div>
   <nav class="progress" id="progress" aria-label="Stationen"></nav>
+  <div class="hud" id="hud" aria-label="Punktestand">
+    <span class="lvl" id="hudLvl">Lv 1</span>
+    <div class="xpbar"><div class="xpfill" id="hudXp"></div><span class="xptxt" id="hudXpTxt"></span></div>
+    <span class="coins" id="hudCoins">🪙 0</span>
+  </div>
   <button class="gear" id="gearBtn" title="Einstellungen" aria-label="Einstellungen">⚙</button>
 </header>
 
@@ -332,6 +399,15 @@
         <input type="range" id="tolRange" min="350" max="1200" step="50" value="750">
         <div style="text-align:right">Zeitfenster: <span class="toleranceval" id="tolVal">750</span> ms</div>
       </div>
+      <div class="setrow">
+        <label for="diffSel">Schwierigkeit</label>
+        <div class="help">Leicht = größere Ziele, mehr Zeit, weniger Objekte. Schwer = kleiner, schneller, mehr.</div>
+        <select id="diffSel" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);font-family:inherit;font-size:.95rem;">
+          <option value="leicht">Leicht</option>
+          <option value="mittel" selected>Mittel</option>
+          <option value="schwer">Schwer</option>
+        </select>
+      </div>
       <div class="setrow"><label class="switch"><input type="checkbox" id="soundChk" checked> Töne abspielen</label></div>
       <div class="setrow"><div class="infobox">👈 <b>Für Linkshänder:</b> In Windows lassen sich die Maustasten tauschen
         (Einstellungen → Bluetooth &amp; Geräte → Maus → „Primäre Maustaste“). Dieses Programm funktioniert mit jeder
@@ -349,28 +425,51 @@ const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
 
 const STATIONS = [
   {id:"start", short:"Start",       icon:"🏁"},
-  {id:"s0",    short:"Zeigen",      icon:"🎯"},
-  {id:"s1",    short:"Klick",       icon:"👆"},
-  {id:"s2",    short:"Doppelklick", icon:"⚡"},
-  {id:"s3",    short:"Rechtsklick", icon:"📋"},
-  {id:"s4",    short:"Scrollen",    icon:"🎡"},
-  {id:"s5",    short:"Markieren",   icon:"▭"},
-  {id:"s6",    short:"Sortieren",   icon:"✋"},
-  {id:"s7",    short:"Fenster",     icon:"🪟"},
-  {id:"s8",    short:"Regler",      icon:"🎚️"},
-  {id:"s9",    short:"Malen",       icon:"🎨"},
-  {id:"s10",   short:"Umschalt",    icon:"📑"},
-  {id:"s11",   short:"Text",        icon:"🖍️"},
-  {id:"s12",   short:"Wort/Zeile",  icon:"✏️"},
-  {id:"s13",   short:"Umsort.",     icon:"🔀"},
-  {id:"exam",  short:"Prüfung",     icon:"🏆"}
+  {id:"s0",    short:"Zeigen",      icon:"🎯",  title:"Zeigen & Stoppen",  desc:"Genau bewegen, ruhig halten"},
+  {id:"s1",    short:"Klick",       icon:"👆",  title:"Linksklick",        desc:"Auswählen & treffen"},
+  {id:"s2",    short:"Doppelklick", icon:"⚡",  title:"Doppelklick",       desc:"Öffnen"},
+  {id:"s3",    short:"Rechtsklick", icon:"📋",  title:"Rechtsklick",       desc:"Menü & Untermenü"},
+  {id:"s4",    short:"Scrollen",    icon:"🎡",  title:"Scrollen",          desc:"Rad & Mausradklick"},
+  {id:"s5",    short:"Markieren",   icon:"▭",   title:"Markieren",         desc:"Rahmen & Strg-Klick"},
+  {id:"s6",    short:"Sortieren",   icon:"✋",  title:"Sortieren",         desc:"Ziehen & Ablegen"},
+  {id:"s7",    short:"Fenster",     icon:"🪟",  title:"Fenster",           desc:"Bewegen & Größe"},
+  {id:"s8",    short:"Regler",      icon:"🎚️", title:"Regler",            desc:"Schieben & ziehen"},
+  {id:"s9",    short:"Malen",       icon:"🎨",  title:"Malen",             desc:"Wischen mit der Maus"},
+  {id:"s10",   short:"Umschalt",    icon:"📑",  title:"Umschalt-Klick",    desc:"Bereich auswählen"},
+  {id:"s11",   short:"Text",        icon:"🖍️", title:"Text markieren",    desc:"Über Wörter ziehen"},
+  {id:"s12",   short:"Wort/Zeile",  icon:"✏️", title:"Wort & Zeile",      desc:"Doppel- & Dreifachklick"},
+  {id:"s13",   short:"Umsort.",     icon:"🔀",  title:"Umsortieren",       desc:"Liste per Ziehen ordnen"},
+  {id:"s14",   short:"Links",       icon:"🔗",  title:"Links anklicken",   desc:"Auf Verweise klicken"},
+  {id:"s15",   short:"Tabs",        icon:"🗂️", title:"Tabs wechseln",     desc:"Reiter öffnen"},
+  {id:"s16",   short:"PopUps",      icon:"💬",  title:"PopUps & Dialoge",  desc:"Schließen & bestätigen"},
+  {id:"s17",   short:"Menü",        icon:"📜",  title:"Menüleiste",        desc:"Datei & Bearbeiten"},
+  {id:"s18",   short:"Memory",      icon:"🧠",  title:"Memory",            desc:"Paare finden"},
+  {id:"exam",  short:"Prüfung",     icon:"🏆",  title:"Prüfung",           desc:"Alles zusammen!"}
 ];
 const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam").findIndex(s=>s.id===id)+1;
 
-const state = {
-  current:"start", done:{}, dblTolerance:750, sound:true,
-  reduced: matchMedia("(prefers-reduced-motion:reduce)").matches
+/* Spielstufen: skalieren Zielanzahl, Größe, Tempo, Zeitfenster, Doppelklick-Fenster */
+const DIFF = {
+  leicht: {label:"Leicht", count:0.7, size:1.25, speed:0.6, timeWin:1.5, dbl:1000},
+  mittel: {label:"Mittel", count:1.0, size:1.0,  speed:1.0, timeWin:1.0, dbl:750 },
+  schwer: {label:"Schwer", count:1.3, size:0.8,  speed:1.5, timeWin:0.7, dbl:550 }
 };
+const diff = () => DIFF[state.difficulty] || DIFF.mittel;
+/* skaliert eine Anzahl auf die gewählte Stufe (mind. min) */
+const dCount = (base,min=2) => Math.max(min, Math.round(base*diff().count));
+
+function defaultGamify(){
+  return {
+    xp:0, level:1, coins:0,
+    badges:{},
+    stats:{ attempts:0, fails:0, streak:0, bestStreak:0, perfectStations:{} }
+  };
+}
+const state = Object.assign({
+  current:"start", done:{}, dblTolerance:750, sound:true, difficulty:"mittel",
+  mascotName:"Robi",
+  reduced: matchMedia("(prefers-reduced-motion:reduce)").matches
+}, defaultGamify());
 
 let _raf=null, _timers=[];
 function stopLoop(){ if(_raf){cancelAnimationFrame(_raf);_raf=null;} _timers.forEach(clearTimeout);_timers.forEach(clearInterval);_timers=[]; }
@@ -392,6 +491,101 @@ function tone(freq,dur=0.12,type="sine",vol=0.18){
 const sfx={ good(){tone(660,.1,"sine",.16);later(()=>tone(880,.14,"sine",.16),90);},
   step(){tone(560,.08,"triangle",.13);}, win(){[523,659,784,1046].forEach((f,i)=>later(()=>tone(f,.16,"sine",.17),i*120));},
   soft(){tone(330,.1,"sine",.10);} };
+
+/* ============================================================
+   Gamification: XP, Level, Münzen, Abzeichen, Maskottchen
+   ============================================================ */
+const LEVELS = [
+  {min:0,   title:"Maus-Lehrling"},
+  {min:60,  title:"Maus-Schüler"},
+  {min:150, title:"Maus-Kenner"},
+  {min:300, title:"Maus-Profi"},
+  {min:500, title:"Maus-Meister"}
+];
+function levelForXp(xp){ let lv=1,t=LEVELS[0].title; LEVELS.forEach((l,i)=>{ if(xp>=l.min){lv=i+1;t=l.title;} }); return {lv,title:t}; }
+
+const BADGES = {
+  first_step:     {icon:"👣", title:"Erster Schritt"},
+  dbl_master:     {icon:"⚡", title:"Doppelklick-Meister"},
+  right_click_pro:{icon:"📋", title:"Menü-Profi"},
+  sharp_shooter:  {icon:"🎯", title:"Scharfschütze"},
+  painter:        {icon:"🎨", title:"Kunstmaler"},
+  tidy:           {icon:"🧹", title:"Aufräum-Held"},
+  halfway:        {icon:"🌟", title:"Halbzeit-Star"},
+  flawless:       {icon:"💎", title:"Fehlerfrei"},
+  streak5:        {icon:"🔥", title:"5er-Serie"},
+  explorer:       {icon:"🧭", title:"Entdecker"},
+  bonus_fan:      {icon:"🎁", title:"Bonus-Fan"},
+  champion:       {icon:"🏆", title:"Maus-Champion"}
+};
+
+/* Toast/Float laufen NICHT über _timers, damit go()/stopLoop() sie nicht abräumt. */
+function toast(html,mood){
+  const t=document.createElement("div");t.className="toast"+(mood?" "+mood:"");t.innerHTML=html;
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add("show"));
+  setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),350);},2600);
+}
+function floatXP(n){
+  const hud=$("#hud");if(!hud)return;const r=hud.getBoundingClientRect();
+  const f=document.createElement("div");f.className="xpfloat";f.textContent="+"+n+" XP";
+  f.style.left=(r.left+r.width/2)+"px";f.style.top=(r.bottom+4)+"px";
+  document.body.appendChild(f);setTimeout(()=>f.remove(),1100);
+}
+function mascotReact(mood){
+  const bot=$(".bot");if(!bot)return;
+  const cls = mood==="level"?"bot-cheer":mood==="warn"?"bot-think":"bot-happy";
+  bot.classList.remove("bot-cheer","bot-happy","bot-think");
+  void bot.offsetWidth; bot.classList.add(cls);
+  setTimeout(()=>bot.classList.remove(cls),900);
+}
+function refreshHUD(){
+  const hud=$("#hud");if(!hud)return;
+  const {lv,title}=levelForXp(state.xp);state.level=lv;
+  $("#hudLvl").textContent="Lv "+lv;$("#hudLvl").title=title;
+  const cur=LEVELS[lv-1].min, next=LEVELS[lv]?LEVELS[lv].min:cur, span=Math.max(1,next-cur);
+  const pct = LEVELS[lv]? Math.min(100,Math.round((state.xp-cur)/span*100)) : 100;
+  $("#hudXp").style.width=pct+"%";
+  $("#hudXpTxt").textContent = LEVELS[lv]? (state.xp+" / "+next) : (state.xp+" XP");
+  $("#hudCoins").textContent="🪙 "+state.coins;
+}
+function awardXP(n,reason){
+  const before=state.level;
+  state.xp+=n;state.coins+=n;
+  const {lv,title}=levelForXp(state.xp);state.level=lv;
+  refreshHUD();floatXP(n);
+  if(lv>before){ sfx.win();mascotReact("level");
+    toast(`🎉 <b>Level ${lv}!</b><br>${state.mascotName}: „Stark – du bist jetzt <b>${title}</b>!"`,"good"); }
+  return lv>before;
+}
+function unlock(id){
+  if(state.badges[id]||!BADGES[id])return false;
+  state.badges[id]=true;const b=BADGES[id];
+  sfx.good();toast(`Abzeichen freigeschaltet:<br><b>${b.icon} ${b.title}</b>`,"good");
+  state.xp+=15;state.coins+=15;refreshHUD();
+  return true;
+}
+/* Zeit-Bonus ohne Bestrafung: nur bei Erfolg Extra-XP, sonst passiert nichts. */
+function timeBonus(t0, baseMs){
+  const target=baseMs*diff().timeWin, elapsed=performance.now()-t0;
+  if(elapsed<=target){ awardXP(10,"speed"); toast("⏱️ <b>Schnell-Bonus!</b> +10 XP","good"); return true; }
+  return false;
+}
+function registerAttempt(ok){
+  const s=state.stats;s.attempts++;
+  if(ok){ s.streak++; if(s.streak>s.bestStreak)s.bestStreak=s.streak; if(s.bestStreak>=5)unlock("streak5"); }
+  else { s.fails++; s.streak=0; }
+}
+const NEW_STATIONS=["s14","s15","s16","s17","s18"];
+function checkStationBadges(id){
+  unlock("first_step");
+  if(id==="s2")unlock("dbl_master");
+  if(id==="s3")unlock("right_click_pro");
+  if(id==="s9")unlock("painter");
+  if(id==="exam")unlock("champion");
+  if(Object.keys(state.done).length>=7)unlock("halfway");
+  if(NEW_STATIONS.every(s=>state.done[s]))unlock("explorer");
+}
 
 /* ---- Anzeige ---- */
 function setInstruction(title,text){ $("#iTitle").textContent=title; $("#iText").innerHTML=text; }
@@ -427,16 +621,36 @@ function go(id){
   state.current=id;
   const stage=$("#stage");stage.innerHTML="";
   setHint("","");showNext(false);showReplay(false);showSkip(false);setCounter(null);
-  refreshProgress();
+  refreshProgress();refreshHUD();
   (SCREENS[id]||SCREENS.start)(stage);
   $("main").scrollTop=0;
 }
 function nextStationId(){ const i=STATIONS.findIndex(s=>s.id===state.current); return STATIONS[Math.min(i+1,STATIONS.length-1)].id; }
-function completeStation(id,msg){
+let _bonusReturn=null;
+function maybeOfferBonus(next){
+  // Nach jeder 3. abgeschlossenen Station ein überspringbares Bonus-Spiel anbieten.
+  const n=Object.keys(state.done).length;
+  if(n>0 && n%3===0 && state.current!=="exam"){
+    _bonusReturn=next;
+    const games=["bonus_catch","bonus_memory"];const g=games[(n/3-1)%games.length];
+    showSkip(true,()=>go(next));$("#skipBtn").textContent="Bonus überspringen";
+    showNext(true,"🎁 Bonus-Spiel!");$("#nextBtn").onclick=()=>go(g);
+    return true;
+  }
+  return false;
+}
+function completeStation(id,msg,opts){
+  const isNew=!state.done[id];
   markDone(id);setHint(msg||"Super gemacht! 🎉","good");sfx.win();showSkip(false);
+  if(isNew){
+    awardXP(id==="exam"?50:20,"station");
+    registerAttempt(true);
+    if(opts&&opts.perfect){ state.stats.perfectStations[id]=true; unlock("flawless"); }
+    checkStationBadges(id);
+  }
   const next=nextStationId();showReplay(true);
   if(id==="exam"){ showNext(true,"Urkunde anzeigen 🏆"); $("#nextBtn").onclick=()=>go("exam_done"); }
-  else { showNext(true,"Weiter zu „"+STATIONS.find(s=>s.id===next).short+"“ ›"); $("#nextBtn").onclick=()=>go(next); }
+  else if(!maybeOfferBonus(next)){ showNext(true,"Weiter zu „"+STATIONS.find(s=>s.id===next).short+"“ ›"); $("#nextBtn").onclick=()=>go(next); }
 }
 $("#replayBtn").addEventListener("click",()=>go(state.current));
 
@@ -501,34 +715,20 @@ const SCREENS={};
 
 /* ---------- Start ---------- */
 SCREENS.start=(stage)=>{
-  setInstruction("Willkommen beim Maus-Führerschein!",
-    "Du übst Schritt für Schritt alles, was man mit der Maus können muss. Für jede bestandene Station bekommst du oben einen Haken – am Ende gibt es deine Urkunde.");
+  const nStations=STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam").length;
+  setInstruction(`Hallo, ich bin ${state.mascotName}! 🤖`,
+    `Schön, dass du da bist! Wir erobern zusammen den <b>Maus-Führerschein</b>. Für jede Aufgabe gibt es <b>XP und Münzen</b>, dazu Abzeichen und einen Levelaufstieg – am Ende deine Urkunde.`);
   setHint("Klicke auf „Los geht’s“, um zu starten.","");
   stage.innerHTML=`<div class="start"><div class="big">🖱️</div>
-    <h1>Dein Weg zum Maus-Profi</h1>
-    <p class="lead">Vierzehn Stationen und eine Prüfung warten auf dich. Jede Station hat mehrere Runden. Du kannst alles so oft wiederholen, wie du möchtest – auf Tempo kommt es nicht an.</p>
+    <h1>Dein Weg zum Maus-Meister</h1>
+    <p class="lead">${nStations} Stationen und eine große Prüfung warten auf dich. Jede Station hat mehrere Runden, sammle dabei XP und Abzeichen. Du kannst alles so oft wiederholen, wie du möchtest – auf Tempo kommt es nicht an.</p>
     <div class="roadmap" id="roadmap"></div>
     <button class="btn btn-primary" id="goStart" style="font-size:1.1rem;padding:13px 34px;">Los geht’s ›</button></div>`;
-  const data=[
-    ["1","🎯","Zeigen & Stoppen","Genau bewegen, ruhig halten"],
-    ["2","👆","Linksklick","Auswählen & treffen"],
-    ["3","⚡","Doppelklick","Öffnen"],
-    ["4","📋","Rechtsklick","Menü & Untermenü"],
-    ["5","🎡","Scrollen","Rad & Mausradklick"],
-    ["6","▭","Markieren","Rahmen & Strg-Klick"],
-    ["7","✋","Sortieren","Ziehen & Ablegen"],
-    ["8","🪟","Fenster","Bewegen & Größe"],
-    ["9","🎚️","Regler","Schieben & ziehen"],
-    ["10","🎨","Malen","Wischen mit der Maus"],
-    ["11","📑","Umschalt-Klick","Bereich auswählen"],
-    ["12","🖍️","Text markieren","Über Wörter ziehen"],
-    ["13","✏️","Wort & Zeile","Doppel- & Dreifachklick"],
-    ["14","🔀","Umsortieren","Liste per Ziehen ordnen"],
-    ["★","🏆","Prüfung","Alles zusammen!"]
-  ];
   const rm=$("#roadmap");
-  data.forEach(d=>{const el=document.createElement("div");el.className="road";
-    el.innerHTML=`<div class="n">STATION ${d[0]}</div><div class="e">${d[1]}</div><div class="t">${d[2]}</div><div class="d">${d[3]}</div>`;rm.appendChild(el);});
+  STATIONS.filter(s=>s.id!=="start").forEach(s=>{
+    const num = s.id==="exam" ? "★" : stationNumber(s.id);
+    const el=document.createElement("div");el.className="road";
+    el.innerHTML=`<div class="n">STATION ${num}</div><div class="e">${s.icon}</div><div class="t">${s.title}</div><div class="d">${s.desc}</div>`;rm.appendChild(el);});
   $("#goStart").addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go("s0"); });
 };
 
@@ -544,9 +744,9 @@ SCREENS.s0=(stage)=>{
     setInstruction(`Station ${N} · Zeigen & Stoppen (1/2)`,
       "Halte die Maus locker. Fahre mit dem Zeiger <b>über die Tiere</b> – du musst nicht klicken! Sobald der Zeiger sie berührt, hast du sie gefangen.");
     setHint("Bewege den Zeiger ruhig über jedes Tier.","");
-    const TOTAL=6;let caught=0;setCounter(`0/${TOTAL}`,"gefangen");
-    const emojis=["🦋","🐝","🐞","🦋","🐝","🦋"];const bugs=[];
-    const speed=state.reduced?0.25:0.7;
+    const TOTAL=dCount(6,3);let caught=0;setCounter(`0/${TOTAL}`,"gefangen");
+    const pool=["🦋","🐝","🐞","🦋","🐝","🦋","🐛","🐞"];const emojis=Array.from({length:TOTAL},(_,i)=>pool[i%pool.length]);const bugs=[];
+    const speed=(state.reduced?0.25:0.7)*diff().speed;
     for(let i=0;i<TOTAL;i++){
       const b=document.createElement("div");b.className="flutter";b.textContent=emojis[i];
       const x=Math.random()*(W()-50)+10,y=Math.random()*(H()-60)+10,ang=Math.random()*Math.PI*2;
@@ -569,7 +769,7 @@ SCREENS.s0=(stage)=>{
       "Jetzt die Feinmotorik: Fahre mit dem Zeiger auf den Kreis und <b>halte ihn ruhig darin</b>, bis der Ring ganz voll ist. Verrutschst du kurz, macht der Ring nur Pause – du verlierst nichts.");
     setHint("Zeiger in den Kreis – und ruhig halten, bis der Ring voll ist.","");
     const TOTAL=3;let done=0;setCounter(`0/${TOTAL}`,"gehalten");
-    const dur=state.reduced?900:1400;
+    const dur=(state.reduced?900:1400)/diff().timeWin;
     function spawn(){
       const h=document.createElement("div");h.className="hold";
       h.innerHTML=`<div class="core">🤚</div>`;
@@ -632,23 +832,31 @@ SCREENS.s1=(stage)=>{
   }
   function roundWhack(){
     stage.innerHTML="";
+    const NEED=dCount(8,5);
     setInstruction(`Station ${N} · Schnell treffen (2/2)`,
-      "Jetzt wird’s flott! Die Ziele tauchen kurz auf. Triff <b>8 Ziele</b> mit einem schnellen Linksklick – aber genau zielen!");
+      `Jetzt wird’s flott! Die Ziele tauchen kurz auf. Triff <b>${NEED} Ziele</b> mit einem schnellen Linksklick – aber genau zielen!`);
     setHint("Klicke jedes Ziel an, sobald es auftaucht.","");
     const desk=document.createElement("div");desk.className="meadow";desk.style.background="linear-gradient(160deg,#eaf6fa,#d6f0e2)";stage.appendChild(desk);
-    const NEED=8;let hits=0,active=null;setCounter(`0/${NEED}`,"getroffen");
+    let hits=0,active=null,misses=0;setCounter(`0/${NEED}`,"getroffen");
     const W=()=>desk.clientWidth,H=()=>desk.clientHeight;
-    const upMs=state.reduced?1600:1100;
+    const upMs=(state.reduced?1600:1100)/diff().speed;
+    const sz=Math.round(72*diff().size);
+    const t0=performance.now();
+    desk.addEventListener("mousedown",e=>{ if(e.target===desk){ misses++; setHint("Daneben! Ziele genau auf die Scheibe 🎯","warn"); } });
     function spawn(){
       if(hits>=NEED)return;
-      const m=document.createElement("div");m.className="mole";m.textContent="🎯";
-      m.style.left=(Math.random()*(W()-90)+10)+"px";m.style.top=(Math.random()*(H()-90)+10)+"px";
+      const m=document.createElement("div");m.className="mole";m.textContent="🎯";m.style.width=sz+"px";m.style.height=sz+"px";m.style.fontSize=(sz*0.46)+"px";
+      m.style.left=(Math.random()*(W()-sz-20)+10)+"px";m.style.top=(Math.random()*(H()-sz-20)+10)+"px";
       desk.appendChild(m);active=m;requestAnimationFrame(()=>m.classList.add("up"));
       const fall=later(()=>{m.classList.remove("up");later(()=>m.remove(),150);if(active===m){active=null;spawn();}},upMs);
-      m.addEventListener("click",()=>{if(m.classList.contains("hit"))return;m.classList.add("hit");m.textContent="✓";
+      m.addEventListener("click",e=>{e.stopPropagation();if(m.classList.contains("hit"))return;m.classList.add("hit");m.textContent="✓";
         clearTimeout(fall);hits++;sfx.step();setCounter(`${hits}/${NEED}`,"getroffen");
         later(()=>{m.classList.remove("up");later(()=>m.remove(),150);},250);
-        if(hits>=NEED)completeStation("s1","Treffsicher! Dein Linksklick sitzt. 👆");
+        if(hits>=NEED){
+          if(misses===0)unlock("sharp_shooter");
+          timeBonus(t0, NEED*1100);
+          completeStation("s1","Treffsicher! Dein Linksklick sitzt. 👆",{perfect:misses===0});
+        }
         else{setHint(`Treffer! Noch ${NEED-hits}.`,"good");active=null;spawn();}});
     }
     spawn();
@@ -664,7 +872,7 @@ SCREENS.s2=(stage)=>{
     setInstruction(`Station ${N} · Der Doppelklick (1/2)`,
       "Zum <b>Öffnen</b> klickst du zweimal schnell hintereinander auf dieselbe Stelle. Öffne alle Geschenke mit einem Doppelklick!");
     setHint("Tipp: zweimal kurz hintereinander klicken – die Maus dabei nicht bewegen.","");
-    const TOTAL=5;let opened=0;setCounter(`0/${TOTAL}`,"geöffnet");
+    const TOTAL=dCount(5,4);let opened=0;setCounter(`0/${TOTAL}`,"geöffnet");
     const grid=document.createElement("div");grid.className="chestgrid";stage.appendChild(grid);
     for(let i=0;i<TOTAL;i++){const c=document.createElement("div");c.className="chest";
       c.innerHTML=`<span class="em">🎁</span><span class="cap">Geschenk ${i+1}</span>`;let last=0;
@@ -991,7 +1199,7 @@ SCREENS.s8=(stage)=>{
       <div class="track"><div class="zone"></div><div class="thumb"></div></div>`;
     wrap.appendChild(row);
     const track=row.querySelector(".track"),thumb=row.querySelector(".thumb"),zone=row.querySelector(".zone");
-    const ZW=0.16; // halbe Zonenbreite (Anteil)
+    const ZW=0.16*diff().size; // halbe Zonenbreite (Anteil) – schwerer = schmaler
     let val=Math.random()*0.25; // Startwert links
     function place(){ const w=track.clientWidth; thumb.style.left=(val*w)+"px";
       zone.style.left=((rw.target-ZW)*w)+"px";zone.style.width=(ZW*2*w)+"px"; }
@@ -1152,6 +1360,212 @@ SCREENS.s13=(stage)=>{
   setRound(1);
 };
 
+/* ---------- S14: Links anklicken ---------- */
+SCREENS.s14=(stage)=>{
+  const N=stationNumber("s14");
+  const prompt=document.createElement("div");prompt.className="prompt";
+  const br=document.createElement("div");br.className="browser";
+  br.innerHTML=`<div class="bar"><span class="st-btn" style="background:var(--ocean-mid);color:#fff;border-radius:6px;padding:3px 8px;">🌐</span><div class="url">https://www.maus-uebung.de/lesen</div></div>`;
+  const area=document.createElement("div");area.className="scrollarea linkpara";br.appendChild(area);
+  stage.appendChild(prompt);stage.appendChild(br);
+  const LINKS=[["Tiere","tiere"],["Wetter","wetter"],["Sport","sport"],["Musik","musik"],["Weltall","weltall"]];
+  const rounds=["wetter","weltall","sport"];let r=0;
+  area.innerHTML=`<h3>Klick dich durch das Internet</h3>
+    <p>Unterstrichene, blaue Wörter sind <b>Links</b>. Klickst du darauf, gelangst du auf eine andere Seite.
+    Hier sind ein paar: ${LINKS.map(l=>`<a data-key="${l[1]}">${l[0]}</a>`).join(" · ")}.</p>
+    <p>Suche immer genau den Link, der oben gefragt ist, und klicke ihn an.</p>`;
+  function ask(){const key=rounds[r];const lbl=LINKS.find(l=>l[1]===key)[0];
+    setCounter(`${r+1}/${rounds.length}`,"Link");
+    setInstruction(`Station ${N} · Links anklicken (${r+1}/${rounds.length})`,
+      `Auf einer Webseite führen <b>Links</b> weiter. Klicke den Link <b>„${lbl}"</b> an.`);
+    setHint("Beweg den Zeiger auf das blaue Wort – er wird zur Hand – und klicke.","");}
+  $$("a",area).forEach(a=>a.addEventListener("click",()=>{
+    if(a.dataset.key===rounds[r]){a.classList.add("done");sfx.step();r++;
+      if(r>=rounds.length)completeStation("s14","Super – du findest jeden Link! 🔗");
+      else{setHint("Richtig! Weiter zum nächsten Link.","good");later(()=>{$$("a",area).forEach(x=>x.classList.remove("done"));ask();},600);}
+    }else{registerAttempt(false);sfx.soft();setHint("Das war ein anderer Link. Lies oben nach, welcher gesucht ist.","warn");}
+  }));
+  ask();
+};
+
+/* ---------- S15: Tabs wechseln ---------- */
+SCREENS.s15=(stage)=>{
+  const N=stationNumber("s15");
+  const TABS=[["🐱","Tiere","Katzen schnurren, Hunde bellen und Vögel singen."],
+    ["🌦️","Wetter","Morgen scheint die Sonne bei 22 Grad."],
+    ["⚽","Sport","Das Spiel endete 3:2 nach einem späten Tor."],
+    ["🎵","Musik","Auf der Bühne spielte eine laute Gitarre."]];
+  const rounds=[2,0,3];let r=0;
+  const box=document.createElement("div");box.className="tabsbox";
+  const row=document.createElement("div");row.className="tabrow";
+  const panel=document.createElement("div");panel.className="tabpanel";
+  box.appendChild(row);box.appendChild(panel);stage.appendChild(box);
+  TABS.forEach((t,i)=>{const tb=document.createElement("div");tb.className="tab";tb.dataset.i=i;tb.innerHTML=`${t[0]} ${t[1]}`;
+    tb.addEventListener("click",()=>open(i));row.appendChild(tb);});
+  function show(i){$$(".tab",row).forEach(x=>x.classList.toggle("active",+x.dataset.i===i));
+    panel.innerHTML=`<h3>${TABS[i][0]} ${TABS[i][1]}</h3><p>${TABS[i][2]}</p>`;}
+  function open(i){
+    if(i===rounds[r]){show(i);sfx.step();r++;
+      if(r>=rounds.length)completeStation("s15","Klasse – du wechselst sicher zwischen Reitern! 🗂️");
+      else{setHint("Richtig geöffnet! Weiter zum nächsten Reiter.","good");later(ask,500);}
+    }else{show(i);registerAttempt(false);sfx.soft();setHint(`Das ist der Reiter „${TABS[i][1]}". Gesucht ist ein anderer – schau oben.`,"warn");}
+  }
+  function ask(){const i=rounds[r];setCounter(`${r+1}/${rounds.length}`,"Reiter");
+    setInstruction(`Station ${N} · Tabs wechseln (${r+1}/${rounds.length})`,
+      `Reiter (Tabs) liegen nebeneinander wie Karteikarten. Öffne den Reiter <b>„${TABS[i][1]}"</b> ${TABS[i][0]} mit einem Klick.`);
+    setHint("Klicke oben auf den passenden Reiter.","");}
+  show(0);ask();
+};
+
+/* ---------- S16: PopUps & Dialoge ---------- */
+SCREENS.s16=(stage)=>{
+  const N=stationNumber("s16");
+  const wrap=document.createElement("div");wrap.className="dlgstage";stage.appendChild(wrap);
+  const tasks=[
+    {title:"🔔 Hinweis",body:"Deine Zeichnung wurde gespeichert.",want:"ok",
+     buttons:[{lbl:"OK",cls:"btn-primary",key:"ok"}],
+     instr:'Ein PopUp ist ein kleines Fenster, das aufspringt. Bestätige diesen Hinweis mit <b>„OK"</b>.'},
+    {title:"❓ Frage",body:"Möchtest du das Bild wirklich löschen?",want:"cancel",
+     buttons:[{lbl:"Löschen",cls:"btn-ghost",key:"del"},{lbl:"Abbrechen",cls:"btn-primary",key:"cancel"}],
+     instr:'Vorsicht! Du willst NICHT löschen. Klicke <b>„Abbrechen"</b>, um nichts zu verändern.'},
+    {title:"💬 Werbung",body:"Tolle Mäuse zu gewinnen – jetzt klicken!",want:"x",
+     buttons:[{lbl:"Mehr erfahren",cls:"btn-ghost",key:"more"}],closable:true,
+     instr:'Dieses PopUp ist Werbung. Schließe es über das <b>×</b> oben rechts, ohne auf die Werbung zu klicken.'}
+  ];
+  let t=0;
+  function render(){const task=tasks[t];setCounter(`${t+1}/${tasks.length}`,"Dialog");
+    setInstruction(`Station ${N} · PopUps & Dialoge (${t+1}/${tasks.length})`,task.instr);
+    setHint("Lies den Dialog und klicke den richtigen Knopf.","");
+    wrap.innerHTML="";
+    const d=document.createElement("div");d.className="dlg";
+    d.innerHTML=`<div class="dh">${task.title}${task.closable?'<span class="x" data-key="x" title="Schließen">×</span>':''}</div>
+      <div class="db">${task.body}</div>
+      <div class="df">${task.buttons.map(b=>`<button class="btn ${b.cls} btn-small" data-key="${b.key}">${b.lbl}</button>`).join("")}</div>`;
+    wrap.appendChild(d);
+    $$("[data-key]",d).forEach(el=>el.addEventListener("click",()=>choose(el.dataset.key,task)));
+  }
+  function choose(key,task){
+    if(key===task.want){sfx.step();t++;
+      if(t>=tasks.length)completeStation("s16","Stark – du behältst bei PopUps den Überblick! 💬");
+      else{setHint("Genau richtig!","good");later(render,500);}
+    }else{registerAttempt(false);sfx.soft();
+      setHint(key==="del"?"Puh, fast gelöscht! Nimm „Abbrechen“.":"Nicht ganz – schau, was der Dialog von dir möchte.","warn");}
+  }
+  render();
+};
+
+/* ---------- S17: Menüleiste ---------- */
+SCREENS.s17=(stage)=>{
+  const N=stationNumber("s17");
+  const win=document.createElement("div");win.className="appwin";
+  const bar=document.createElement("div");bar.className="menubar";
+  const doc=document.createElement("div");doc.className="docarea";
+  doc.innerHTML=`<h3 style="color:var(--ocean-deep);margin-top:0">📝 Mein Dokument</h3><p>Oben siehst du eine <b>Menüleiste</b>. Klicke einen Menünamen an – dann klappt ein Menü auf.</p><p id="docMsg" style="color:var(--success);font-weight:600;"></p>`;
+  win.appendChild(bar);win.appendChild(doc);stage.appendChild(win);
+  const MENUS={
+    Datei:[{icon:"📄",label:"Neu"},{icon:"📂",label:"Öffnen"},{icon:"💾",label:"Speichern",key:"datei.speichern"},{sep:true},{icon:"🚪",label:"Beenden"}],
+    Bearbeiten:[{icon:"↩️",label:"Rückgängig"},{icon:"✂️",label:"Ausschneiden"},{icon:"📋",label:"Kopieren",key:"bearbeiten.kopieren"},{icon:"📥",label:"Einfügen"}],
+    Ansicht:[{icon:"🔍",label:"Vergrößern"},{icon:"🔭",label:"Verkleinern"},{icon:"🌑",label:"Dunkelmodus",key:"ansicht.dunkel"}]
+  };
+  const rounds=[{menu:"Datei",key:"datei.speichern",lbl:"Speichern",msg:"Gespeichert! 💾"},
+    {menu:"Bearbeiten",key:"bearbeiten.kopieren",lbl:"Kopieren",msg:"Kopiert! 📋"}];
+  let r=0;
+  Object.keys(MENUS).forEach(name=>{const mb=document.createElement("div");mb.className="mb";mb.textContent=name;
+    mb.addEventListener("click",e=>{e.stopPropagation();
+      $$(".mb",bar).forEach(x=>x.classList.remove("open"));mb.classList.add("open");
+      const rect=mb.getBoundingClientRect();
+      const items=MENUS[name].map(it=>it.sep?it:({...it,action:()=>pick(name,it)}));
+      showCtx(rect.left,rect.bottom+2,items);
+    });bar.appendChild(mb);});
+  function pick(menu,it){const key=it.key||"";const want=rounds[r];
+    if(menu===want.menu && key===want.key){sfx.step();$("#docMsg",doc).textContent=want.msg;r++;
+      $$(".mb",bar).forEach(x=>x.classList.remove("open"));
+      if(r>=rounds.length)later(()=>completeStation("s17","Perfekt – Menüs bedienst du wie ein Profi! 📜"),500);
+      else{setHint("Richtig! Jetzt die nächste Aufgabe.","good");later(ask,500);}
+    }else{registerAttempt(false);sfx.soft();setHint(`Das war „${it.label}". Gesucht: ${want.menu} → ${want.lbl}.`,"warn");}
+  }
+  function ask(){const want=rounds[r];setCounter(`${r+1}/${rounds.length}`,"Menü");
+    setInstruction(`Station ${N} · Menüleiste (${r+1}/${rounds.length})`,
+      `Klassische Programme haben oben eine Menüleiste. Öffne das Menü <b>„${want.menu}"</b> und wähle <b>„${want.lbl}"</b>.`);
+    setHint(`Erst „${want.menu}" anklicken, dann „${want.lbl}".`,"");}
+  ask();
+};
+
+/* ---------- S18: Memory ---------- */
+SCREENS.s18=(stage)=>{ memoryGame(stage,{id:"s18",N:stationNumber("s18"),onDone:()=>completeStation("s18","Tolles Gedächtnis – alle Paare gefunden! 🧠")}); };
+
+/* gemeinsame Memory-Mechanik (Station + Bonus) */
+function memoryGame(stage,opts){
+  const POOL=["🐶","🐱","⭐","🍎","🌳","🚗","🎈","🏠","🐝","🦋"];
+  const pairs=Math.min(POOL.length, opts.pairs || dCount(6,4));
+  const cols=pairs<=4?4:pairs<=6?4:5;
+  let deck=[];POOL.slice(0,pairs).forEach(em=>{deck.push(em,em);});
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+  setInstruction(`${opts.N?`Station ${opts.N} · `:""}Memory${opts.bonus?" (Bonus 🎁)":""}`,
+    "Klicke zwei Karten an. Zeigen sie dasselbe Bild, bleibt das Paar offen. Finde alle Paare!");
+  setHint("Zwei Karten aufdecken und Paare merken.","");
+  let found=0;setCounter(`0/${pairs}`,"Paare");
+  const grid=document.createElement("div");grid.className="memgrid";grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;stage.appendChild(grid);
+  let first=null,lock=false;
+  deck.forEach(em=>{const c=document.createElement("div");c.className="memcard";c.dataset.em=em;
+    const face=document.createElement("span");face.style.opacity="0";c.appendChild(face);face.textContent=em;
+    c.addEventListener("click",()=>{
+      if(lock||c.classList.contains("flip")||c.classList.contains("match"))return;
+      c.classList.add("flip");c.firstChild.style.opacity="1";sfx.soft();
+      if(!first){first=c;return;}
+      if(first.dataset.em===c.dataset.em){
+        first.classList.add("match");c.classList.add("match");first=null;found++;sfx.step();
+        setCounter(`${found}/${pairs}`,"Paare");
+        if(found===pairs)opts.onDone();
+      }else{lock=true;const a=first,b=c;first=null;
+        later(()=>{[a,b].forEach(x=>{x.classList.remove("flip");x.firstChild.style.opacity="0";});lock=false;},700);}
+    });grid.appendChild(c);});
+}
+
+/* ---------- Bonus-Spiele ---------- */
+function bonusBackBar(){
+  showReplay(false);
+  showSkip(true,()=>go(_bonusReturn||nextStationId()));$("#skipBtn").textContent="Weiter ohne Bonus";
+}
+SCREENS.bonus_catch=(stage)=>{
+  unlock("bonus_fan");bonusBackBar();
+  setInstruction("Bonus-Spiel 🎁 · Schmetterlingsjagd",
+    "Fang in <b>15 Sekunden</b> so viele Tiere wie möglich – jedes gibt <b>+5 XP</b>! Einfach mit dem Zeiger drüberfahren.");
+  const meadow=document.createElement("div");meadow.className="meadow";stage.appendChild(meadow);
+  const W=()=>meadow.clientWidth,H=()=>meadow.clientHeight;
+  let caught=0,timeLeft=15;setCounter(`${timeLeft}s`,"Zeit");
+  const pool=["🦋","🐝","🐞","🐛"];const bugs=[];const speed=(state.reduced?0.4:1.1);
+  function addBug(){const b=document.createElement("div");b.className="flutter";b.textContent=pool[Math.floor(Math.random()*pool.length)];
+    const x=Math.random()*(W()-50)+10,y=Math.random()*(H()-60)+10,ang=Math.random()*Math.PI*2;
+    const bug={el:b,x,y,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed};
+    b.style.left=x+"px";b.style.top=y+"px";
+    const grab=()=>{if(bug.dead)return;bug.dead=true;b.classList.add("caught");caught++;awardXP(5,"bonus");sfx.step();
+      setHint(`Gefangen: ${caught} 🦋`,"good");later(()=>{b.remove();},200);
+      const idx=bugs.indexOf(bug);if(idx>=0)bugs.splice(idx,1);later(addBug,300);};
+    b.addEventListener("mouseenter",grab);b.addEventListener("click",grab);
+    meadow.appendChild(b);bugs.push(bug);}
+  for(let i=0;i<5;i++)addBug();
+  (function loop(){bugs.forEach(bug=>{if(bug.dead)return;bug.x+=bug.vx;bug.y+=bug.vy;
+    if(bug.x<4||bug.x>W()-46)bug.vx*=-1;if(bug.y<4||bug.y>H()-50)bug.vy*=-1;
+    bug.x=Math.max(2,Math.min(W()-46,bug.x));bug.y=Math.max(2,Math.min(H()-50,bug.y));
+    bug.el.style.left=bug.x+"px";bug.el.style.top=bug.y+"px";});_raf=requestAnimationFrame(loop);})();
+  const tick=later(function t(){timeLeft--;setCounter(`${Math.max(0,timeLeft)}s`,"Zeit");
+    if(timeLeft<=0){stopLoop();meadow.style.pointerEvents="none";
+      setInstruction("Bonus geschafft! 🎁",`Du hast <b>${caught}</b> Tiere gefangen und <b>${caught*5} XP</b> verdient!`);
+      setHint("Klasse gemacht!","good");showSkip(false);
+      showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
+    }else later(t,1000);},1000);
+};
+SCREENS.bonus_memory=(stage)=>{
+  unlock("bonus_fan");bonusBackBar();
+  memoryGame(stage,{bonus:true,pairs:dCount(5,4),onDone:()=>{
+    awardXP(25,"bonus");
+    setInstruction("Bonus geschafft! 🎁","Alle Paare gefunden – <b>+25 XP</b>!");
+    setHint("Stark!","good");showSkip(false);
+    showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
+  }});
+};
+
 /* ---------- Prüfung (mit Bugfix) ---------- */
 SCREENS.exam=(stage)=>{
   setInstruction("Prüfung · Der Tresor",
@@ -1234,19 +1648,24 @@ SCREENS.exam=(stage)=>{
 
 /* ---------- Urkunde ---------- */
 SCREENS.exam_done=(stage)=>{
-  setInstruction("Geschafft!","Du hast alle Stationen gemeistert. Trage deinen Namen ein und drucke deine Urkunde aus.");
+  setInstruction("Geschafft! 🎉",`${state.mascotName}: „Riesenklasse! Du hast alle Stationen gemeistert. Trage deinen Namen ein und drucke deine Urkunde aus."`);
   setHint("Trage deinen Namen ein und klicke auf „Drucken“.","good");
   const today=new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"long",year:"numeric"});
-  const skills=[["🎯","Zeigen"],["👆","Klick"],["⚡","Doppelklick"],["📋","Rechtsklick"],["🎡","Scrollen"],
-    ["▭","Markieren"],["✋","Sortieren"],["🪟","Fenster"],["🎚️","Regler"],["🎨","Malen"],
-    ["📑","Umschalt-Klick"],["🖍️","Text markieren"],["✏️","Wort & Zeile"],["🔀","Umsortieren"],["🏆","Prüfung"]];
-  const badges=skills.map(s=>`<span class="badge">${s[0]} ${s[1]}</span>`).join("");
+  const skills=STATIONS.filter(s=>s.id!=="start").map(s=>[s.icon,s.short]);
+  const skillBadges=skills.map(s=>`<span class="badge">${s[0]} ${s[1]}</span>`).join("");
+  const earned=Object.keys(state.badges).filter(id=>BADGES[id]);
+  const achBadges=earned.length
+    ? earned.map(id=>`<span class="badge ach">${BADGES[id].icon} ${BADGES[id].title}</span>`).join("")
+    : `<span class="badge">Noch keine – beim nächsten Mal! 😊</span>`;
+  const {title}=levelForXp(state.xp);
   stage.innerHTML=`<div class="urkunde" id="urkunde"><div class="seal">🏅</div>
     <h1>Maus-Führerschein</h1>
     <div class="sub">Diese Urkunde bestätigt, dass die Maus sicher bedient werden kann.</div>
     <div class="nameline"><input id="nameInput" type="text" placeholder="Dein Name" aria-label="Name"><div class="cap">Name</div></div>
-    <div class="badges">${badges}</div>
-    <div class="foot"><span>Ausgestellt am ${today}</span><span>Informatik · Klasse 5</span></div></div>`;
+    <div class="badges">${skillBadges}</div>
+    <div style="font-size:.8rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin:14px 0 6px;">Gesammelte Abzeichen</div>
+    <div class="badges">${achBadges}</div>
+    <div class="foot"><span>Ausgestellt am ${today}</span><span>${title} · ${state.xp} XP · 🪙 ${state.coins}</span></div></div>`;
   showReplay(false);showNext(true,"🖨️ Drucken");$("#nextBtn").onclick=()=>window.print();
 };
 
@@ -1256,9 +1675,18 @@ $("#closeSet").addEventListener("click",()=>{$("#overlay").style.display="none";
 $("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay")$("#overlay").style.display="none";});
 $("#tolRange").addEventListener("input",e=>{state.dblTolerance=+e.target.value;$("#tolVal").textContent=e.target.value;});
 $("#soundChk").addEventListener("change",e=>{state.sound=e.target.checked;if(state.sound){if(audioCtx)audioCtx.resume&&audioCtx.resume();sfx.step();}});
-$("#resetBtn").addEventListener("click",()=>{state.done={};refreshProgress();$("#overlay").style.display="none";go("start");});
+$("#diffSel").addEventListener("change",e=>{
+  state.difficulty=e.target.value;state.dblTolerance=diff().dbl;
+  $("#tolRange").value=state.dblTolerance;$("#tolVal").textContent=state.dblTolerance;
+  $("#overlay").style.display="none";
+  go(state.current); // aktuelle Station mit neuen Werten neu aufbauen
+});
+$("#resetBtn").addEventListener("click",()=>{
+  state.done={};Object.assign(state,defaultGamify());
+  refreshProgress();refreshHUD();$("#overlay").style.display="none";go("start");
+});
 
-buildProgress();
+buildProgress();refreshHUD();
 go("start");
 </script>
 </body>
