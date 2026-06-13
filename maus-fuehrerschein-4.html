@@ -317,7 +317,8 @@
   .memgrid{display:grid;gap:10px;align-content:center;justify-content:center;flex:1;}
   .memcard{width:74px;height:74px;border-radius:12px;background:var(--ocean-mid);display:grid;place-items:center;font-size:2rem;cursor:pointer;
     color:transparent;box-shadow:0 4px 12px rgba(10,77,104,.18);transition:transform .15s,background .15s;user-select:none;}
-  .memcard::before{content:"❓";color:#fff;}
+  .memcard::before{content:"❓";color:#fff;grid-area:1/1;}
+  .memcard>span{grid-area:1/1;}
   .memcard.flip{background:#fff;border:2px solid var(--ocean-bright);color:initial;}
   .memcard.flip::before{content:none;}
   .memcard.match{background:var(--success-soft);border-color:var(--success);cursor:default;}
