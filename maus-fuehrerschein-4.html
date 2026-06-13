@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maus-Führerschein</title>
+<style>
+  :root{
+    --ocean-deep:#0a4d68; --ocean-mid:#088395; --ocean-bright:#13b8d4; --ocean-pale:#e6f3f7;
+    --bg:#f1f7fa; --card:#fff; --ink:#143540; --ink-soft:#4a6670; --line:#d4e6ec;
+    --success:#2a9d8f; --success-soft:#e4f5f1; --hint:#d98324; --hint-soft:#fbf0e2;
+    --shadow:0 10px 30px rgba(10,77,104,.10); --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{font-family:"Segoe UI","Frutiger",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);
+    color:var(--ink);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh;}
+  .stage,.no-select{user-select:none;-webkit-user-select:none;}
+
+  header.app{background:linear-gradient(120deg,var(--ocean-deep),var(--ocean-mid) 55%,var(--ocean-bright));
+    color:#fff;padding:14px 22px;display:flex;align-items:center;gap:18px;
+    box-shadow:0 4px 18px rgba(10,77,104,.25);flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:1.22rem;white-space:nowrap;}
+  .brand .glyph{font-size:1.5rem;}
+  .brand small{display:block;font-weight:400;font-size:.7rem;opacity:.82;letter-spacing:.5px;text-transform:uppercase;}
+  .progress{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap;}
+  .stamp{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:999px;
+    padding:5px 11px 5px 7px;font-size:.74rem;display:flex;align-items:center;gap:6px;cursor:pointer;transition:.18s;white-space:nowrap;}
+  .stamp:hover{background:rgba(255,255,255,.26);}
+  .stamp .dot{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:.72rem;line-height:1;}
+  .stamp.done{background:#fff;color:var(--ocean-deep);border-color:#fff;font-weight:600;}
+  .stamp.done .dot{background:var(--success);color:#fff;}
+  .stamp.active{outline:2px solid #fff;outline-offset:1px;}
+  .gear{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:40px;height:40px;
+    border-radius:10px;font-size:1.2rem;cursor:pointer;display:grid;place-items:center;}
+  .gear:hover{background:rgba(255,255,255,.28);}
+
+  main{flex:1;display:flex;justify-content:center;padding:22px 18px 30px;}
+  .card{background:var(--card);width:min(980px,100%);border-radius:var(--radius);box-shadow:var(--shadow);
+    overflow:hidden;display:flex;flex-direction:column;}
+  .instruct{display:flex;gap:14px;align-items:flex-start;padding:18px 22px;border-bottom:1px solid var(--line);background:var(--ocean-pale);}
+  .bot{flex:none;width:50px;height:50px;border-radius:50%;background:#fff;border:2px solid var(--ocean-bright);
+    display:grid;place-items:center;box-shadow:0 4px 12px rgba(10,77,104,.12);}
+  .bot svg{width:30px;height:30px;}
+  .instruct .txt{flex:1;}
+  .instruct h2{margin:0 0 3px;font-size:1.12rem;color:var(--ocean-deep);}
+  .instruct p{margin:0;color:var(--ink-soft);font-size:.96rem;line-height:1.45;}
+  .counter{flex:none;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center;font-size:.78rem;color:var(--ink-soft);min-width:78px;}
+  .counter b{display:block;font-size:1.2rem;color:var(--ocean-mid);line-height:1.1;}
+
+  .play{padding:24px 22px;min-height:360px;display:flex;flex-direction:column;}
+  .footbar{display:flex;align-items:center;gap:14px;padding:14px 22px;border-top:1px solid var(--line);background:#fbfdfe;min-height:62px;flex-wrap:wrap;}
+  .hint{flex:1;min-width:200px;font-size:.95rem;color:var(--ink-soft);display:flex;align-items:center;gap:9px;transition:.2s;}
+  .hint.good{color:var(--success);font-weight:600;}
+  .hint.warn{color:var(--hint);}
+  .hint .ic{font-size:1.15rem;}
+  .btn{border:none;border-radius:10px;padding:11px 22px;font-size:.98rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.16s;}
+  .btn-primary{background:var(--ocean-mid);color:#fff;}
+  .btn-primary:hover{background:var(--ocean-deep);}
+  .btn-ghost{background:#fff;color:var(--ocean-mid);border:1.5px solid var(--ocean-mid);}
+  .btn-ghost:hover{background:var(--ocean-pale);}
+  .btn-small{padding:7px 14px;font-size:.85rem;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  button:focus-visible,.stamp:focus-visible,.gear:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+
+  .start{text-align:center;padding:14px 10px;}
+  .start .big{font-size:3.4rem;margin:4px 0 2px;}
+  .start h1{font-size:1.8rem;color:var(--ocean-deep);margin:6px 0 6px;}
+  .start .lead{max-width:600px;margin:0 auto 22px;color:var(--ink-soft);line-height:1.55;}
+  .roadmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;max-width:840px;margin:0 auto 26px;}
+  .road{background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:12px 8px;}
+  .road .n{font-size:.68rem;font-weight:700;color:var(--ocean-bright);letter-spacing:1px;}
+  .road .e{font-size:1.55rem;margin:3px 0;}
+  .road .t{font-size:.82rem;font-weight:600;color:var(--ocean-deep);}
+  .road .d{font-size:.72rem;color:var(--ink-soft);margin-top:2px;line-height:1.3;}
+
+  .desktop{flex:1;border-radius:12px;position:relative;overflow:hidden;
+    background:linear-gradient(160deg,#1a6e8e,#0d5775 70%,#0a4d68);box-shadow:inset 0 0 60px rgba(0,0,0,.25);min-height:330px;}
+  .icons{position:absolute;inset:0;padding:18px;display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;}
+  .icon{width:92px;height:96px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:6px;cursor:pointer;color:#fff;text-align:center;padding:6px 4px;border:1.5px solid transparent;transition:background .1s,border-color .1s;}
+  .icon .em{font-size:2.4rem;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3));}
+  .icon .lb{font-size:.76rem;text-shadow:0 1px 3px rgba(0,0,0,.6);word-break:break-word;line-height:1.15;}
+  .icon.selected{background:rgba(19,184,212,.35);border-color:rgba(255,255,255,.7);}
+  .icon.pop{animation:pop .4s;}
+  @keyframes pop{0%{transform:scale(1);}40%{transform:scale(1.18);}100%{transform:scale(1);}}
+  .icon.abs{position:absolute;margin:0;}
+  .taskbar{position:absolute;left:0;right:0;bottom:0;height:34px;background:rgba(7,40,53,.85);backdrop-filter:blur(4px);
+    display:flex;align-items:center;gap:10px;padding:0 12px;color:#dceef3;font-size:.78rem;z-index:2;}
+  .taskbar .st-btn{background:rgba(255,255,255,.15);border-radius:6px;padding:3px 10px;font-weight:600;}
+
+  .ctxmenu{position:fixed;z-index:50;background:#fbfdfe;border:1px solid #b9d4dd;border-radius:8px;
+    box-shadow:0 12px 32px rgba(10,77,104,.3);padding:5px;min-width:186px;font-size:.86rem;display:none;}
+  .ctxmenu .mi{padding:8px 12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--ink);position:relative;}
+  .ctxmenu .mi:hover{background:var(--ocean-mid);color:#fff;}
+  .ctxmenu .mi.disabled{color:#9bb4bd;cursor:default;}
+  .ctxmenu .mi.disabled:hover{background:transparent;color:#9bb4bd;}
+  .ctxmenu .sep{height:1px;background:var(--line);margin:4px 6px;}
+  .ctxmenu .mi .k{margin-left:auto;font-size:.72rem;opacity:.6;}
+  .ctxmenu .mi .arr{margin-left:auto;font-size:.8rem;}
+  .submenu{position:fixed;z-index:51;background:#fbfdfe;border:1px solid #b9d4dd;border-radius:8px;
+    box-shadow:0 12px 32px rgba(10,77,104,.3);padding:5px;min-width:150px;font-size:.86rem;display:none;}
+
+  .meadow{flex:1;border-radius:12px;position:relative;overflow:hidden;background:linear-gradient(180deg,#bfe9f2,#e6f7f2 60%,#d6f0e2);min-height:330px;}
+  .flutter{position:absolute;font-size:2.4rem;cursor:default;transition:transform .12s,opacity .3s;will-change:left,top;line-height:1;}
+  .flutter.caught{opacity:.35;filter:grayscale(.7);transform:scale(.8);}
+  .hold{position:absolute;width:92px;height:92px;border-radius:50%;display:grid;place-items:center;font-size:1.6rem;color:#fff;
+    cursor:pointer;background:conic-gradient(var(--success) 0deg,rgba(8,131,149,.25) 0deg);box-shadow:0 6px 16px rgba(10,77,104,.25);transition:opacity .25s;}
+  .hold .core{width:68px;height:68px;border-radius:50%;background:var(--ocean-mid);display:grid;place-items:center;}
+  .hold.done{opacity:.5;}
+  .hold.done .core{background:var(--success);}
+  .mole{position:absolute;width:72px;height:72px;border-radius:50%;background:var(--hint);color:#fff;display:grid;place-items:center;
+    font-size:2rem;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.18);transform:scale(0);transition:transform .12s;}
+  .mole.up{transform:scale(1);}
+  .mole.hit{background:var(--success);}
+
+  .chestgrid{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px;align-content:center;padding:10px;}
+  .chest{background:var(--ocean-pale);border:2px solid var(--line);border-radius:14px;height:130px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:.84rem;color:var(--ink-soft);transition:.15s;}
+  .chest .em{font-size:3rem;line-height:1;transition:transform .2s;}
+  .chest.armed{border-color:var(--ocean-bright);background:#fff;box-shadow:0 0 0 4px rgba(19,184,212,.18);}
+  .chest.armed .em{transform:scale(1.1) rotate(-4deg);}
+  .chest.open{border-color:var(--success);background:var(--success-soft);color:var(--success);font-weight:700;cursor:default;}
+  .chest.open .em{animation:pop .5s;}
+
+  .filelist{flex:1;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;}
+  .filelist .fhead{background:var(--ocean-pale);padding:8px 14px;font-size:.78rem;color:var(--ink-soft);border-bottom:1px solid var(--line);}
+  .frow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;font-size:.92rem;}
+  .frow:hover{background:#f3fafc;}
+  .frow.selected{background:rgba(19,184,212,.14);}
+  .frow.open{background:var(--success-soft);color:var(--success);font-weight:600;cursor:default;}
+  .frow .em{font-size:1.4rem;}
+  .frow .st{margin-left:auto;font-size:.8rem;color:var(--ink-soft);}
+  .frow.open .st{color:var(--success);}
+
+  .browser{flex:1;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:330px;}
+  .browser .bar{background:var(--ocean-pale);border-bottom:1px solid var(--line);padding:8px 12px;display:flex;gap:8px;align-items:center;font-size:.8rem;color:var(--ink-soft);}
+  .browser .url{flex:1;background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 14px;}
+  .scrollarea{flex:1;overflow-y:scroll;padding:18px 22px;scroll-behavior:smooth;}
+  .scrollarea h3{color:var(--ocean-deep);}
+  .scrollarea p{color:var(--ink-soft);line-height:1.6;}
+  .findme{display:inline-grid;place-items:center;width:60px;height:60px;border-radius:50%;background:var(--hint);color:#fff;
+    font-size:1.6rem;font-weight:800;cursor:pointer;margin:8px 0;box-shadow:0 6px 16px rgba(217,131,36,.4);animation:bob 1.4s ease-in-out infinite;}
+  .findme.star{background:var(--ocean-bright);box-shadow:0 6px 16px rgba(19,184,212,.4);}
+  .findme.found{background:var(--success);box-shadow:none;animation:none;cursor:default;}
+  .wheellink{display:inline-flex;align-items:center;gap:8px;background:#fff;border:2px dashed var(--ocean-mid);border-radius:10px;
+    padding:10px 16px;color:var(--ocean-mid);font-weight:600;cursor:pointer;margin:8px 0;}
+  .wheellink.done{border-color:var(--success);color:var(--success);border-style:solid;}
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+
+  .marquee{position:absolute;border:1.5px solid var(--ocean-bright);background:rgba(19,184,212,.18);z-index:1;pointer-events:none;display:none;}
+
+  .sortwrap{flex:1;display:flex;flex-direction:column;gap:16px;}
+  .tray{border:1px dashed var(--line);border-radius:12px;padding:14px;min-height:96px;display:flex;flex-wrap:wrap;gap:12px;align-content:flex-start;background:#fbfdfe;}
+  .tray .lab{width:100%;font-size:.78rem;color:var(--ink-soft);font-weight:600;margin-bottom:2px;}
+  .folders{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .folder{border:2px solid var(--line);border-radius:12px;padding:12px 6px;text-align:center;background:var(--ocean-pale);transition:.15s;}
+  .folder.over{border-color:var(--ocean-bright);background:#fff;box-shadow:0 0 0 4px rgba(19,184,212,.18);transform:translateY(-2px);}
+  .folder .em{font-size:2.4rem;}
+  .folder .nm{font-weight:600;color:var(--ocean-deep);font-size:.88rem;}
+  .folder .cnt{font-size:.72rem;color:var(--ink-soft);}
+  .draggable{width:84px;border-radius:10px;background:#fff;border:1.5px solid var(--line);padding:10px 6px;text-align:center;
+    cursor:grab;transition:box-shadow .12s;font-size:.74rem;color:var(--ink);}
+  .draggable .em{font-size:1.9rem;display:block;}
+  .draggable:hover{box-shadow:0 4px 12px rgba(10,77,104,.14);}
+  .draggable.dragging{opacity:.35;}
+  .draggable.placed{background:var(--success-soft);border-color:var(--success);}
+  .ghost{position:fixed;z-index:60;pointer-events:none;width:84px;border-radius:10px;background:#fff;border:1.5px solid var(--ocean-bright);
+    padding:10px 6px;text-align:center;font-size:.74rem;box-shadow:0 10px 24px rgba(10,77,104,.3);transform:translate(-50%,-50%);}
+  .ghost .em{font-size:1.9rem;display:block;}
+
+  .winstage{flex:1;border-radius:12px;position:relative;overflow:hidden;background:repeating-linear-gradient(45deg,#eef6f9,#eef6f9 14px,#e6f0f4 14px,#e6f0f4 28px);min-height:330px;border:1px solid var(--line);}
+  .target-zone{position:absolute;border:2.5px dashed var(--ocean-bright);border-radius:10px;background:rgba(19,184,212,.08);
+    display:grid;place-items:center;color:var(--ocean-mid);font-size:.82rem;font-weight:600;text-align:center;z-index:1;}
+  .winmove{position:absolute;background:#fff;border:1px solid #b9d4dd;border-radius:10px;overflow:hidden;z-index:3;
+    box-shadow:0 14px 34px rgba(10,77,104,.25);min-width:120px;min-height:90px;display:flex;flex-direction:column;}
+  .winmove .tbar{background:linear-gradient(90deg,var(--ocean-deep),var(--ocean-mid));color:#fff;padding:7px 10px;font-size:.82rem;
+    display:flex;align-items:center;gap:8px;cursor:grab;flex:none;}
+  .winmove .tbar .x{margin-left:auto;width:18px;height:18px;border-radius:4px;background:rgba(255,255,255,.25);display:grid;place-items:center;cursor:pointer;font-size:.8rem;}
+  .winmove .tbar .x:hover{background:#e25555;}
+  .winmove .wc{flex:1;padding:10px;font-size:.82rem;color:var(--ink-soft);overflow:hidden;}
+  .winmove .reshandle{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;
+    background:linear-gradient(135deg,transparent 50%,var(--ocean-mid) 50%);}
+  .winmove.fit{border-color:var(--success);box-shadow:0 0 0 3px rgba(42,157,143,.4),0 14px 34px rgba(10,77,104,.25);}
+
+  .sliderstage{flex:1;display:flex;flex-direction:column;gap:22px;justify-content:center;padding:6px 4px;}
+  .sliderrow{display:flex;align-items:center;gap:14px;}
+  .sliderrow .ico{font-size:1.6rem;width:34px;text-align:center;}
+  .sliderrow .nm{width:96px;font-size:.9rem;color:var(--ocean-deep);font-weight:600;}
+  .track{position:relative;flex:1;height:14px;background:#e2eef2;border-radius:10px;}
+  .zone{position:absolute;top:0;bottom:0;background:var(--success-soft);border:1px solid var(--success);border-radius:8px;}
+  .thumb{position:absolute;top:50%;width:26px;height:26px;border-radius:50%;background:var(--ocean-mid);border:3px solid #fff;
+    box-shadow:0 3px 10px rgba(10,77,104,.3);transform:translate(-50%,-50%);cursor:grab;}
+  .thumb:active{cursor:grabbing;}
+  .sliderrow.ok .thumb{background:var(--success);}
+  .sliderrow.ok .nm{color:var(--success);}
+
+  .paintwrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .paintgrid{display:grid;gap:2px;background:var(--line);padding:2px;border-radius:10px;touch-action:none;}
+  .cell{width:26px;height:26px;background:#fff;border-radius:3px;transition:background .05s;}
+  .cell.target{background:#eaf6fa;}
+  .cell.paint{background:var(--ocean-bright);}
+  .cell.target.paint{background:var(--ocean-mid);}
+
+  .selectable{user-select:text;-webkit-user-select:text;cursor:text;}
+  .prompt{background:var(--hint-soft);border:1px solid #f0d9b8;border-radius:10px;padding:10px 14px;color:#8a5616;font-size:.95rem;margin-bottom:14px;}
+  .prompt b{color:#6b4310;}
+  .textcard{flex:1;border:1px solid var(--line);border-radius:12px;background:#fff;padding:20px 22px;line-height:2;font-size:1.1rem;color:var(--ink);}
+  .textcard p{margin:0 0 12px;}
+  .listsel{flex:1;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;max-width:520px;margin:0 auto;width:100%;align-self:center;}
+  .listsel .lrow{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;font-size:.96rem;user-select:none;}
+  .listsel .lrow:last-child{border-bottom:none;}
+  .listsel .lrow:hover{background:#f3fafc;}
+  .listsel .lrow.sel{background:rgba(19,184,212,.18);}
+  .listsel .lrow .em{font-size:1.3rem;}
+  .sortlist{flex:1;display:flex;flex-direction:column;gap:9px;max-width:430px;margin:0 auto;width:100%;justify-content:center;}
+  .sortitem{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;border:1.5px solid var(--line);border-radius:10px;cursor:grab;font-size:1rem;user-select:none;transition:border-color .1s;}
+  .sortitem:hover{border-color:var(--ocean-bright);}
+  .sortitem .grip{color:var(--ink-soft);letter-spacing:-2px;}
+  .sortitem .em{font-size:1.4rem;}
+  .sortitem.dragging{opacity:.4;border-color:var(--ocean-bright);box-shadow:0 8px 20px rgba(10,77,104,.18);}
+  .examwrap{flex:1;display:flex;gap:18px;flex-wrap:wrap;}
+  .examdesk{flex:2;min-width:300px;}
+  .checklist{flex:1;min-width:220px;background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:16px;}
+  .checklist h3{margin:0 0 12px;color:var(--ocean-deep);font-size:1rem;}
+  .checklist ol{margin:0;padding:0;list-style:none;counter-reset:step;}
+  .checklist li{position:relative;padding:9px 8px 9px 38px;font-size:.84rem;color:var(--ink-soft);border-radius:8px;margin-bottom:4px;counter-increment:step;line-height:1.35;}
+  .checklist li::before{content:counter(step);position:absolute;left:8px;top:8px;width:22px;height:22px;border-radius:50%;background:#fff;
+    border:1.5px solid var(--line);display:grid;place-items:center;font-size:.74rem;font-weight:700;color:var(--ink-soft);}
+  .checklist li.active{background:#fff;color:var(--ink);font-weight:600;}
+  .checklist li.active::before{border-color:var(--ocean-bright);color:var(--ocean-mid);}
+  .checklist li.done{color:var(--success);}
+  .checklist li.done::before{content:"✓";background:var(--success);border-color:var(--success);color:#fff;}
+  .window{position:absolute;top:18px;left:18px;width:290px;background:#fbfdfe;border-radius:10px;overflow:hidden;
+    box-shadow:0 16px 40px rgba(0,0,0,.4);border:1px solid #b9d4dd;display:none;z-index:4;}
+  .window .titlebar{background:linear-gradient(90deg,var(--ocean-deep),var(--ocean-mid));color:#fff;padding:7px 12px;font-size:.82rem;display:flex;align-items:center;gap:8px;}
+  .window .titlebar .x{margin-left:auto;width:20px;height:20px;border-radius:4px;background:rgba(255,255,255,.25);display:grid;place-items:center;cursor:pointer;font-size:.85rem;}
+  .window .titlebar .x:hover{background:#e25555;}
+  .window .wbody{height:170px;overflow-y:scroll;padding:14px;font-size:.84rem;color:var(--ink-soft);line-height:1.5;}
+
+  .urkunde{background:#fff;border:3px double var(--ocean-mid);border-radius:14px;padding:34px 30px;text-align:center;max-width:640px;margin:0 auto;}
+  .urkunde .seal{font-size:3rem;}
+  .urkunde h1{font-family:Georgia,"Times New Roman",serif;color:var(--ocean-deep);font-size:2rem;margin:6px 0 2px;letter-spacing:1px;}
+  .urkunde .sub{color:var(--ink-soft);font-size:.95rem;margin-bottom:18px;}
+  .urkunde .nameline{margin:18px auto;max-width:380px;}
+  .urkunde .nameline input{width:100%;text-align:center;font-size:1.4rem;font-family:Georgia,serif;color:var(--ocean-deep);
+    border:none;border-bottom:2px solid var(--ocean-bright);padding:6px 4px;background:transparent;}
+  .urkunde .nameline input:focus{outline:none;border-color:var(--ocean-mid);}
+  .urkunde .nameline .cap{font-size:.74rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
+  .urkunde .badges{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:18px 0;}
+  .urkunde .badge{background:var(--success-soft);color:var(--success);border-radius:20px;padding:5px 11px;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:6px;}
+  .urkunde .foot{display:flex;justify-content:space-between;margin-top:22px;font-size:.82rem;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;}
+
+  .overlay{position:fixed;inset:0;background:rgba(10,40,53,.45);z-index:80;display:none;align-items:center;justify-content:center;padding:18px;}
+  .panel{background:#fff;border-radius:16px;width:min(440px,100%);box-shadow:0 24px 60px rgba(0,0,0,.3);overflow:hidden;}
+  .panel header{background:var(--ocean-mid);color:#fff;padding:14px 20px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+  .panel header button{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;}
+  .panel .body{padding:18px 20px;}
+  .setrow{margin-bottom:18px;}
+  .setrow label{font-weight:600;color:var(--ocean-deep);display:block;margin-bottom:4px;font-size:.95rem;}
+  .setrow .help{font-size:.8rem;color:var(--ink-soft);margin-bottom:8px;line-height:1.4;}
+  .setrow input[type=range]{width:100%;accent-color:var(--ocean-mid);}
+  .toleranceval{font-weight:700;color:var(--ocean-mid);}
+  .switch{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.95rem;color:var(--ink);}
+  .switch input{width:20px;height:20px;accent-color:var(--ocean-mid);}
+  .infobox{background:var(--hint-soft);border:1px solid #f0d9b8;border-radius:10px;padding:11px 13px;font-size:.84rem;color:#8a5616;line-height:1.45;}
+
+  @media (max-width:640px){
+    .brand small{display:none;}
+    .instruct{flex-wrap:wrap;}
+    .counter{order:3;}
+    .folders{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .flutter,.findme,.icon,.chest .em,.mole{animation:none!important;transition:none!important;}
+    .scrollarea{scroll-behavior:auto;}
+  }
+  @media print{
+    header.app,.footbar,.instruct,.gear,.overlay{display:none!important;}
+    body,main,.card{background:#fff!important;box-shadow:none!important;}
+    main{padding:0;} .play{padding:0;}
+    .urkunde{border-color:#000;max-width:100%;}
+    .urkunde .nameline input{border-bottom:1px solid #000;}
+  }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="brand"><span class="glyph">🖱️</span><span>Maus-Führerschein<small>Bedienung Schritt für Schritt üben</small></span></div>
+  <nav class="progress" id="progress" aria-label="Stationen"></nav>
+  <button class="gear" id="gearBtn" title="Einstellungen" aria-label="Einstellungen">⚙</button>
+</header>
+
+<main>
+  <div class="card">
+    <div class="instruct" id="instruct">
+      <div class="bot" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none">
+          <rect x="9" y="13" width="22" height="18" rx="5" fill="#13b8d4"/>
+          <rect x="13" y="18" width="14" height="8" rx="3" fill="#fff"/>
+          <circle cx="17" cy="22" r="2" fill="#0a4d68"/><circle cx="23" cy="22" r="2" fill="#0a4d68"/>
+          <rect x="18.5" y="6" width="3" height="6" rx="1.5" fill="#088395"/><circle cx="20" cy="5" r="2.5" fill="#d98324"/>
+          <rect x="6" y="19" width="3" height="7" rx="1.5" fill="#088395"/><rect x="31" y="19" width="3" height="7" rx="1.5" fill="#088395"/>
+        </svg>
+      </div>
+      <div class="txt"><h2 id="iTitle">Willkommen</h2><p id="iText">Schön, dass du da bist!</p></div>
+      <div class="counter" id="counter" style="display:none;"><b id="cNum">0</b><span id="cLab">Aufgabe</span></div>
+    </div>
+
+    <div class="play stage" id="stage"></div>
+
+    <div class="footbar">
+      <div class="hint" id="hint"><span class="ic">💬</span><span id="hintText">Klicke auf „Los geht’s“, um zu starten.</span></div>
+      <button class="btn btn-ghost btn-small" id="skipBtn" style="display:none;">Überspringen</button>
+      <button class="btn btn-ghost" id="replayBtn" style="display:none;">Nochmal üben</button>
+      <button class="btn btn-primary" id="nextBtn" style="display:none;">Weiter</button>
+    </div>
+  </div>
+</main>
+
+<div class="ctxmenu" id="ctxmenu" role="menu"></div>
+<div class="submenu" id="submenu" role="menu"></div>
+
+<div class="overlay" id="overlay">
+  <div class="panel" role="dialog" aria-modal="true" aria-label="Einstellungen">
+    <header>Einstellungen <button id="closeSet" aria-label="Schließen">×</button></header>
+    <div class="body">
+      <div class="setrow">
+        <label for="tolRange">Tempo beim Doppelklick</label>
+        <div class="help">Wie viel Zeit darf zwischen den zwei Klicks liegen? Für den Anfang ruhig viel Zeit lassen.</div>
+        <input type="range" id="tolRange" min="350" max="1200" step="50" value="750">
+        <div style="text-align:right">Zeitfenster: <span class="toleranceval" id="tolVal">750</span> ms</div>
+      </div>
+      <div class="setrow"><label class="switch"><input type="checkbox" id="soundChk" checked> Töne abspielen</label></div>
+      <div class="setrow"><div class="infobox">👈 <b>Für Linkshänder:</b> In Windows lassen sich die Maustasten tauschen
+        (Einstellungen → Bluetooth &amp; Geräte → Maus → „Primäre Maustaste“). Dieses Programm funktioniert mit jeder
+        Einstellung – „links“ meint immer die Haupttaste.</div></div>
+      <div class="setrow" style="margin-bottom:0;text-align:center;"><button class="btn btn-ghost" id="resetBtn">Fortschritt zurücksetzen</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const $ = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
+
+const STATIONS = [
+  {id:"start", short:"Start",       icon:"🏁"},
+  {id:"s0",    short:"Zeigen",      icon:"🎯"},
+  {id:"s1",    short:"Klick",       icon:"👆"},
+  {id:"s2",    short:"Doppelklick", icon:"⚡"},
+  {id:"s3",    short:"Rechtsklick", icon:"📋"},
+  {id:"s4",    short:"Scrollen",    icon:"🎡"},
+  {id:"s5",    short:"Markieren",   icon:"▭"},
+  {id:"s6",    short:"Sortieren",   icon:"✋"},
+  {id:"s7",    short:"Fenster",     icon:"🪟"},
+  {id:"s8",    short:"Regler",      icon:"🎚️"},
+  {id:"s9",    short:"Malen",       icon:"🎨"},
+  {id:"s10",   short:"Umschalt",    icon:"📑"},
+  {id:"s11",   short:"Text",        icon:"🖍️"},
+  {id:"s12",   short:"Wort/Zeile",  icon:"✏️"},
+  {id:"s13",   short:"Umsort.",     icon:"🔀"},
+  {id:"exam",  short:"Prüfung",     icon:"🏆"}
+];
+const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam").findIndex(s=>s.id===id)+1;
+
+const state = {
+  current:"start", done:{}, dblTolerance:750, sound:true,
+  reduced: matchMedia("(prefers-reduced-motion:reduce)").matches
+};
+
+let _raf=null, _timers=[];
+function stopLoop(){ if(_raf){cancelAnimationFrame(_raf);_raf=null;} _timers.forEach(clearTimeout);_timers.forEach(clearInterval);_timers=[]; }
+function later(fn,ms){ const t=setTimeout(fn,ms);_timers.push(t);return t; }
+
+/* ---- Töne ---- */
+let audioCtx=null;
+function tone(freq,dur=0.12,type="sine",vol=0.18){
+  if(!state.sound) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+dur);
+    o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+const sfx={ good(){tone(660,.1,"sine",.16);later(()=>tone(880,.14,"sine",.16),90);},
+  step(){tone(560,.08,"triangle",.13);}, win(){[523,659,784,1046].forEach((f,i)=>later(()=>tone(f,.16,"sine",.17),i*120));},
+  soft(){tone(330,.1,"sine",.10);} };
+
+/* ---- Anzeige ---- */
+function setInstruction(title,text){ $("#iTitle").textContent=title; $("#iText").innerHTML=text; }
+function setHint(html,mood){
+  const h=$("#hint"); h.className="hint"+(mood?" "+mood:"");
+  h.querySelector(".ic").textContent = mood==="good"?"✅":mood==="warn"?"💡":"💬";
+  $("#hintText").innerHTML=html;
+}
+function setCounter(num,label){ const c=$("#counter"); if(num==null){c.style.display="none";return;} c.style.display="";$("#cNum").textContent=num;$("#cLab").textContent=label||"Aufgabe"; }
+function showNext(show,label="Weiter"){ const b=$("#nextBtn"); b.style.display=show?"":"none"; b.textContent=label; }
+function showReplay(show){ $("#replayBtn").style.display=show?"":"none"; }
+function showSkip(show,fn){ const b=$("#skipBtn"); b.style.display=show?"":"none"; b.onclick=fn||null; }
+
+/* ---- Fortschritt ---- */
+function buildProgress(){
+  const nav=$("#progress");nav.innerHTML="";
+  STATIONS.forEach(st=>{ if(st.id==="start")return;
+    const b=document.createElement("button");b.className="stamp";b.dataset.id=st.id;
+    b.innerHTML=`<span class="dot">${st.icon}</span>${st.short}`;
+    b.addEventListener("click",()=>go(st.id));nav.appendChild(b);
+  });
+}
+function refreshProgress(){
+  $$(".stamp").forEach(b=>{const id=b.dataset.id;
+    b.classList.toggle("done",!!state.done[id]);b.classList.toggle("active",state.current===id);
+    b.querySelector(".dot").textContent=state.done[id]?"✓":STATIONS.find(s=>s.id===id).icon;});
+}
+function markDone(id){ state.done[id]=true; refreshProgress(); }
+
+/* ---- Router ---- */
+function go(id){
+  stopLoop();hideCtx();
+  state.current=id;
+  const stage=$("#stage");stage.innerHTML="";
+  setHint("","");showNext(false);showReplay(false);showSkip(false);setCounter(null);
+  refreshProgress();
+  (SCREENS[id]||SCREENS.start)(stage);
+  $("main").scrollTop=0;
+}
+function nextStationId(){ const i=STATIONS.findIndex(s=>s.id===state.current); return STATIONS[Math.min(i+1,STATIONS.length-1)].id; }
+function completeStation(id,msg){
+  markDone(id);setHint(msg||"Super gemacht! 🎉","good");sfx.win();showSkip(false);
+  const next=nextStationId();showReplay(true);
+  if(id==="exam"){ showNext(true,"Urkunde anzeigen 🏆"); $("#nextBtn").onclick=()=>go("exam_done"); }
+  else { showNext(true,"Weiter zu „"+STATIONS.find(s=>s.id===next).short+"“ ›"); $("#nextBtn").onclick=()=>go(next); }
+}
+$("#replayBtn").addEventListener("click",()=>go(state.current));
+
+/* ---- Drag-Hilfen ---- */
+function dragMove(e,onMove,onUp){
+  e.preventDefault();
+  const mv=ev=>onMove(ev);
+  const up=ev=>{document.removeEventListener("mousemove",mv);document.removeEventListener("mouseup",up);onUp&&onUp(ev);};
+  document.addEventListener("mousemove",mv);document.addEventListener("mouseup",up);
+}
+function ghostDrag(e,innerHTML,opts){
+  e.preventDefault();
+  const ghost=document.createElement("div");ghost.className="ghost";ghost.innerHTML=innerHTML;
+  document.body.appendChild(ghost);
+  const pos=ev=>{ghost.style.left=ev.clientX+"px";ghost.style.top=ev.clientY+"px";};
+  const under=ev=>{ghost.style.display="none";const t=document.elementFromPoint(ev.clientX,ev.clientY);ghost.style.display="";return t;};
+  pos(e);
+  dragMove(e,ev=>{pos(ev);opts.onOver&&opts.onOver(under(ev),ev);},
+    ev=>{const t=under(ev);ghost.remove();opts.onDrop&&opts.onDrop(t,ev);});
+}
+
+/* ============================================================
+   Kontextmenü mit Untermenü
+   ============================================================ */
+const ctx=$("#ctxmenu"), sub=$("#submenu");
+function buildItems(container,items){
+  container.innerHTML="";
+  items.forEach(it=>{
+    if(it.sep){const s=document.createElement("div");s.className="sep";container.appendChild(s);return;}
+    const m=document.createElement("div");m.className="mi"+(it.disabled?" disabled":"");
+    m.innerHTML=`<span>${it.icon||""}</span><span>${it.label}</span>`+
+      (it.sub?`<span class="arr">▸</span>`:it.key?`<span class="k">${it.key}</span>`:"");
+    if(it.sub){
+      m.addEventListener("mouseenter",()=>{
+        buildItems(sub,it.sub);const r=m.getBoundingClientRect();sub.style.display="block";
+        const w=sub.offsetWidth;let x=r.right-2;if(x+w>innerWidth)x=r.left-w+2;
+        sub.style.left=x+"px";sub.style.top=Math.min(r.top,innerHeight-sub.offsetHeight-6)+"px";
+      });
+    }else{
+      m.addEventListener("mouseenter",()=>{sub.style.display="none";});
+      if(!it.disabled) m.addEventListener("click",e=>{e.stopPropagation();hideCtx();it.action&&it.action();});
+    }
+    container.appendChild(m);
+  });
+}
+function showCtx(x,y,items){
+  buildItems(ctx,items);sub.style.display="none";ctx.style.display="block";
+  const w=ctx.offsetWidth,h=ctx.offsetHeight;
+  ctx.style.left=Math.min(x,innerWidth-w-6)+"px";ctx.style.top=Math.min(y,innerHeight-h-6)+"px";
+}
+function hideCtx(){ ctx.style.display="none";sub.style.display="none"; }
+document.addEventListener("click",hideCtx);
+document.addEventListener("scroll",hideCtx,true);
+document.addEventListener("contextmenu",e=>e.preventDefault());
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+const SCREENS={};
+
+/* ---------- Start ---------- */
+SCREENS.start=(stage)=>{
+  setInstruction("Willkommen beim Maus-Führerschein!",
+    "Du übst Schritt für Schritt alles, was man mit der Maus können muss. Für jede bestandene Station bekommst du oben einen Haken – am Ende gibt es deine Urkunde.");
+  setHint("Klicke auf „Los geht’s“, um zu starten.","");
+  stage.innerHTML=`<div class="start"><div class="big">🖱️</div>
+    <h1>Dein Weg zum Maus-Profi</h1>
+    <p class="lead">Vierzehn Stationen und eine Prüfung warten auf dich. Jede Station hat mehrere Runden. Du kannst alles so oft wiederholen, wie du möchtest – auf Tempo kommt es nicht an.</p>
+    <div class="roadmap" id="roadmap"></div>
+    <button class="btn btn-primary" id="goStart" style="font-size:1.1rem;padding:13px 34px;">Los geht’s ›</button></div>`;
+  const data=[
+    ["1","🎯","Zeigen & Stoppen","Genau bewegen, ruhig halten"],
+    ["2","👆","Linksklick","Auswählen & treffen"],
+    ["3","⚡","Doppelklick","Öffnen"],
+    ["4","📋","Rechtsklick","Menü & Untermenü"],
+    ["5","🎡","Scrollen","Rad & Mausradklick"],
+    ["6","▭","Markieren","Rahmen & Strg-Klick"],
+    ["7","✋","Sortieren","Ziehen & Ablegen"],
+    ["8","🪟","Fenster","Bewegen & Größe"],
+    ["9","🎚️","Regler","Schieben & ziehen"],
+    ["10","🎨","Malen","Wischen mit der Maus"],
+    ["11","📑","Umschalt-Klick","Bereich auswählen"],
+    ["12","🖍️","Text markieren","Über Wörter ziehen"],
+    ["13","✏️","Wort & Zeile","Doppel- & Dreifachklick"],
+    ["14","🔀","Umsortieren","Liste per Ziehen ordnen"],
+    ["★","🏆","Prüfung","Alles zusammen!"]
+  ];
+  const rm=$("#roadmap");
+  data.forEach(d=>{const el=document.createElement("div");el.className="road";
+    el.innerHTML=`<div class="n">STATION ${d[0]}</div><div class="e">${d[1]}</div><div class="t">${d[2]}</div><div class="d">${d[3]}</div>`;rm.appendChild(el);});
+  $("#goStart").addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go("s0"); });
+};
+
+/* ---------- S0: Zeigen & Stoppen ---------- */
+SCREENS.s0=(stage)=>{
+  const N=stationNumber("s0");
+  let round=1;
+  const meadow=document.createElement("div");meadow.className="meadow";stage.appendChild(meadow);
+  const W=()=>meadow.clientWidth,H=()=>meadow.clientHeight;
+
+  function roundCatch(){
+    round=1;meadow.innerHTML="";
+    setInstruction(`Station ${N} · Zeigen & Stoppen (1/2)`,
+      "Halte die Maus locker. Fahre mit dem Zeiger <b>über die Tiere</b> – du musst nicht klicken! Sobald der Zeiger sie berührt, hast du sie gefangen.");
+    setHint("Bewege den Zeiger ruhig über jedes Tier.","");
+    const TOTAL=6;let caught=0;setCounter(`0/${TOTAL}`,"gefangen");
+    const emojis=["🦋","🐝","🐞","🦋","🐝","🦋"];const bugs=[];
+    const speed=state.reduced?0.25:0.7;
+    for(let i=0;i<TOTAL;i++){
+      const b=document.createElement("div");b.className="flutter";b.textContent=emojis[i];
+      const x=Math.random()*(W()-50)+10,y=Math.random()*(H()-60)+10,ang=Math.random()*Math.PI*2;
+      const bug={el:b,x,y,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,caught:false};
+      b.style.left=x+"px";b.style.top=y+"px";
+      const grab=()=>{if(bug.caught)return;bug.caught=true;b.classList.add("caught");caught++;sfx.step();
+        setCounter(`${caught}/${TOTAL}`,"gefangen");
+        if(caught===TOTAL){stopLoop();roundHold();}else setHint(`Toll! Noch ${TOTAL-caught}.`,"good");};
+      b.addEventListener("mouseenter",grab);b.addEventListener("click",grab);
+      meadow.appendChild(b);bugs.push(bug);
+    }
+    (function loop(){bugs.forEach(bug=>{if(bug.caught)return;bug.x+=bug.vx;bug.y+=bug.vy;
+      if(bug.x<4||bug.x>W()-46)bug.vx*=-1;if(bug.y<4||bug.y>H()-50)bug.vy*=-1;
+      bug.x=Math.max(2,Math.min(W()-46,bug.x));bug.y=Math.max(2,Math.min(H()-50,bug.y));
+      bug.el.style.left=bug.x+"px";bug.el.style.top=bug.y+"px";});_raf=requestAnimationFrame(loop);})();
+  }
+  function roundHold(){
+    round=2;stopLoop();meadow.innerHTML="";
+    setInstruction(`Station ${N} · Ruhig halten (2/2)`,
+      "Jetzt die Feinmotorik: Fahre mit dem Zeiger auf den Kreis und <b>halte ihn ruhig darin</b>, bis der Ring ganz voll ist. Verrutschst du kurz, macht der Ring nur Pause – du verlierst nichts.");
+    setHint("Zeiger in den Kreis – und ruhig halten, bis der Ring voll ist.","");
+    const TOTAL=3;let done=0;setCounter(`0/${TOTAL}`,"gehalten");
+    const dur=state.reduced?900:1400;
+    function spawn(){
+      const h=document.createElement("div");h.className="hold";
+      h.innerHTML=`<div class="core">🤚</div>`;
+      h.style.left=(Math.random()*(W()-160)+40)+"px";
+      h.style.top=(Math.random()*(H()-160)+40)+"px";
+      let held=0,lastT=null,raf=null,inside=false;
+      function paint(){const p=Math.min(1,held/dur);
+        h.style.background=`conic-gradient(var(--success) ${p*360}deg, rgba(8,131,149,.25) ${p*360}deg)`;return p;}
+      function loop(t){ if(lastT==null)lastT=t; held=Math.min(dur,held+(t-lastT));lastT=t;
+        if(paint()>=1){finish();return;} raf=requestAnimationFrame(loop);_raf=raf; }
+      function finish(){ cancelAnimationFrame(raf);
+        h.removeEventListener("mouseenter",enter);h.removeEventListener("mouseleave",leave);
+        h.classList.add("done");h.querySelector(".core").textContent="✓";done++;sfx.step();
+        setCounter(`${done}/${TOTAL}`,"gehalten");later(()=>h.remove(),260);
+        if(done===TOTAL)completeStation("s0","Klasse! Deine Hand wird schon viel ruhiger. 🎯");
+        else{setHint(`Sehr ruhig gehalten! Noch ${TOTAL-done}.`,"good");later(spawn,450);} }
+      function enter(){ inside=true;setHint("Genau – jetzt ruhig halten, bis der Ring voll ist.","");
+        lastT=null;if(raf==null){raf=requestAnimationFrame(loop);_raf=raf;} }
+      function leave(){ inside=false;cancelAnimationFrame(raf);raf=null;
+        if(held>0&&held<dur)setHint("Kurze Pause – fahr einfach wieder in den Kreis, dein Ring bleibt erhalten.","warn"); }
+      h.addEventListener("mouseenter",enter);h.addEventListener("mouseleave",leave);
+      meadow.appendChild(h);
+    }
+    spawn();
+  }
+  roundCatch();
+};
+
+/* ---------- S1: Linksklick ---------- */
+SCREENS.s1=(stage)=>{
+  const N=stationNumber("s1");
+  function roundSelect(){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Der Linksklick (1/2)`,
+      "Mit <b>einem</b> Klick der linken Maustaste wählst du etwas aus. Klicke genau die gesuchte Datei an – sie wird blau markiert, wie in Windows.");
+    const FILES=[{em:"🐶",name:"Hund.jpg"},{em:"🐱",name:"Katze.jpg"},{em:"🚗",name:"Auto.png"},
+      {em:"🌳",name:"Baum.png"},{em:"⭐",name:"Stern.png"},{em:"🏠",name:"Haus.png"},
+      {em:"🎈",name:"Ballon.gif"},{em:"🍎",name:"Apfel.jpg"}];
+    const rounds=["Hund.jpg","Stern.png","Auto.png","Haus.png","Katze.jpg","Apfel.jpg"];let r=0;
+    const desk=document.createElement("div");desk.className="desktop";
+    const icons=document.createElement("div");icons.className="icons";desk.appendChild(icons);
+    const tb=document.createElement("div");tb.className="taskbar";tb.innerHTML=`<span class="st-btn">⊞ Start</span><span>🖥️ Desktop</span>`;desk.appendChild(tb);
+    stage.appendChild(desk);
+    FILES.forEach(f=>{const ic=document.createElement("div");ic.className="icon";ic.dataset.name=f.name;
+      ic.innerHTML=`<span class="em">${f.em}</span><span class="lb">${f.name}</span>`;
+      ic.addEventListener("click",()=>onClick(ic,f.name));
+      ic.addEventListener("dblclick",()=>{if(f.name===rounds[r])setHint("Ein Klick reicht zum Auswählen – doppelt brauchst du erst beim Öffnen. 😊","warn");});
+      icons.appendChild(ic);});
+    function ask(){const t=rounds[r],f=FILES.find(x=>x.name===t);setCounter(`${r+1}/${rounds.length}`,"Datei");
+      setInstruction(`Station ${N} · Der Linksklick (1/2)`,`Klicke die Datei <b>${t}</b> ${f.em} mit der linken Maustaste an.`);
+      setHint("Suche das Symbol und klicke es einmal an.","");}
+    function onClick(ic,name){
+      if(name===rounds[r]){$$(".icon",icons).forEach(x=>x.classList.remove("selected"));
+        ic.classList.add("selected","pop");later(()=>ic.classList.remove("pop"),400);sfx.step();r++;
+        if(r>=rounds.length)roundWhack();else{setHint("Richtig! Auf zur nächsten Datei.","good");later(ask,600);}
+      }else{ic.classList.add("pop");later(()=>ic.classList.remove("pop"),400);sfx.soft();
+        setHint(`Das war „${name}“. Gesucht ist „${rounds[r]}“. Schau noch einmal genau.`,"warn");}
+    }
+    ask();
+  }
+  function roundWhack(){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Schnell treffen (2/2)`,
+      "Jetzt wird’s flott! Die Ziele tauchen kurz auf. Triff <b>8 Ziele</b> mit einem schnellen Linksklick – aber genau zielen!");
+    setHint("Klicke jedes Ziel an, sobald es auftaucht.","");
+    const desk=document.createElement("div");desk.className="meadow";desk.style.background="linear-gradient(160deg,#eaf6fa,#d6f0e2)";stage.appendChild(desk);
+    const NEED=8;let hits=0,active=null;setCounter(`0/${NEED}`,"getroffen");
+    const W=()=>desk.clientWidth,H=()=>desk.clientHeight;
+    const upMs=state.reduced?1600:1100;
+    function spawn(){
+      if(hits>=NEED)return;
+      const m=document.createElement("div");m.className="mole";m.textContent="🎯";
+      m.style.left=(Math.random()*(W()-90)+10)+"px";m.style.top=(Math.random()*(H()-90)+10)+"px";
+      desk.appendChild(m);active=m;requestAnimationFrame(()=>m.classList.add("up"));
+      const fall=later(()=>{m.classList.remove("up");later(()=>m.remove(),150);if(active===m){active=null;spawn();}},upMs);
+      m.addEventListener("click",()=>{if(m.classList.contains("hit"))return;m.classList.add("hit");m.textContent="✓";
+        clearTimeout(fall);hits++;sfx.step();setCounter(`${hits}/${NEED}`,"getroffen");
+        later(()=>{m.classList.remove("up");later(()=>m.remove(),150);},250);
+        if(hits>=NEED)completeStation("s1","Treffsicher! Dein Linksklick sitzt. 👆");
+        else{setHint(`Treffer! Noch ${NEED-hits}.`,"good");active=null;spawn();}});
+    }
+    spawn();
+  }
+  roundSelect();
+};
+
+/* ---------- S2: Doppelklick ---------- */
+SCREENS.s2=(stage)=>{
+  const N=stationNumber("s2");
+  function roundChests(){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Der Doppelklick (1/2)`,
+      "Zum <b>Öffnen</b> klickst du zweimal schnell hintereinander auf dieselbe Stelle. Öffne alle Geschenke mit einem Doppelklick!");
+    setHint("Tipp: zweimal kurz hintereinander klicken – die Maus dabei nicht bewegen.","");
+    const TOTAL=5;let opened=0;setCounter(`0/${TOTAL}`,"geöffnet");
+    const grid=document.createElement("div");grid.className="chestgrid";stage.appendChild(grid);
+    for(let i=0;i<TOTAL;i++){const c=document.createElement("div");c.className="chest";
+      c.innerHTML=`<span class="em">🎁</span><span class="cap">Geschenk ${i+1}</span>`;let last=0;
+      c.addEventListener("click",()=>{if(c.classList.contains("open"))return;const now=performance.now();
+        if(now-last<=state.dblTolerance&&last>0){c.classList.remove("armed");c.classList.add("open");
+          c.querySelector(".em").textContent="🎉";c.querySelector(".cap").textContent="Geöffnet!";opened++;sfx.good();
+          setCounter(`${opened}/${TOTAL}`,"geöffnet");last=0;
+          if(opened===TOTAL)roundList();else setHint(`Geöffnet! Noch ${TOTAL-opened}.`,"good");
+        }else{c.classList.add("armed");setHint("Ausgewählt ✓ – jetzt noch <b>ein zweites Mal schnell</b> klicken!","warn");
+          last=now;later(()=>{if(!c.classList.contains("open"))c.classList.remove("armed");},state.dblTolerance+50);}});
+      grid.appendChild(c);}
+  }
+  function roundList(){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Ordner öffnen (2/2)`,
+      "So öffnet man in Windows Ordner und Dateien: per Doppelklick auf die Zeile. <b>Öffne alle vier Ordner.</b>");
+    setHint("Doppelklick direkt auf eine Zeile.","");
+    const rows=[["📁","Bilder"],["📁","Musik"],["📁","Schule"],["📄","liesmich.txt"]];
+    let opened=0;setCounter(`0/${rows.length}`,"geöffnet");
+    const list=document.createElement("div");list.className="filelist";
+    list.innerHTML=`<div class="fhead">📂 Dieser PC › Dokumente</div>`;
+    rows.forEach(rw=>{const row=document.createElement("div");row.className="frow";
+      row.innerHTML=`<span class="em">${rw[0]}</span><span>${rw[1]}</span><span class="st">geschlossen</span>`;let last=0;
+      row.addEventListener("click",()=>{if(row.classList.contains("open"))return;const now=performance.now();
+        if(now-last<=state.dblTolerance&&last>0){row.classList.remove("selected");row.classList.add("open");
+          row.querySelector(".st").textContent="geöffnet ✓";opened++;sfx.good();setCounter(`${opened}/${rows.length}`,"geöffnet");last=0;
+          if(opened===rows.length)completeStation("s2","Stark! Du beherrschst den Doppelklick. ⚡");
+          else setHint(`Geöffnet! Noch ${rows.length-opened}.`,"good");
+        }else{$$(".frow",list).forEach(x=>x.classList.remove("selected"));row.classList.add("selected");
+          setHint("Ausgewählt ✓ – jetzt noch ein zweites Mal schnell klicken!","warn");last=now;
+          later(()=>{if(!row.classList.contains("open"))row.classList.remove("selected");},state.dblTolerance+50);}});
+      list.appendChild(row);});
+    stage.appendChild(list);
+  }
+  roundChests();
+};
+
+/* ---------- S3: Rechtsklick ---------- */
+SCREENS.s3=(stage)=>{
+  const N=stationNumber("s3");
+  let step=0; // 0 Ordner, 1 Umbenennen, 2 Sortieren-Untermenü
+  const desk=document.createElement("div");desk.className="desktop";
+  const icons=document.createElement("div");icons.className="icons";desk.appendChild(icons);
+  const tb=document.createElement("div");tb.className="taskbar";tb.innerHTML=`<span class="st-btn">⊞ Start</span><span>🖥️ Desktop · Rechtsklick üben</span>`;desk.appendChild(tb);
+  stage.appendChild(desk);
+  const fileIc=document.createElement("div");fileIc.className="icon";fileIc.dataset.role="file";
+  fileIc.innerHTML=`<span class="em">📄</span><span class="lb">notiz.txt</span>`;icons.appendChild(fileIc);
+
+  function s0(){step=0;setCounter("1/3","Aufgabe");setInstruction(`Station ${N} · Der Rechtsklick (1/3)`,
+    "Mit der <b>rechten</b> Maustaste öffnest du das Menü. Mache einen <b>Rechtsklick auf den freien Desktop</b> und wähle <b>„Neuer Ordner“</b>.");
+    setHint("Rechte Maustaste auf die dunkle Fläche drücken.","");}
+  function s1(){step=1;setCounter("2/3","Aufgabe");setInstruction(`Station ${N} · Umbenennen (2/3)`,
+    "Klasse! Jetzt: <b>Rechtsklick auf die Datei „notiz.txt“</b> 📄 und wähle <b>„Umbenennen“</b>.");
+    setHint("Rechtsklick direkt auf das Datei-Symbol.","");}
+  function s2(){step=2;setCounter("3/3","Aufgabe");setInstruction(`Station ${N} · Untermenü (3/3)`,
+    "Manche Menüpunkte haben ein <b>Untermenü</b> (Pfeil ▸). Rechtsklick auf den Desktop, fahre auf <b>„Sortieren nach“</b> und wähle dann <b>„Name“</b>.");
+    setHint("Erst auf „Sortieren nach“ fahren, dann ins Untermenü.","");}
+
+  desk.addEventListener("contextmenu",e=>{
+    if(e.target.closest(".icon"))return;e.preventDefault();
+    if(step===0){showCtx(e.clientX,e.clientY,[
+      {icon:"👁️",label:"Anzeigen"},{icon:"↕️",label:"Sortieren nach",disabled:true},{icon:"🔄",label:"Aktualisieren"},{sep:true},
+      {icon:"📁",label:"Neuer Ordner",action:()=>{const f=document.createElement("div");f.className="icon pop";
+        f.innerHTML=`<span class="em">📁</span><span class="lb">Neuer Ordner</span>`;icons.appendChild(f);sfx.step();s1();}},
+      {icon:"⚙️",label:"Eigenschaften",key:"Alt+Enter"}]);}
+    else if(step===2){showCtx(e.clientX,e.clientY,[
+      {icon:"👁️",label:"Anzeigen"},
+      {icon:"↕️",label:"Sortieren nach",sub:[
+        {icon:"🔤",label:"Name",action:()=>{sfx.step();completeStation("s3","Perfekt! Rechtsklick, Menü und Untermenü sitzen. 📋");}},
+        {icon:"📏",label:"Größe",action:()=>{setHint("Fast! Wähle diesmal „Name“.","warn");}},
+        {icon:"📅",label:"Datum",action:()=>{setHint("Fast! Wähle diesmal „Name“.","warn");}}]},
+      {icon:"🔄",label:"Aktualisieren"},{sep:true},{icon:"📁",label:"Neuer Ordner"}]);}
+    else{setHint("Diesmal brauchst du die Datei – Rechtsklick auf „notiz.txt“.","warn");}
+  });
+  fileIc.addEventListener("contextmenu",e=>{e.preventDefault();e.stopPropagation();
+    if(step!==1){setHint(step===0?"Erst den neuen Ordner anlegen – Rechtsklick auf die freie Fläche.":"Jetzt brauchst du den Desktop – Rechtsklick auf die freie Fläche.","warn");return;}
+    fileIc.classList.add("selected");
+    showCtx(e.clientX,e.clientY,[{icon:"📂",label:"Öffnen"},{icon:"✂️",label:"Ausschneiden"},{icon:"📋",label:"Kopieren"},{sep:true},
+      {icon:"✏️",label:"Umbenennen",key:"F2",action:()=>{fileIc.querySelector(".lb").textContent="meine_notiz.txt";fileIc.classList.add("pop");sfx.step();s2();}},
+      {icon:"🗑️",label:"Löschen",key:"Entf"}]);});
+  desk.addEventListener("click",e=>{if(e.target.closest(".ctxmenu")||e.target.closest(".submenu"))return;
+    setHint("Das war die linke Taste. Probiere die <b>rechte</b> Maustaste. 🖱️","warn");});
+  s0();
+};
+
+/* ---------- S4: Scrollen ---------- */
+SCREENS.s4=(stage)=>{
+  const N=stationNumber("s4");
+  setInstruction(`Station ${N} · Das Scrollrad (1/2)`,
+    "Mit dem <b>Rädchen</b> in der Mitte der Maus bewegst du den Inhalt. Scrolle nach unten und finde die <b>42</b>.");
+  setHint("Drehe das Mausrad nach unten (von dir weg → runter).","");
+  let phase=0;setCounter("1/2","Aufgabe");
+  const br=document.createElement("div");br.className="browser";
+  br.innerHTML=`<div class="bar"><span class="st-btn" style="background:var(--ocean-mid);color:#fff;border-radius:6px;padding:3px 8px;">🌐</span><div class="url">https://www.maus-uebung.de/lange-seite</div></div>`;
+  const area=document.createElement("div");area.className="scrollarea";br.appendChild(area);stage.appendChild(br);
+  const star=`<div style="text-align:center"><span class="findme star" id="starBtn">★</span><div style="font-size:.8rem;color:var(--ink-soft)">Start-Stern</div></div>`;
+  const texts=["Eine Maus hat meistens zwei Tasten und ein Rad in der Mitte.","Das Rad heißt Scrollrad. Damit bewegst du den Inhalt.",
+    "Drehst du das Rad zu dir, geht es nach oben.","Drehst du das Rad von dir weg, geht es nach unten.",
+    "Viele Webseiten sind länger als der Bildschirm.","Deshalb ist Scrollen so wichtig.","Du machst das schon richtig gut!",
+    "Fast geschafft – weiter nach unten.","Noch ein kleines Stück …","Gleich hast du es!"];
+  let html=`<h3>Willkommen auf der langen Seite!</h3>${star}<p>Ganz unten wartet eine Zahl. Scrolle mit dem Mausrad nach unten, bis du sie findest.</p>`;
+  texts.forEach(t=>html+=`<p>${t}</p>`);
+  html+=`<div style="text-align:center;margin:14px 0"><span class="findme" id="numBtn">42</span><div style="font-size:.8rem;color:var(--ink-soft)">Klicke die 42 an!</div></div>`;
+  html+=`<p>Super, gefunden. Jetzt geht es wieder nach oben.</p>`;
+  area.innerHTML=html;
+  let down=false;
+  area.addEventListener("scroll",()=>{if(phase===0&&area.scrollTop>120&&!down){down=true;setHint("Genau so! Weiter, bis du die 42 siehst.","good");}});
+  $("#numBtn",area).addEventListener("click",()=>{if(phase!==0)return;const b=$("#numBtn",area);b.classList.add("found");b.textContent="✓";sfx.step();
+    phase=1;setCounter("2/2","Aufgabe");setInstruction(`Station ${N} · Das Scrollrad (1/2)`,
+      "Klasse! Jetzt zurück: Scrolle wieder <b>ganz nach oben</b> und klicke den <b>Start-Stern ★</b>.");setHint("Drehe das Rad jetzt nach oben.","");});
+  $("#starBtn",area).addEventListener("click",()=>{if(phase!==1)return;const s=$("#starBtn",area);s.classList.remove("star");s.classList.add("found");s.textContent="✓";
+    roundWheelClick();});
+  function roundWheelClick(){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Mausradklick (Bonus 2/2)`,
+      "Viele Mäuse haben unter dem Rad eine <b>dritte Taste</b>: das Rad lässt sich drücken. Damit öffnet man z. B. Links. <b>Drücke den Link mit dem Mausrad.</b> Kein Rad? Einfach überspringen.");
+    setHint("Mit der mittleren Taste (Mausrad) auf den Link klicken.","");
+    setCounter("Bonus","Runde");
+    showSkip(true,()=>completeStation("s4","Scrollen sitzt – stark! 🎡"));
+    const wrap=document.createElement("div");wrap.style.cssText="flex:1;display:flex;align-items:center;justify-content:center;";
+    const link=document.createElement("div");link.className="wheellink";link.innerHTML=`🔗 <span>Öffne mich mit dem Mausrad-Klick</span>`;
+    wrap.appendChild(link);stage.appendChild(wrap);
+    link.addEventListener("mousedown",e=>{if(e.button===1){e.preventDefault();ok();}});
+    link.addEventListener("auxclick",e=>{if(e.button===1){e.preventDefault();ok();}});
+    let solved=false;
+    function ok(){if(solved)return;solved=true;link.classList.add("done");link.innerHTML=`✅ <span>Geöffnet – mit dem Mausrad!</span>`;
+      completeStation("s4","Sogar die mittlere Taste sitzt – super! 🎡");}
+  }
+};
+
+/* ---------- S5: Markieren (Rahmen + Strg-Klick) ---------- */
+SCREENS.s5=(stage)=>{
+  const N=stationNumber("s5");
+  const desk=document.createElement("div");desk.className="desktop";
+  const icons=document.createElement("div");icons.className="icons";icons.style.padding="0";desk.appendChild(icons);
+  const marquee=document.createElement("div");marquee.className="marquee";desk.appendChild(marquee);
+  const tb=document.createElement("div");tb.className="taskbar";tb.innerHTML=`<span class="st-btn">⊞ Start</span><span>🖥️ Desktop · Markieren</span>`;desk.appendChild(tb);
+  stage.appendChild(desk);
+
+  // feste Positionen
+  const layout=[
+    {em:"⭐",t:"star",x:30,y:30},{em:"🐶",t:"dog",x:150,y:40},{em:"⭐",t:"star",x:270,y:30},
+    {em:"🍎",t:"apple",x:400,y:36},{em:"🐶",t:"dog",x:520,y:44},{em:"⭐",t:"star",x:60,y:150},
+    {em:"🍎",t:"apple",x:200,y:160},{em:"🐶",t:"dog",x:330,y:150},{em:"⭐",t:"star",x:470,y:158},
+    {em:"🍎",t:"apple",x:600,y:150}
+  ];
+  layout.forEach((o,i)=>{const ic=document.createElement("div");ic.className="icon abs";ic.dataset.t=o.t;ic.dataset.i=i;
+    ic.style.left=o.x+"px";ic.style.top=o.y+"px";ic.innerHTML=`<span class="em">${o.em}</span>`;icons.appendChild(ic);});
+  const allIcons=()=>$$(".icon",icons);
+
+  let round=1; // 1 Sterne-Rahmen, 2 Hunde-Rahmen, 3 Strg-Klick Äpfel
+  function clearSel(){allIcons().forEach(ic=>ic.classList.remove("selected"));}
+  function setRound(r){
+    round=r;clearSel();setCounter(`${r}/3`,"Runde");
+    if(r===1){setInstruction(`Station ${N} · Rahmen ziehen (1/3)`,
+      "In Windows kannst du mehrere Dinge auf einmal markieren: <b>Drücke auf die freie Fläche, halte gedrückt und ziehe einen Rahmen</b> um alle <b>Sterne ⭐</b>. Dann loslassen.");
+      setHint("Auf freier Fläche starten und einen Rahmen um die Sterne ziehen.","");enableMarquee("star");}
+    else if(r===2){setInstruction(`Station ${N} · Rahmen ziehen (2/3)`,
+      "Sehr gut! Ziehe nun einen Rahmen um <b>alle Hunde 🐶</b>.");
+      setHint("Rahmen um alle Hunde aufziehen.","");enableMarquee("dog");}
+    else{setInstruction(`Station ${N} · Strg-Klick (3/3)`,
+      "Einzelne Dinge gezielt auswählen: <b>Halte die Strg-Taste gedrückt</b> und klicke nacheinander <b>alle Äpfel 🍎</b> an.");
+      setHint("Strg gedrückt halten und die Äpfel anklicken.","");enableCtrlClick("apple");}
+  }
+  let marqueeOn=false;
+  function enableMarquee(type){
+    marqueeOn=true;
+    allIcons().forEach(ic=>ic.onclick=null);
+    desk.onmousedown=e=>{
+      if(!marqueeOn)return;if(e.target.closest(".icon"))return;if(e.button!==0)return;
+      const dr=desk.getBoundingClientRect();const sx=e.clientX,sy=e.clientY;
+      clearSel();marquee.style.display="block";
+      function upd(ev){const x1=Math.min(sx,ev.clientX),y1=Math.min(sy,ev.clientY),x2=Math.max(sx,ev.clientX),y2=Math.max(sy,ev.clientY);
+        marquee.style.left=(x1-dr.left)+"px";marquee.style.top=(y1-dr.top)+"px";marquee.style.width=(x2-x1)+"px";marquee.style.height=(y2-y1)+"px";
+        allIcons().forEach(ic=>{const r=ic.getBoundingClientRect();const hit=!(r.right<x1||r.left>x2||r.bottom<y1||r.top>y2);
+          ic.classList.toggle("selected",hit);});}
+      dragMove(e,upd,ev=>{marquee.style.display="none";check(type);});
+    };
+  }
+  function enableCtrlClick(type){
+    marqueeOn=false;desk.onmousedown=null;clearSel();
+    allIcons().forEach(ic=>{ic.onclick=e=>{
+      if(!e.ctrlKey){setHint("Halte dabei die <b>Strg-Taste</b> gedrückt!","warn");return;}
+      ic.classList.toggle("selected");check(type,true);};});
+  }
+  function check(type,silent){
+    const sel=allIcons().filter(ic=>ic.classList.contains("selected"));
+    const targets=allIcons().filter(ic=>ic.dataset.t===type);
+    const ok = sel.length===targets.length && sel.every(ic=>ic.dataset.t===type);
+    if(ok){sfx.step();
+      if(round<3){setHint("Genau richtig markiert! 🎉","good");later(()=>setRound(round+1),700);}
+      else completeStation("s5","Markieren mit Rahmen und Strg-Klick – richtig gut! ▭");
+    }else if(!silent){sfx.soft();
+      const extra=sel.filter(ic=>ic.dataset.t!==type).length;
+      setHint(extra?"Du hast auch etwas anderes erwischt. Ziehe den Rahmen nur um die gesuchten Symbole.":"Noch nicht alle dabei. Versuch den Rahmen etwas größer.","warn");}
+  }
+  setRound(1);
+};
+
+/* ---------- S6: Sortieren (Ziehen & Ablegen) ---------- */
+SCREENS.s6=(stage)=>{
+  const N=stationNumber("s6");
+  function roundSort(){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Ziehen & Ablegen (1/2)`,
+      "Drücke die linke Taste auf einer Datei, <b>halte sie gedrückt</b>, ziehe sie zum passenden Ordner und <b>lass dort los</b>. Sortiere alles ein!");
+    setHint("Halten – ziehen – über dem Ordner loslassen.","");
+    const FILES=[{em:"🐶",name:"Hund.jpg",type:"bilder"},{em:"🎵",name:"Lied.mp3",type:"musik"},{em:"📄",name:"Brief.txt",type:"texte"},
+      {em:"🖼️",name:"Foto.png",type:"bilder"},{em:"🎶",name:"Song.mp3",type:"musik"},{em:"📝",name:"Notiz.txt",type:"texte"},{em:"🏞️",name:"Berg.jpg",type:"bilder"}];
+    const FOLDERS=[{type:"bilder",nm:"Bilder"},{type:"musik",nm:"Musik"},{type:"texte",nm:"Texte"}];
+    build(FILES,FOLDERS,"Diese Dateien einsortieren:",roundTrash,"Alles richtig sortiert! Weiter geht’s.");
+  }
+  function roundTrash(){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Aufräumen (2/2)`,
+      "Jetzt wird aufgeräumt: Ziehe die <b>kaputten oder doppelten Dateien</b> in den <b>Papierkorb 🗑️</b> – und die guten Bilder in den Bilder-Ordner.");
+    setHint("Müll in den Papierkorb, Bilder in den Ordner.","");
+    const FILES=[{em:"🐶",name:"Foto1.jpg",type:"bilder"},{em:"❌",name:"kaputt.tmp",type:"muell"},{em:"🌅",name:"Foto2.jpg",type:"bilder"},
+      {em:"♻️",name:"alt.bak",type:"muell"},{em:"🐱",name:"Foto3.jpg",type:"bilder"},{em:"🗑️",name:"leer.tmp",type:"muell"}];
+    const FOLDERS=[{type:"bilder",nm:"Bilder"},{type:"muell",nm:"Papierkorb",bin:true}];
+    build(FILES,FOLDERS,"Aufräumen – richtig zuordnen:",()=>completeStation("s6","Sortiert und aufgeräumt – Ziehen & Ablegen sitzt! ✋"),"Alles erledigt!");
+  }
+  function build(FILES,FOLDERS,trayLabel,onDone,doneMsg){
+    const TOTAL=FILES.length;let placed=0;setCounter(`0/${TOTAL}`,"sortiert");
+    const wrap=document.createElement("div");wrap.className="sortwrap";
+    const tray=document.createElement("div");tray.className="tray";tray.innerHTML=`<div class="lab">${trayLabel}</div>`;
+    const folders=document.createElement("div");folders.className="folders";folders.style.gridTemplateColumns=`repeat(${FOLDERS.length},1fr)`;
+    wrap.appendChild(tray);wrap.appendChild(folders);stage.appendChild(wrap);
+    const fmap={};
+    FOLDERS.forEach(f=>{const el=document.createElement("div");el.className="folder";el.dataset.type=f.type;
+      el.innerHTML=`<div class="em">${f.bin?"🗑️":"📁"}</div><div class="nm">${f.nm}</div><div class="cnt" data-cnt>${f.bin?"":"leer"}</div>`;
+      folders.appendChild(el);fmap[f.type]={el,count:0,bin:f.bin};});
+    FILES.forEach(f=>{const el=document.createElement("div");el.className="draggable";el.dataset.type=f.type;
+      el.innerHTML=`<span class="em">${f.em}</span>${f.name}`;
+      el.addEventListener("mousedown",e=>{if(el.classList.contains("placed"))return;el.classList.add("dragging");
+        ghostDrag(e,`<span class="em">${f.em}</span>${f.name}`,{
+          onOver:(t)=>{$$(".folder",folders).forEach(x=>x.classList.remove("over"));const fo=t&&t.closest(".folder");if(fo)fo.classList.add("over");},
+          onDrop:(t)=>{el.classList.remove("dragging");$$(".folder",folders).forEach(x=>x.classList.remove("over"));
+            const fo=t&&t.closest(".folder");
+            if(fo&&fo.dataset.type===f.type){el.classList.add("placed");el.style.cursor="default";
+              const fe=fmap[f.type];fe.count++;if(!fe.bin)fe.el.querySelector("[data-cnt]").textContent=fe.count+" Datei"+(fe.count>1?"en":"");else fe.el.querySelector("[data-cnt]").textContent=fe.count+" weg";
+              placed++;sfx.step();setCounter(`${placed}/${TOTAL}`,"sortiert");
+              if(placed===TOTAL)onDone();else setHint(`Richtig! Noch ${TOTAL-placed}.`,"good");
+            }else if(fo){sfx.soft();setHint(`Das gehört nicht in „${fo.querySelector(".nm").textContent}“. Schau auf die Endung (z. B. .mp3 → Musik).`,"warn");}
+            else setHint("Lass die Datei direkt über einem Ordner los.","warn");}});});
+      tray.appendChild(el);});
+  }
+  roundSort();
+};
+
+/* ---------- S7: Fenster bewegen & Größe ---------- */
+SCREENS.s7=(stage)=>{
+  const N=stationNumber("s7");
+  const ws=document.createElement("div");ws.className="winstage";stage.appendChild(ws);
+
+  function roundMove(){
+    ws.innerHTML="";setCounter("1/2","Aufgabe");
+    setInstruction(`Station ${N} · Fenster bewegen (1/2)`,
+      "Fenster fasst man an der <b>Titelleiste</b> oben an. <b>Halte die Titelleiste gedrückt und schiebe das Fenster auf das markierte Feld.</b>");
+    setHint("Titelleiste anfassen und das Fenster ins gestrichelte Feld ziehen.","");
+    const zone=document.createElement("div");zone.className="target-zone";
+    const ZX=ws.clientWidth-200, ZY=ws.clientHeight-150;
+    zone.style.left=ZX+"px";zone.style.top=(ZY-20)+"px";zone.style.width="180px";zone.style.height="130px";
+    zone.textContent="hierher schieben";ws.appendChild(zone);
+    const win=document.createElement("div");win.className="winmove";win.style.left="20px";win.style.top="20px";win.style.width="180px";win.style.height="130px";
+    win.innerHTML=`<div class="tbar">🪟 Fenster <span class="x" title="Schließen">×</span></div><div class="wc">Schieb mich auf das markierte Feld.</div>`;
+    ws.appendChild(win);
+    win.querySelector(".x").addEventListener("click",()=>setHint("Nicht schließen – nur verschieben. 😊 Zieh es an der Titelleiste.","warn"));
+    const tbar=win.querySelector(".tbar");
+    tbar.addEventListener("mousedown",e=>{
+      if(e.target.classList.contains("x"))return;
+      const r=win.getBoundingClientRect();const ox=e.clientX-r.left,oy=e.clientY-r.top;const wr=ws.getBoundingClientRect();
+      dragMove(e,ev=>{let nx=ev.clientX-wr.left-ox,ny=ev.clientY-wr.top-oy;
+        nx=Math.max(0,Math.min(ws.clientWidth-win.offsetWidth,nx));ny=Math.max(0,Math.min(ws.clientHeight-win.offsetHeight,ny));
+        win.style.left=nx+"px";win.style.top=ny+"px";
+        const close=Math.abs(nx-ZX)<26&&Math.abs(parseFloat(win.style.top)-(ZY-20))<26;win.classList.toggle("fit",close);
+      },()=>{const nx=parseFloat(win.style.left),ny=parseFloat(win.style.top);
+        if(Math.abs(nx-ZX)<26&&Math.abs(ny-(ZY-20))<26){win.style.left=ZX+"px";win.style.top=(ZY-20)+"px";win.classList.add("fit");sfx.step();
+          setHint("Genau aufs Feld – super!","good");later(roundResize,800);}
+        else setHint("Fast! Schiebe das Fenster genauer auf das Feld.","warn");});
+    });
+  }
+  function roundResize(){
+    ws.innerHTML="";setCounter("2/2","Aufgabe");
+    setInstruction(`Station ${N} · Größe ändern (2/2)`,
+      "Unten rechts am Fenster ist ein <b>Ziehpunkt</b> ◢. <b>Halte ihn gedrückt und ziehe</b>, bis das Fenster genau den gestrichelten Rahmen ausfüllt.");
+    setHint("Ziehpunkt unten rechts anfassen und das Fenster größer ziehen.","");
+    const TW=320,TH=230;
+    const frame=document.createElement("div");frame.className="target-zone";frame.style.left="20px";frame.style.top="20px";frame.style.width=TW+"px";frame.style.height=TH+"px";frame.textContent="";ws.appendChild(frame);
+    const win=document.createElement("div");win.className="winmove";win.style.left="20px";win.style.top="20px";win.style.width="150px";win.style.height="110px";
+    win.innerHTML=`<div class="tbar">🪟 Fenster <span class="x" title="Schließen">×</span></div><div class="wc">Zieh mich an der Ecke größer.</div><div class="reshandle"></div>`;
+    ws.appendChild(win);
+    win.querySelector(".x").addEventListener("click",()=>setHint("Nicht schließen – nur vergrößern. 😊","warn"));
+    win.querySelector(".reshandle").addEventListener("mousedown",e=>{e.stopPropagation();
+      const r=win.getBoundingClientRect();
+      dragMove(e,ev=>{let w=Math.max(120,ev.clientX-r.left),h=Math.max(90,ev.clientY-r.top);
+        w=Math.min(w,ws.clientWidth-20-parseFloat(win.style.left));h=Math.min(h,ws.clientHeight-20-parseFloat(win.style.top));
+        win.style.width=w+"px";win.style.height=h+"px";
+        const close=Math.abs(w-TW)<24&&Math.abs(h-TH)<24;win.classList.toggle("fit",close);
+      },()=>{const w=parseFloat(win.style.width),h=parseFloat(win.style.height);
+        if(Math.abs(w-TW)<24&&Math.abs(h-TH)<24){win.style.width=TW+"px";win.style.height=TH+"px";win.classList.add("fit");sfx.step();
+          completeStation("s7","Fenster bewegen und vergrößern – das war kniffliges Ziehen! 🪟");}
+        else setHint("Fast! Zieh die Ecke, bis das Fenster den Rahmen genau ausfüllt.","warn");});});
+  }
+  roundMove();
+};
+
+/* ---------- S8: Regler & Leiste ziehen ---------- */
+SCREENS.s8=(stage)=>{
+  const N=stationNumber("s8");
+  setInstruction(`Station ${N} · Regler ziehen`,
+    "Regler bewegt man, indem man den <b>runden Griff anfasst, gedrückt hält und schiebt</b>. Schiebe jeden Griff genau in das <b>grüne Feld</b>.");
+  setHint("Griff anfassen, halten und ins grüne Feld schieben.","");
+  const rows=[{ic:"🔊",nm:"Lautstärke",target:0.8},{ic:"☀️",nm:"Helligkeit",target:0.35},{ic:"🐢",nm:"Tempo",target:0.6}];
+  let ok=0;setCounter(`0/${rows.length}`,"eingestellt");
+  const wrap=document.createElement("div");wrap.className="sliderstage";stage.appendChild(wrap);
+  rows.forEach(rw=>{
+    const row=document.createElement("div");row.className="sliderrow";
+    row.innerHTML=`<span class="ico">${rw.ic}</span><span class="nm">${rw.nm}</span>
+      <div class="track"><div class="zone"></div><div class="thumb"></div></div>`;
+    wrap.appendChild(row);
+    const track=row.querySelector(".track"),thumb=row.querySelector(".thumb"),zone=row.querySelector(".zone");
+    const ZW=0.16; // halbe Zonenbreite (Anteil)
+    let val=Math.random()*0.25; // Startwert links
+    function place(){ const w=track.clientWidth; thumb.style.left=(val*w)+"px";
+      zone.style.left=((rw.target-ZW)*w)+"px";zone.style.width=(ZW*2*w)+"px"; }
+    requestAnimationFrame(place);
+    addEventListener("resize",place);
+    let solved=false;
+    thumb.addEventListener("mousedown",e=>{
+      const tr=track.getBoundingClientRect();
+      dragMove(e,ev=>{val=Math.max(0,Math.min(1,(ev.clientX-tr.left)/tr.width));thumb.style.left=(val*track.clientWidth)+"px";
+        const inZone=Math.abs(val-rw.target)<=ZW;row.classList.toggle("ok",inZone);
+      },()=>{const inZone=Math.abs(val-rw.target)<=ZW;
+        if(inZone&&!solved){solved=true;row.classList.add("ok");ok++;sfx.step();setCounter(`${ok}/${rows.length}`,"eingestellt");
+          if(ok===rows.length)completeStation("s8","Alle Regler genau eingestellt – präzises Ziehen! 🎚️");
+          else setHint(`Genau im grünen Feld! Noch ${rows.length-ok}.`,"good");}
+        else if(!inZone){if(solved){solved=false;row.classList.remove("ok");ok=Math.max(0,ok-1);setCounter(`${ok}/${rows.length}`,"eingestellt");}
+          setHint("Schiebe den Griff genau ins grüne Feld.","warn");}});
+    });
+  });
+};
+
+/* ---------- S9: Malen durch Ziehen ---------- */
+SCREENS.s9=(stage)=>{
+  const N=stationNumber("s9");
+  setInstruction(`Station ${N} · Malen mit der Maus`,
+    "Wie in einem Malprogramm: <b>Drücke die linke Taste und wische über die hellblauen Felder</b>, ohne loszulassen. Male das ganze Muster aus!");
+  setHint("Gedrückt halten und über die hellblauen Felder wischen.","");
+  const W=13,H=11,cell=24;
+  const grid=document.createElement("div");grid.className="paintgrid";grid.style.gridTemplateColumns=`repeat(${W},${cell}px)`;
+  const wrap=document.createElement("div");wrap.className="paintwrap";wrap.appendChild(grid);stage.appendChild(wrap);
+  // Herz-Form bestimmen
+  function inHeart(cx,cy){const a=(cx+0.5)/W*2.8-1.4,b=1.4-(cy+0.5)/H*2.8;const v=Math.pow(a*a+b*b-1,3)-a*a*b*b*b;return v<=0;}
+  const cells=[];let targetCount=0;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=document.createElement("div");c.className="cell";
+    if(inHeart(x,y)){c.classList.add("target");c.dataset.target="1";targetCount++;}grid.appendChild(c);cells.push(c);}
+  let painted=0;setCounter(`0/${targetCount}`,"Felder");
+  function paintAt(el){if(!el||!el.classList||!el.classList.contains("cell"))return;
+    if(el.classList.contains("paint"))return;el.classList.add("paint");
+    if(el.dataset.target){painted++;sfx.step();setCounter(`${painted}/${targetCount}`,"Felder");
+      if(painted===targetCount)completeStation("s9","Ein ganzes Herz gemalt – tolle Mausführung! 🎨");}}
+  grid.addEventListener("mousedown",e=>{e.preventDefault();paintAt(e.target);
+    dragMove(e,ev=>{const t=document.elementFromPoint(ev.clientX,ev.clientY);paintAt(t);},null);});
+};
+
+/* ---------- S10: Umschalt-Klick (Bereichsauswahl) ---------- */
+SCREENS.s10=(stage)=>{
+  const N=stationNumber("s10");
+  const ITEMS=[["🎵","Lied 1"],["🎵","Lied 2"],["🎵","Lied 3"],["🎵","Lied 4"],["🎵","Lied 5"],["🎵","Lied 6"],["🎵","Lied 7"],["🎵","Lied 8"]];
+  let round=1,anchor=null,target=[];
+  const list=document.createElement("div");list.className="listsel";stage.appendChild(list);
+  const rows=ITEMS.map((it,i)=>{const r=document.createElement("div");r.className="lrow";r.dataset.i=i;
+    r.innerHTML=`<span class="em">${it[0]}</span><span>${it[1]}</span>`;list.appendChild(r);return r;});
+  function clearSel(){rows.forEach(r=>r.classList.remove("sel"));}
+  function selectRange(a,b){clearSel();for(let i=Math.min(a,b);i<=Math.max(a,b);i++)rows[i].classList.add("sel");}
+  function selected(){return rows.filter(r=>r.classList.contains("sel")).map(r=>+r.dataset.i);}
+  function check(){const s=selected();const ok=s.length===target.length&&s.every((v,i)=>v===target[i]);
+    if(ok){sfx.step();if(round<2){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(2),800);}
+      else completeStation("s10","Bereichsauswahl mit der Umschalt-Taste sitzt! 📑");}}
+  function setRound(r){round=r;anchor=null;clearSel();
+    if(r===1){target=[1,2,3,4];setCounter("1/2","Runde");
+      setInstruction(`Station ${N} · Umschalt-Klick (1/2)`,
+        "So markiert man einen ganzen Bereich: Klicke <b>Lied 2</b> an, halte dann die <b>Umschalt-Taste (⇧)</b> gedrückt und klicke <b>Lied 5</b>. Alles dazwischen wird mitmarkiert.");
+      setHint("Erst Lied 2 anklicken, dann mit gedrückter Umschalt-Taste Lied 5.","");}
+    else{target=[4,5,6,7];setCounter("2/2","Runde");
+      setInstruction(`Station ${N} · Umschalt-Klick (2/2)`,
+        "Noch einmal: Markiere den Bereich von <b>Lied 5</b> bis <b>Lied 8</b> mit Klick und Umschalt-Klick.");
+      setHint("Lied 5 anklicken, dann Umschalt gedrückt halten und Lied 8 anklicken.","");}}
+  rows.forEach(r=>r.addEventListener("click",e=>{const i=+r.dataset.i;
+    if(e.shiftKey&&anchor!=null){selectRange(anchor,i);check();}
+    else{anchor=i;clearSel();r.classList.add("sel");setHint("Startpunkt gesetzt. Jetzt Umschalt-Taste gedrückt halten und das Ende anklicken.","");}}));
+  setRound(1);
+};
+
+/* ---------- S11: Text markieren durch Ziehen ---------- */
+SCREENS.s11=(stage)=>{
+  const N=stationNumber("s11");
+  const sentences=["Die Maus hat meistens zwei Tasten.","In der Mitte sitzt oft ein Scrollrad.","Mit der Maus steuerst du den Zeiger."];
+  let round=1,target="";
+  const prompt=document.createElement("div");prompt.className="prompt";
+  const card=document.createElement("div");card.className="textcard selectable";
+  card.innerHTML=`<p>${sentences.map(s=>`<span>${s}</span>`).join(" ")}</p>`;
+  stage.appendChild(prompt);stage.appendChild(card);
+  function norm(s){return (s||"").replace(/\s+/g," ").trim().replace(/[.»«]/g,"").trim();}
+  function setRound(r){round=r;if(window.getSelection)window.getSelection().removeAllRanges();
+    target=(r===1)?sentences[1]:sentences[0];setCounter(`${r}/2`,"Runde");
+    setInstruction(`Station ${N} · Text markieren (${r}/2)`, r===1
+      ? "Text markiert man, indem man mit <b>gedrückter linker Taste über die Wörter fährt</b>. Markiere genau diesen Satz:"
+      : "Sehr gut! Markiere nun genau diesen Satz:");
+    prompt.innerHTML=`Markiere: <b>»${target}«</b>`;
+    setHint("Am Satzanfang die Taste drücken, bis zum Punkt ziehen, dann loslassen.","");}
+  function onUp(){later(()=>{const sel=norm(window.getSelection().toString());if(!sel)return;const t=norm(target);
+    if(sel===t){sfx.step();if(round<2){setHint("Genau dieser Satz – perfekt! 🎉","good");later(()=>setRound(2),800);}
+      else completeStation("s11","Text markieren durch Ziehen – stark! 🖍️");}
+    else if(t.includes(sel))setHint("Fast! Du hast noch nicht den ganzen Satz erwischt – zieh bis zum Punkt.","warn");
+    else setHint("Das ist zu viel oder der falsche Satz. Markiere genau den geforderten Satz.","warn");},10);}
+  card.addEventListener("mouseup",onUp);
+  setRound(1);
+};
+
+/* ---------- S12: Doppelklick = Wort, Dreifachklick = Zeile ---------- */
+SCREENS.s12=(stage)=>{
+  const N=stationNumber("s12");
+  let round=1;
+  const word="Computer", line="Ein Doppelklick markiert ein einzelnes Wort.";
+  const prompt=document.createElement("div");prompt.className="prompt";
+  const card=document.createElement("div");card.className="textcard selectable";
+  stage.appendChild(prompt);stage.appendChild(card);
+  function norm(s){return (s||"").replace(/\s+/g," ").trim().replace(/[.»«,]/g,"").trim();}
+  function setRound(r){round=r;if(window.getSelection)window.getSelection().removeAllRanges();setCounter(`${r}/2`,"Runde");
+    if(r===1){card.innerHTML=`<p>Der Computer gehört zu den wichtigsten Geräten der Welt. Eine Maus hilft dir, den Computer zu steuern.</p>`;
+      setInstruction(`Station ${N} · Wort & Zeile (1/2)`,"Ein <b>Doppelklick</b> auf ein Wort markiert genau dieses Wort. Mache einen <b>Doppelklick auf das Wort »Computer«</b>.");
+      prompt.innerHTML=`Doppelklick auf: <b>»Computer«</b>`;setHint("Zweimal schnell auf das Wort klicken.","");}
+    else{card.innerHTML=`<p id="tl">${line}</p><p>Diesen zweiten Satz brauchst du nicht.</p>`;
+      setInstruction(`Station ${N} · Wort & Zeile (2/2)`,"Ein <b>Dreifachklick</b> (dreimal schnell) markiert eine ganze Zeile. Mache einen <b>Dreifachklick auf den ersten Satz</b>.");
+      prompt.innerHTML=`Dreifachklick auf den <b>ersten Satz</b>.`;setHint("Dreimal schnell hintereinander klicken.","");}}
+  card.addEventListener("dblclick",()=>{if(round!==1)return;
+    later(()=>{const sel=norm(window.getSelection().toString());
+      if(sel===norm(word)){sfx.step();setHint("Genau – ein ganzes Wort mit einem Doppelklick! 🎉","good");later(()=>setRound(2),800);}
+      else if(sel)setHint("Doppelklicke genau auf das Wort »Computer«.","warn");},10);});
+  card.addEventListener("click",e=>{if(round!==2||e.detail<3)return;
+    later(()=>{const ns=norm(window.getSelection().toString()),nl=norm(line);
+      if(ns===nl||ns.includes(nl)||(nl.includes(ns)&&ns.length>=nl.length*0.7)){
+        sfx.step();completeStation("s12","Wort per Doppelklick, Zeile per Dreifachklick – top! ✏️");}
+      else setHint("Klicke dreimal schnell auf den ersten Satz.","warn");},10);});
+  setRound(1);
+};
+
+/* ---------- S13: Liste per Ziehen umsortieren ---------- */
+SCREENS.s13=(stage)=>{
+  const N=stationNumber("s13");
+  let round=1,correct=[];
+  const list=document.createElement("div");list.className="sortlist";stage.appendChild(list);
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function order(){return [...list.querySelectorAll(".sortitem")].map(r=>r.dataset.key);}
+  function afterEl(y){let res=null,closest=-Infinity;
+    [...list.querySelectorAll(".sortitem:not(.dragging)")].forEach(c=>{const b=c.getBoundingClientRect();const off=y-b.top-b.height/2;
+      if(off<0&&off>closest){closest=off;res=c;}});return res;}
+  function startDrag(e,row){e.preventDefault();row.classList.add("dragging");setHint("Schiebe die Zeile nach oben oder unten und lass sie an der richtigen Stelle los.","");
+    dragMove(e,ev=>{const after=afterEl(ev.clientY);if(after==null)list.appendChild(row);else list.insertBefore(row,after);},
+      ()=>{row.classList.remove("dragging");check();});}
+  function render(items){list.innerHTML="";items.forEach(it=>{const row=document.createElement("div");row.className="sortitem";row.dataset.key=it.key;
+    row.innerHTML=`<span class="grip">⋮⋮</span><span class="em">${it.em}</span><span>${it.label}</span>`;
+    row.addEventListener("mousedown",e=>startDrag(e,row));list.appendChild(row);});}
+  function check(){const cur=order();const ok=cur.every((k,i)=>k===correct[i]);
+    if(ok){sfx.step();if(round===1){setHint("Reihenfolge stimmt – klasse! 🎉","good");later(()=>setRound(2),800);}
+      else completeStation("s13","Listen per Ziehen umsortieren – jetzt bist du ein echter Maus-Profi! 🔀");}
+    else setHint("Noch nicht ganz – zieh die Einträge in die richtige Reihenfolge.","warn");}
+  function place(items){let sh=shuffle(items);while(sh.every((it,i)=>it.key===correct[i]))sh=shuffle(items);render(sh);}
+  function setRound(r){round=r;
+    if(r===1){correct=["1","2","3","4","5"];setCounter("1/2","Runde");
+      setInstruction(`Station ${N} · Umsortieren (1/2)`,
+        "Einträge lassen sich per Ziehen umsortieren: <b>Fasse eine Zeile an, halte gedrückt und schiebe sie nach oben oder unten.</b> Bringe die Zahlen in die Reihenfolge <b>1, 2, 3, 4, 5</b>.");
+      setHint("Zeilen anfassen und in die richtige Reihenfolge ziehen.","");
+      place([{key:"1",em:"1️⃣",label:"Eins"},{key:"2",em:"2️⃣",label:"Zwei"},{key:"3",em:"3️⃣",label:"Drei"},{key:"4",em:"4️⃣",label:"Vier"},{key:"5",em:"5️⃣",label:"Fünf"}]);}
+    else{correct=["mo","di","mi","do","fr"];setCounter("2/2","Runde");
+      setInstruction(`Station ${N} · Umsortieren (2/2)`,"Jetzt die Wochentage: Bringe sie per Ziehen in die richtige Reihenfolge von <b>Montag bis Freitag</b>.");
+      setHint("Tage anfassen und richtig sortieren.","");
+      place([{key:"mo",em:"📅",label:"Montag"},{key:"di",em:"📅",label:"Dienstag"},{key:"mi",em:"📅",label:"Mittwoch"},{key:"do",em:"📅",label:"Donnerstag"},{key:"fr",em:"📅",label:"Freitag"}]);}}
+  setRound(1);
+};
+
+/* ---------- Prüfung (mit Bugfix) ---------- */
+SCREENS.exam=(stage)=>{
+  setInstruction("Prüfung · Der Tresor",
+    "Jetzt alles zusammen! Folge den Schritten rechts und knacke den Tresor. Du brauchst jeden Klick, den du gelernt hast.");
+  setHint("Beginne mit Schritt 1.","");
+  const wrap=document.createElement("div");wrap.className="examwrap";
+  wrap.innerHTML=`
+    <div class="examdesk"><div class="desktop" id="exDesk" style="min-height:330px">
+      <div class="icons" id="exIcons"></div>
+      <div class="window" id="exWin">
+        <div class="titlebar">📂 Aufgaben <span class="x" id="exClose" title="Schließen">×</span></div>
+        <div class="wbody" id="exWinBody"></div>
+      </div>
+      <div class="taskbar"><span class="st-btn">⊞ Start</span><span>🖥️ Prüfungs-Desktop</span></div>
+    </div></div>
+    <div class="checklist"><h3>Deine Aufgaben</h3><ol id="exSteps">
+      <li data-step="0">Klicke den Ordner <b>Aufgaben</b> einmal an (auswählen).</li>
+      <li data-step="1">Öffne den Ordner <b>Aufgaben</b> mit einem Doppelklick.</li>
+      <li data-step="2">Scrolle im Fenster nach unten zum Schlüssel 🔑.</li>
+      <li data-step="3">Rechtsklick auf den Schlüssel → <b>Kopieren</b>.</li>
+      <li data-step="4">Ziehe den Schlüssel vom Desktop auf den Tresor 🔒.</li>
+    </ol></div>`;
+  stage.appendChild(wrap);
+  const icons=$("#exIcons",wrap),win=$("#exWin",wrap),winBody=$("#exWinBody",wrap);
+  let step=0;
+  function activate(n){step=n;$$("#exSteps li",wrap).forEach(li=>{const s=+li.dataset.step;
+    li.classList.toggle("active",s===n);li.classList.toggle("done",s<n);});}
+  activate(0);
+
+  const safe=document.createElement("div");safe.className="icon";safe.dataset.role="safe";
+  safe.innerHTML=`<span class="em">🔒</span><span class="lb">Tresor</span>`;
+  const folder=document.createElement("div");folder.className="icon";folder.dataset.role="folder";
+  folder.innerHTML=`<span class="em">📁</span><span class="lb">Aufgaben</span>`;
+  icons.appendChild(folder);icons.appendChild(safe);
+
+  // Schließen-Knopf funktioniert immer (Bugfix)
+  $("#exClose",wrap).addEventListener("click",()=>{win.style.display="none";});
+
+  let lastClick=0;
+  folder.addEventListener("click",()=>{const now=performance.now();
+    if(step===0){folder.classList.add("selected","pop");later(()=>folder.classList.remove("pop"),400);sfx.step();
+      setHint("Ausgewählt ✓ – jetzt öffnen mit Doppelklick (Schritt 2).","good");activate(1);lastClick=now;return;}
+    if(step===1){if(now-lastClick<=state.dblTolerance&&lastClick>0)openWindow();
+      else setHint("Fast! Für den Doppelklick zweimal schnell hintereinander klicken.","warn");lastClick=now;}});
+
+  function openWindow(){
+    sfx.good();win.style.display="block";setHint("Fenster offen! Scrolle nach unten zum Schlüssel (Schritt 3).","good");activate(2);
+    winBody.innerHTML=`<p><b>Aufgabenordner</b></p><p>In diesem Ordner liegt ein Schlüssel. Scrolle nach unten, bis du ihn siehst.</p>
+      <p>Ein Doppelklick öffnet Ordner und Dateien.</p><p>Mit dem Scrollrad bewegst du den Inhalt.</p>
+      <p>Du machst das großartig.</p><p>Gleich hast du den Schlüssel …</p><p>Noch ein kleines Stück nach unten.</p>
+      <div style="text-align:center;margin-top:10px"><span class="icon" id="exKey" style="display:inline-flex;width:80px;height:84px;color:var(--ink)">
+        <span class="em" style="filter:none">🔑</span><span class="lb">Schlüssel</span></span></div>`;
+    winBody.addEventListener("scroll",()=>{if(step===2&&winBody.scrollTop>60)setHint("Genau – gleich siehst du den Schlüssel.","good");});
+    const key=$("#exKey",winBody);
+    key.addEventListener("contextmenu",e=>{e.preventDefault();e.stopPropagation();if(step!==2)return;key.classList.add("selected");
+      showCtx(e.clientX,e.clientY,[{icon:"📂",label:"Öffnen"},
+        {icon:"📋",label:"Kopieren",key:"Strg+C",action:()=>{sfx.step();copyKey();}},
+        {icon:"✏️",label:"Umbenennen",key:"F2"},{icon:"🗑️",label:"Löschen"}]);});
+    key.addEventListener("click",()=>{if(step===2)setHint("Fast! Mache einen <b>Rechtsklick</b> auf den Schlüssel (Schritt 4).","warn");});
+  }
+
+  // BUGFIX: Fenster schließen und Schlüssel sichtbar auf den Desktop legen
+  function copyKey(){
+    activate(3);
+    win.style.display="none"; // Fenster schließt sich, Desktop ist frei
+    setHint("Kopiert! Der Schlüssel liegt jetzt auf dem Desktop. Ziehe ihn auf den Tresor (Schritt 5).","good");
+    const dk=document.createElement("div");dk.className="icon pop";dk.dataset.role="dragkey";
+    dk.innerHTML=`<span class="em">🔑</span><span class="lb">Schlüssel</span>`;
+    icons.appendChild(dk);
+    dk.addEventListener("mousedown",e=>{if(step!==3&&step!==4)return;dk.classList.add("dragging");
+      ghostDrag(e,`<span class="em">🔑</span>Schlüssel`,{
+        onOver:(t)=>{safe.classList.toggle("selected",!!(t&&t.closest('[data-role="safe"]')));},
+        onDrop:(t)=>{dk.classList.remove("dragging");safe.classList.remove("selected");
+          if(t&&t.closest('[data-role="safe"]')){dk.remove();safe.querySelector(".em").textContent="🔓";
+            safe.querySelector(".lb").textContent="Geöffnet!";safe.classList.add("pop");activate(5);
+            completeStation("exam","Der Tresor ist offen – Prüfung bestanden! 🏆");}
+          else setHint("Lass den Schlüssel direkt über dem Tresor los.","warn");}});});
+  }
+};
+
+/* ---------- Urkunde ---------- */
+SCREENS.exam_done=(stage)=>{
+  setInstruction("Geschafft!","Du hast alle Stationen gemeistert. Trage deinen Namen ein und drucke deine Urkunde aus.");
+  setHint("Trage deinen Namen ein und klicke auf „Drucken“.","good");
+  const today=new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"long",year:"numeric"});
+  const skills=[["🎯","Zeigen"],["👆","Klick"],["⚡","Doppelklick"],["📋","Rechtsklick"],["🎡","Scrollen"],
+    ["▭","Markieren"],["✋","Sortieren"],["🪟","Fenster"],["🎚️","Regler"],["🎨","Malen"],
+    ["📑","Umschalt-Klick"],["🖍️","Text markieren"],["✏️","Wort & Zeile"],["🔀","Umsortieren"],["🏆","Prüfung"]];
+  const badges=skills.map(s=>`<span class="badge">${s[0]} ${s[1]}</span>`).join("");
+  stage.innerHTML=`<div class="urkunde" id="urkunde"><div class="seal">🏅</div>
+    <h1>Maus-Führerschein</h1>
+    <div class="sub">Diese Urkunde bestätigt, dass die Maus sicher bedient werden kann.</div>
+    <div class="nameline"><input id="nameInput" type="text" placeholder="Dein Name" aria-label="Name"><div class="cap">Name</div></div>
+    <div class="badges">${badges}</div>
+    <div class="foot"><span>Ausgestellt am ${today}</span><span>Informatik · Klasse 5</span></div></div>`;
+  showReplay(false);showNext(true,"🖨️ Drucken");$("#nextBtn").onclick=()=>window.print();
+};
+
+/* ---------- Einstellungen ---------- */
+$("#gearBtn").addEventListener("click",()=>{$("#overlay").style.display="flex";});
+$("#closeSet").addEventListener("click",()=>{$("#overlay").style.display="none";});
+$("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay")$("#overlay").style.display="none";});
+$("#tolRange").addEventListener("input",e=>{state.dblTolerance=+e.target.value;$("#tolVal").textContent=e.target.value;});
+$("#soundChk").addEventListener("change",e=>{state.sound=e.target.checked;if(state.sound){if(audioCtx)audioCtx.resume&&audioCtx.resume();sfx.step();}});
+$("#resetBtn").addEventListener("click",()=>{state.done={};refreshProgress();$("#overlay").style.display="none";go("start");});
+
+buildProgress();
+go("start");
+</script>
+</body>
+</html>
