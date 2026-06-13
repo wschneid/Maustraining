@@ -462,7 +462,7 @@ function ghostDrag(e,innerHTML,opts){
    Kontextmenü mit Untermenü
    ============================================================ */
 const ctx=$("#ctxmenu"), sub=$("#submenu");
-function buildItems(container,items){
+function buildItems(container,items,isSub){
   container.innerHTML="";
   items.forEach(it=>{
     if(it.sep){const s=document.createElement("div");s.className="sep";container.appendChild(s);return;}
@@ -471,12 +471,14 @@ function buildItems(container,items){
       (it.sub?`<span class="arr">▸</span>`:it.key?`<span class="k">${it.key}</span>`:"");
     if(it.sub){
       m.addEventListener("mouseenter",()=>{
-        buildItems(sub,it.sub);const r=m.getBoundingClientRect();sub.style.display="block";
+        buildItems(sub,it.sub,true);const r=m.getBoundingClientRect();sub.style.display="block";
         const w=sub.offsetWidth;let x=r.right-2;if(x+w>innerWidth)x=r.left-w+2;
         sub.style.left=x+"px";sub.style.top=Math.min(r.top,innerHeight-sub.offsetHeight-6)+"px";
       });
     }else{
-      m.addEventListener("mouseenter",()=>{sub.style.display="none";});
+      // Im Hauptmenü blendet das Überfahren eines Eintrags ohne Untermenü das Untermenü aus.
+      // Innerhalb des Untermenüs darf das NICHT passieren – sonst verschwindet es, bevor man klicken kann.
+      if(!isSub) m.addEventListener("mouseenter",()=>{sub.style.display="none";});
       if(!it.disabled) m.addEventListener("click",e=>{e.stopPropagation();hideCtx();it.action&&it.action();});
     }
     container.appendChild(m);
@@ -802,12 +804,16 @@ SCREENS.s5=(stage)=>{
   const tb=document.createElement("div");tb.className="taskbar";tb.innerHTML=`<span class="st-btn">⊞ Start</span><span>🖥️ Desktop · Markieren</span>`;desk.appendChild(tb);
   stage.appendChild(desk);
 
-  // feste Positionen
+  // feste Positionen – nach Typ in getrennte Bänder gruppiert, damit sich Sterne bzw.
+  // Hunde mit einem Rahmen umfassen lassen, ohne andere Symbole mitzunehmen.
   const layout=[
-    {em:"⭐",t:"star",x:30,y:30},{em:"🐶",t:"dog",x:150,y:40},{em:"⭐",t:"star",x:270,y:30},
-    {em:"🍎",t:"apple",x:400,y:36},{em:"🐶",t:"dog",x:520,y:44},{em:"⭐",t:"star",x:60,y:150},
-    {em:"🍎",t:"apple",x:200,y:160},{em:"🐶",t:"dog",x:330,y:150},{em:"⭐",t:"star",x:470,y:158},
-    {em:"🍎",t:"apple",x:600,y:150}
+    // Sterne (links)
+    {em:"⭐",t:"star",x:20,y:20},{em:"⭐",t:"star",x:120,y:20},
+    {em:"⭐",t:"star",x:20,y:150},{em:"⭐",t:"star",x:120,y:150},
+    // Äpfel (Mitte) – werden später per Strg-Klick ausgewählt
+    {em:"🍎",t:"apple",x:285,y:20},{em:"🍎",t:"apple",x:380,y:20},{em:"🍎",t:"apple",x:285,y:150},
+    // Hunde (rechts)
+    {em:"🐶",t:"dog",x:545,y:20},{em:"🐶",t:"dog",x:640,y:20},{em:"🐶",t:"dog",x:545,y:150}
   ];
   layout.forEach((o,i)=>{const ic=document.createElement("div");ic.className="icon abs";ic.dataset.t=o.t;ic.dataset.i=i;
     ic.style.left=o.x+"px";ic.style.top=o.y+"px";ic.innerHTML=`<span class="em">${o.em}</span>`;icons.appendChild(ic);});
