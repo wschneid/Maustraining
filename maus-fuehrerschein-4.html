@@ -1328,8 +1328,6 @@ SCREENS.s10=(stage)=>{
   function selected(){return rows.filter(r=>r.classList.contains("sel")).map(r=>+r.dataset.i);}
   function check(){const s=selected();const ok=s.length===target.length&&s.every((v,i)=>v===target[i]);
     if(ok){sfx.step();if(round<3){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(round+1),800);}
-      else completeStation("s10","Bereichsauswahl mit der Umschalt-Taste sitzt! 📑");}}
-    if(ok){sfx.step();if(round<2){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(2),800);}
       else completeStation("s10","Bereichsauswahl mit der Umschalt-Taste sitzt! 📑");}
     else{sfx.soft();const a=target[0]+1,b=target[target.length-1]+1;
       // Falscher Bereich: nicht stillschweigend ignorieren, sondern – wie bei der
