@@ -1268,6 +1268,12 @@ SCREENS.s10=(stage)=>{
       setHint("Lied 5 anklicken, dann Umschalt gedrückt halten und Lied 8 anklicken.","");}}
   rows.forEach(r=>r.addEventListener("click",e=>{const i=+r.dataset.i;
     if(e.shiftKey&&anchor!=null){selectRange(anchor,i);check();}
+    else if(anchor!=null&&i!==anchor){
+      // Startpunkt steht schon und es wird ein anderes Lied geklickt – hier wurde
+      // fast sicher die Umschalt-Taste vergessen. Freundlich darauf hinweisen,
+      // statt den Bereich stillschweigend zu verwerfen (sonst hängt der Lernende fest).
+      sfx.soft();anchor=i;clearSel();r.classList.add("sel");
+      setHint("Fast! Beim <b>zweiten</b> Klick die <b>Umschalt-Taste (⇧)</b> gedrückt halten – dann wird der ganze Bereich markiert.","warn");}
     else{anchor=i;clearSel();r.classList.add("sel");setHint("Startpunkt gesetzt. Jetzt Umschalt-Taste gedrückt halten und das Ende anklicken.","");}}));
   setRound(1);
 };
