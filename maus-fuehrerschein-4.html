@@ -1256,7 +1256,11 @@ SCREENS.s10=(stage)=>{
   function selected(){return rows.filter(r=>r.classList.contains("sel")).map(r=>+r.dataset.i);}
   function check(){const s=selected();const ok=s.length===target.length&&s.every((v,i)=>v===target[i]);
     if(ok){sfx.step();if(round<2){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(2),800);}
-      else completeStation("s10","Bereichsauswahl mit der Umschalt-Taste sitzt! 📑");}}
+      else completeStation("s10","Bereichsauswahl mit der Umschalt-Taste sitzt! 📑");}
+    else{sfx.soft();const a=target[0]+1,b=target[target.length-1]+1;
+      // Falscher Bereich: nicht stillschweigend ignorieren, sondern – wie bei der
+      // Strg-Klick-Station – klar sagen, welcher Bereich gesucht ist.
+      setHint(`Das ist noch nicht der richtige Bereich. Klicke <b>Lied ${a}</b> an und dann mit gedrückter <b>Umschalt-Taste (⇧)</b> auf <b>Lied ${b}</b>.`,"warn");}}
   function setRound(r){round=r;anchor=null;clearSel();
     if(r===1){target=[1,2,3,4];setCounter("1/2","Runde");
       setInstruction(`Station ${N} · Umschalt-Klick (1/2)`,
