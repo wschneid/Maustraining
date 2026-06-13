@@ -1329,6 +1329,12 @@ SCREENS.s10=(stage)=>{
   function check(){const s=selected();const ok=s.length===target.length&&s.every((v,i)=>v===target[i]);
     if(ok){sfx.step();if(round<3){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(round+1),800);}
       else completeStation("s10","Bereichsauswahl mit der Umschalt-Taste sitzt! 📑");}}
+    if(ok){sfx.step();if(round<2){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(2),800);}
+      else completeStation("s10","Bereichsauswahl mit der Umschalt-Taste sitzt! 📑");}
+    else{sfx.soft();const a=target[0]+1,b=target[target.length-1]+1;
+      // Falscher Bereich: nicht stillschweigend ignorieren, sondern – wie bei der
+      // Strg-Klick-Station – klar sagen, welcher Bereich gesucht ist.
+      setHint(`Das ist noch nicht der richtige Bereich. Klicke <b>Lied ${a}</b> an und dann mit gedrückter <b>Umschalt-Taste (⇧)</b> auf <b>Lied ${b}</b>.`,"warn");}}
   function setRound(r){round=r;anchor=null;clearSel();
     if(r===1){target=[1,2,3,4];setCounter("1/3","Runde");
       setInstruction(`Station ${N} · Umschalt-Klick (1/3)`,
@@ -1344,6 +1350,12 @@ SCREENS.s10=(stage)=>{
       setHint("Lied 1 anklicken, dann Umschalt gedrückt halten und Lied 3 anklicken.","");}}
   rows.forEach(r=>r.addEventListener("click",e=>{const i=+r.dataset.i;
     if(e.shiftKey&&anchor!=null){selectRange(anchor,i);check();}
+    else if(anchor!=null&&i!==anchor){
+      // Startpunkt steht schon und es wird ein anderes Lied geklickt – hier wurde
+      // fast sicher die Umschalt-Taste vergessen. Freundlich darauf hinweisen,
+      // statt den Bereich stillschweigend zu verwerfen (sonst hängt der Lernende fest).
+      sfx.soft();anchor=i;clearSel();r.classList.add("sel");
+      setHint("Fast! Beim <b>zweiten</b> Klick die <b>Umschalt-Taste (⇧)</b> gedrückt halten – dann wird der ganze Bereich markiert.","warn");}
     else{anchor=i;clearSel();r.classList.add("sel");setHint("Startpunkt gesetzt. Jetzt Umschalt-Taste gedrückt halten und das Ende anklicken.","");}}));
   setRound(1);
 };
