@@ -885,7 +885,7 @@ SCREENS.s2=(stage)=>{
   const N=stationNumber("s2");
   function roundChests(){
     stage.innerHTML="";
-    setInstruction(`Station ${N} · Der Doppelklick (1/2)`,
+    setInstruction(`Station ${N} · Der Doppelklick (1/3)`,
       "Zum <b>Öffnen</b> klickst du zweimal schnell hintereinander auf dieselbe Stelle. Öffne alle Geschenke mit einem Doppelklick!");
     setHint("Tipp: zweimal kurz hintereinander klicken – die Maus dabei nicht bewegen.","");
     const TOTAL=dCount(5,4);let opened=0;setCounter(`0/${TOTAL}`,"geöffnet");
@@ -903,7 +903,7 @@ SCREENS.s2=(stage)=>{
   }
   function roundList(){
     stage.innerHTML="";
-    setInstruction(`Station ${N} · Ordner öffnen (2/2)`,
+    setInstruction(`Station ${N} · Ordner öffnen (2/3)`,
       "So öffnet man in Windows Ordner und Dateien: per Doppelklick auf die Zeile. <b>Öffne alle vier Ordner.</b>");
     setHint("Doppelklick direkt auf eine Zeile.","");
     const rows=[["📁","Bilder"],["📁","Musik"],["📁","Schule"],["📄","liesmich.txt"]];
@@ -915,13 +915,42 @@ SCREENS.s2=(stage)=>{
       row.addEventListener("click",()=>{if(row.classList.contains("open"))return;const now=performance.now();
         if(now-last<=state.dblTolerance&&last>0){row.classList.remove("selected");row.classList.add("open");
           row.querySelector(".st").textContent="geöffnet ✓";opened++;sfx.good();setCounter(`${opened}/${rows.length}`,"geöffnet");last=0;
-          if(opened===rows.length)completeStation("s2","Stark! Du beherrschst den Doppelklick. ⚡");
+          if(opened===rows.length){sfx.good();setHint("Alle offen! Jetzt wird's gemischt.","good");later(roundMixed,800);}
           else setHint(`Geöffnet! Noch ${rows.length-opened}.`,"good");
         }else{$$(".frow",list).forEach(x=>x.classList.remove("selected"));row.classList.add("selected");
           setHint("Ausgewählt ✓ – jetzt noch ein zweites Mal schnell klicken!","warn");last=now;
           later(()=>{if(!row.classList.contains("open"))row.classList.remove("selected");},state.dblTolerance+50);}});
       list.appendChild(row);});
     stage.appendChild(list);
+  }
+  function roundMixed(){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Auswählen oder Öffnen (3/3)`,
+      "Jetzt gemischt: <b>Ordner</b> mit <b>Doppelklick öffnen</b>, <b>Bilder</b> mit <b>einem Klick</b> nur <b>auswählen</b>. Erledige alle vier.");
+    setHint("Ordner = Doppelklick, Bild = ein Klick.","");
+    const rows=[{em:"📁",name:"Urlaub",want:"open"},{em:"🖼️",name:"Foto1.jpg",want:"select"},
+      {em:"📁",name:"Schule",want:"open"},{em:"🖼️",name:"Foto2.jpg",want:"select"}];
+    let done=0;setCounter(`0/${rows.length}`,"erledigt");
+    const list=document.createElement("div");list.className="filelist";
+    list.innerHTML=`<div class="fhead">📂 Dieser PC › Gemischt</div>`;stage.appendChild(list);
+    function finish(row,label){row.classList.remove("selected");row.classList.add("open");
+      row.querySelector(".st").textContent=label;done++;sfx.good();setCounter(`${done}/${rows.length}`,"erledigt");
+      if(done===rows.length)completeStation("s2","Auswählen und Öffnen – du kennst den Unterschied! ⚡");
+      else setHint(`Richtig! Noch ${rows.length-done}.`,"good");}
+    rows.forEach(rw=>{const row=document.createElement("div");row.className="frow";
+      row.innerHTML=`<span class="em">${rw.em}</span><span>${rw.name}</span><span class="st">…</span>`;
+      let last=0,timer=null;
+      row.addEventListener("click",()=>{if(row.classList.contains("open"))return;const now=performance.now();
+        if(now-last<=state.dblTolerance&&last>0){if(timer){clearTimeout(timer);timer=null;}last=0;
+          if(rw.want==="open")finish(row,"geöffnet ✓");
+          else{row.classList.remove("selected");registerAttempt(false);setHint("Ein Bild nur <b>einmal</b> anklicken zum Auswählen.","warn");}
+        }else{last=now;
+          timer=later(()=>{timer=null;if(row.classList.contains("open"))return;
+            if(rw.want==="select")finish(row,"ausgewählt ✓");
+            else{row.classList.add("selected");setHint("Ein Ordner braucht einen <b>Doppelklick</b> zum Öffnen.","warn");
+              later(()=>{if(!row.classList.contains("open"))row.classList.remove("selected");},600);}
+          },state.dblTolerance+30);}});
+      list.appendChild(row);});
   }
   roundChests();
 };
@@ -1097,7 +1126,7 @@ SCREENS.s6=(stage)=>{
   const N=stationNumber("s6");
   function roundSort(){
     stage.innerHTML="";
-    setInstruction(`Station ${N} · Ziehen & Ablegen (1/2)`,
+    setInstruction(`Station ${N} · Ziehen & Ablegen (1/3)`,
       "Drücke die linke Taste auf einer Datei, <b>halte sie gedrückt</b>, ziehe sie zum passenden Ordner und <b>lass dort los</b>. Sortiere alles ein!");
     setHint("Halten – ziehen – über dem Ordner loslassen.","");
     const FILES=[{em:"🐶",name:"Hund.jpg",type:"bilder"},{em:"🎵",name:"Lied.mp3",type:"musik"},{em:"📄",name:"Brief.txt",type:"texte"},
@@ -1107,13 +1136,24 @@ SCREENS.s6=(stage)=>{
   }
   function roundTrash(){
     stage.innerHTML="";
-    setInstruction(`Station ${N} · Aufräumen (2/2)`,
+    setInstruction(`Station ${N} · Aufräumen (2/3)`,
       "Jetzt wird aufgeräumt: Ziehe die <b>kaputten oder doppelten Dateien</b> in den <b>Papierkorb 🗑️</b> – und die guten Bilder in den Bilder-Ordner.");
     setHint("Müll in den Papierkorb, Bilder in den Ordner.","");
     const FILES=[{em:"🐶",name:"Foto1.jpg",type:"bilder"},{em:"❌",name:"kaputt.tmp",type:"muell"},{em:"🌅",name:"Foto2.jpg",type:"bilder"},
       {em:"♻️",name:"alt.bak",type:"muell"},{em:"🐱",name:"Foto3.jpg",type:"bilder"},{em:"🗑️",name:"leer.tmp",type:"muell"}];
     const FOLDERS=[{type:"bilder",nm:"Bilder"},{type:"muell",nm:"Papierkorb",bin:true}];
-    build(FILES,FOLDERS,"Aufräumen – richtig zuordnen:",()=>completeStation("s6","Sortiert und aufgeräumt – Ziehen & Ablegen sitzt! ✋"),"Alles erledigt!");
+    build(FILES,FOLDERS,"Aufräumen – richtig zuordnen:",roundVideos,"Alles aufgeräumt! Weiter geht’s.");
+  }
+  function roundVideos(){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Vier Ordner (3/3)`,
+      "Zum Schluss mit vier Ordnern – jetzt sind auch <b>Videos 🎬</b> dabei. Ziehe jede Datei zum richtigen Ordner.");
+    setHint("Auf die Datei-Endung achten: .mp4 → Videos, .mp3 → Musik …","");
+    const FILES=[{em:"🎬",name:"Film.mp4",type:"videos"},{em:"🐶",name:"Hund.jpg",type:"bilder"},{em:"🎵",name:"Lied.mp3",type:"musik"},
+      {em:"📄",name:"Brief.txt",type:"texte"},{em:"🎞️",name:"Clip.mp4",type:"videos"},{em:"🏞️",name:"Berg.jpg",type:"bilder"},
+      {em:"🎶",name:"Song.mp3",type:"musik"},{em:"📝",name:"Notiz.txt",type:"texte"}];
+    const FOLDERS=[{type:"bilder",nm:"Bilder"},{type:"musik",nm:"Musik"},{type:"texte",nm:"Texte"},{type:"videos",nm:"Videos"}];
+    build(FILES,FOLDERS,"Diese Dateien einsortieren:",()=>completeStation("s6","Sortiert und aufgeräumt – Ziehen & Ablegen sitzt! ✋"),"Alles erledigt!");
   }
   function build(FILES,FOLDERS,trayLabel,onDone,doneMsg){
     const TOTAL=FILES.length;let placed=0;setCounter(`0/${TOTAL}`,"sortiert");
@@ -1203,60 +1243,76 @@ SCREENS.s7=(stage)=>{
 /* ---------- S8: Regler & Leiste ziehen ---------- */
 SCREENS.s8=(stage)=>{
   const N=stationNumber("s8");
-  setInstruction(`Station ${N} · Regler ziehen`,
-    "Regler bewegt man, indem man den <b>runden Griff anfasst, gedrückt hält und schiebt</b>. Schiebe jeden Griff genau in das <b>grüne Feld</b>.");
-  setHint("Griff anfassen, halten und ins grüne Feld schieben.","");
-  const rows=[{ic:"🔊",nm:"Lautstärke",target:0.8},{ic:"☀️",nm:"Helligkeit",target:0.35},{ic:"🐢",nm:"Tempo",target:0.6}];
-  let ok=0;setCounter(`0/${rows.length}`,"eingestellt");
-  const wrap=document.createElement("div");wrap.className="sliderstage";stage.appendChild(wrap);
-  rows.forEach(rw=>{
-    const row=document.createElement("div");row.className="sliderrow";
-    row.innerHTML=`<span class="ico">${rw.ic}</span><span class="nm">${rw.nm}</span>
-      <div class="track"><div class="zone"></div><div class="thumb"></div></div>`;
-    wrap.appendChild(row);
-    const track=row.querySelector(".track"),thumb=row.querySelector(".thumb"),zone=row.querySelector(".zone");
-    const ZW=0.16*diff().size; // halbe Zonenbreite (Anteil) – schwerer = schmaler
-    let val=Math.random()*0.25; // Startwert links
-    function place(){ const w=track.clientWidth; thumb.style.left=(val*w)+"px";
-      zone.style.left=((rw.target-ZW)*w)+"px";zone.style.width=(ZW*2*w)+"px"; }
-    requestAnimationFrame(place);
-    addEventListener("resize",place);
-    let solved=false;
-    thumb.addEventListener("mousedown",e=>{
-      const tr=track.getBoundingClientRect();
-      dragMove(e,ev=>{val=Math.max(0,Math.min(1,(ev.clientX-tr.left)/tr.width));thumb.style.left=(val*track.clientWidth)+"px";
-        const inZone=Math.abs(val-rw.target)<=ZW;row.classList.toggle("ok",inZone);
-      },()=>{const inZone=Math.abs(val-rw.target)<=ZW;
-        if(inZone&&!solved){solved=true;row.classList.add("ok");ok++;sfx.step();setCounter(`${ok}/${rows.length}`,"eingestellt");
-          if(ok===rows.length)completeStation("s8","Alle Regler genau eingestellt – präzises Ziehen! 🎚️");
-          else setHint(`Genau im grünen Feld! Noch ${rows.length-ok}.`,"good");}
-        else if(!inZone){if(solved){solved=false;row.classList.remove("ok");ok=Math.max(0,ok-1);setCounter(`${ok}/${rows.length}`,"eingestellt");}
-          setHint("Schiebe den Griff genau ins grüne Feld.","warn");}});
+  function makeRound(rows,zwBase,label,onDone){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Regler ziehen (${label})`,
+      "Regler bewegt man, indem man den <b>runden Griff anfasst, gedrückt hält und schiebt</b>. Schiebe jeden Griff genau in das <b>grüne Feld</b>.");
+    setHint("Griff anfassen, halten und ins grüne Feld schieben.","");
+    let ok=0;setCounter(`0/${rows.length}`,"eingestellt");
+    const wrap=document.createElement("div");wrap.className="sliderstage";stage.appendChild(wrap);
+    rows.forEach(rw=>{
+      const row=document.createElement("div");row.className="sliderrow";
+      row.innerHTML=`<span class="ico">${rw.ic}</span><span class="nm">${rw.nm}</span>
+        <div class="track"><div class="zone"></div><div class="thumb"></div></div>`;
+      wrap.appendChild(row);
+      const track=row.querySelector(".track"),thumb=row.querySelector(".thumb"),zone=row.querySelector(".zone");
+      const ZW=zwBase*diff().size;
+      let val=Math.random()*0.2;
+      function place(){ const w=track.clientWidth; thumb.style.left=(val*w)+"px";
+        zone.style.left=((rw.target-ZW)*w)+"px";zone.style.width=(ZW*2*w)+"px"; }
+      requestAnimationFrame(place);
+      let solved=false;
+      thumb.addEventListener("mousedown",e=>{
+        const tr=track.getBoundingClientRect();
+        dragMove(e,ev=>{val=Math.max(0,Math.min(1,(ev.clientX-tr.left)/tr.width));thumb.style.left=(val*track.clientWidth)+"px";
+          const inZone=Math.abs(val-rw.target)<=ZW;row.classList.toggle("ok",inZone);
+        },()=>{const inZone=Math.abs(val-rw.target)<=ZW;
+          if(inZone&&!solved){solved=true;row.classList.add("ok");ok++;sfx.step();setCounter(`${ok}/${rows.length}`,"eingestellt");
+            if(ok===rows.length)onDone();
+            else setHint(`Genau im grünen Feld! Noch ${rows.length-ok}.`,"good");}
+          else if(!inZone){if(solved){solved=false;row.classList.remove("ok");ok=Math.max(0,ok-1);setCounter(`${ok}/${rows.length}`,"eingestellt");}
+            setHint("Schiebe den Griff genau ins grüne Feld.","warn");}});
+      });
     });
-  });
+  }
+  function round1(){ makeRound([{ic:"🔊",nm:"Lautstärke",target:0.8},{ic:"☀️",nm:"Helligkeit",target:0.35},{ic:"🐢",nm:"Tempo",target:0.6}],0.16,"1/2",
+    ()=>{sfx.good();setHint("Runde geschafft! Jetzt etwas kniffliger.","good");later(round2,700);}); }
+  function round2(){ makeRound([{ic:"🌡️",nm:"Wärme",target:0.55},{ic:"🔆",nm:"Kontrast",target:0.7},{ic:"🎚️",nm:"Bässe",target:0.3},{ic:"⏱️",nm:"Dauer",target:0.85}],0.12,"2/2",
+    ()=>completeStation("s8","Alle Regler genau eingestellt – präzises Ziehen! 🎚️")); }
+  round1();
 };
 
 /* ---------- S9: Malen durch Ziehen ---------- */
 SCREENS.s9=(stage)=>{
   const N=stationNumber("s9");
-  setInstruction(`Station ${N} · Malen mit der Maus`,
-    "Wie in einem Malprogramm: <b>Drücke die linke Taste und wische über die hellblauen Felder</b>, ohne loszulassen. Male das ganze Muster aus!");
-  setHint("Gedrückt halten und über die hellblauen Felder wischen.","");
   const W=13,H=11,cell=24;
-  const grid=document.createElement("div");grid.className="paintgrid";grid.style.gridTemplateColumns=`repeat(${W},${cell}px)`;
-  const wrap=document.createElement("div");wrap.className="paintwrap";wrap.appendChild(grid);stage.appendChild(wrap);
-  // Herz-Form bestimmen
+  // Formeln je Form
   function inHeart(cx,cy){const a=(cx+0.5)/W*2.8-1.4,b=1.4-(cy+0.5)/H*2.8;const v=Math.pow(a*a+b*b-1,3)-a*a*b*b*b;return v<=0;}
-  const cells=[];let targetCount=0;
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=document.createElement("div");c.className="cell";
-    if(inHeart(x,y)){c.classList.add("target");c.dataset.target="1";targetCount++;}grid.appendChild(c);cells.push(c);}
-  let painted=0;setCounter(`0/${targetCount}`,"Felder");
-  function paintAt(el){if(!el||!el.classList||!el.classList.contains("cell"))return;
-    if(el.classList.contains("paint"))return;el.classList.add("paint");
-    if(el.dataset.target){painted++;sfx.step();setCounter(`${painted}/${targetCount}`,"Felder");
-      if(painted===targetCount)completeStation("s9","Ein ganzes Herz gemalt – tolle Mausführung! 🎨");}}
-  grid.addEventListener("mousedown",e=>{e.preventDefault();paintAt(e.target);
-    dragMove(e,ev=>{const t=document.elementFromPoint(ev.clientX,ev.clientY);paintAt(t);},null);});
+  const STAR_PTS=(()=>{const p=[];for(let i=0;i<10;i++){const r=i%2===0?0.96:0.42,a=-Math.PI/2+i*Math.PI/5;p.push([Math.cos(a)*r,Math.sin(a)*r]);}return p;})();
+  function inStar(cx,cy){const px=(cx+0.5)/W*2-1,py=((cy+0.5)/H*2-1)*0.92;let inside=false;
+    for(let i=0,j=STAR_PTS.length-1;i<STAR_PTS.length;j=i++){const xi=STAR_PTS[i][0],yi=STAR_PTS[i][1],xj=STAR_PTS[j][0],yj=STAR_PTS[j][1];
+      const it=((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi);if(it)inside=!inside;}return inside;}
+  function makeRound(shapeFn,label,name,onDone){
+    stage.innerHTML="";
+    setInstruction(`Station ${N} · Malen mit der Maus (${label})`,
+      `Wie in einem Malprogramm: <b>Drücke die linke Taste und wische über die hellblauen Felder</b>, ohne loszulassen. Male das ganze ${name} aus!`);
+    setHint("Gedrückt halten und über die hellblauen Felder wischen.","");
+    const grid=document.createElement("div");grid.className="paintgrid";grid.style.gridTemplateColumns=`repeat(${W},${cell}px)`;
+    const wrap=document.createElement("div");wrap.className="paintwrap";wrap.appendChild(grid);stage.appendChild(wrap);
+    let targetCount=0;
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=document.createElement("div");c.className="cell";
+      if(shapeFn(x,y)){c.classList.add("target");c.dataset.target="1";targetCount++;}grid.appendChild(c);}
+    let painted=0;setCounter(`0/${targetCount}`,"Felder");
+    function paintAt(el){if(!el||!el.classList||!el.classList.contains("cell"))return;
+      if(el.classList.contains("paint"))return;el.classList.add("paint");
+      if(el.dataset.target){painted++;sfx.step();setCounter(`${painted}/${targetCount}`,"Felder");
+        if(painted===targetCount)onDone();}}
+    grid.addEventListener("mousedown",e=>{e.preventDefault();paintAt(e.target);
+      dragMove(e,ev=>{const t=document.elementFromPoint(ev.clientX,ev.clientY);paintAt(t);},null);});
+  }
+  function round1(){ makeRound(inHeart,"1/2","Herz ❤️",()=>{sfx.good();setHint("Herz fertig! Jetzt noch ein Stern.","good");later(round2,700);}); }
+  function round2(){ makeRound(inStar,"2/2","Stern ⭐",()=>completeStation("s9","Herz und Stern gemalt – tolle Mausführung! 🎨")); }
+  round1();
 };
 
 /* ---------- S10: Umschalt-Klick (Bereichsauswahl) ---------- */
@@ -1271,17 +1327,21 @@ SCREENS.s10=(stage)=>{
   function selectRange(a,b){clearSel();for(let i=Math.min(a,b);i<=Math.max(a,b);i++)rows[i].classList.add("sel");}
   function selected(){return rows.filter(r=>r.classList.contains("sel")).map(r=>+r.dataset.i);}
   function check(){const s=selected();const ok=s.length===target.length&&s.every((v,i)=>v===target[i]);
-    if(ok){sfx.step();if(round<2){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(2),800);}
+    if(ok){sfx.step();if(round<3){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(round+1),800);}
       else completeStation("s10","Bereichsauswahl mit der Umschalt-Taste sitzt! 📑");}}
   function setRound(r){round=r;anchor=null;clearSel();
-    if(r===1){target=[1,2,3,4];setCounter("1/2","Runde");
-      setInstruction(`Station ${N} · Umschalt-Klick (1/2)`,
+    if(r===1){target=[1,2,3,4];setCounter("1/3","Runde");
+      setInstruction(`Station ${N} · Umschalt-Klick (1/3)`,
         "So markiert man einen ganzen Bereich: Klicke <b>Lied 2</b> an, halte dann die <b>Umschalt-Taste (⇧)</b> gedrückt und klicke <b>Lied 5</b>. Alles dazwischen wird mitmarkiert.");
       setHint("Erst Lied 2 anklicken, dann mit gedrückter Umschalt-Taste Lied 5.","");}
-    else{target=[4,5,6,7];setCounter("2/2","Runde");
-      setInstruction(`Station ${N} · Umschalt-Klick (2/2)`,
+    else if(r===2){target=[4,5,6,7];setCounter("2/3","Runde");
+      setInstruction(`Station ${N} · Umschalt-Klick (2/3)`,
         "Noch einmal: Markiere den Bereich von <b>Lied 5</b> bis <b>Lied 8</b> mit Klick und Umschalt-Klick.");
-      setHint("Lied 5 anklicken, dann Umschalt gedrückt halten und Lied 8 anklicken.","");}}
+      setHint("Lied 5 anklicken, dann Umschalt gedrückt halten und Lied 8 anklicken.","");}
+    else{target=[0,1,2];setCounter("3/3","Runde");
+      setInstruction(`Station ${N} · Umschalt-Klick (3/3)`,
+        "Zum Schluss: Markiere die ersten drei – <b>Lied 1</b> bis <b>Lied 3</b> mit Klick und Umschalt-Klick.");
+      setHint("Lied 1 anklicken, dann Umschalt gedrückt halten und Lied 3 anklicken.","");}}
   rows.forEach(r=>r.addEventListener("click",e=>{const i=+r.dataset.i;
     if(e.shiftKey&&anchor!=null){selectRange(anchor,i);check();}
     else{anchor=i;clearSel();r.classList.add("sel");setHint("Startpunkt gesetzt. Jetzt Umschalt-Taste gedrückt halten und das Ende anklicken.","");}}));
@@ -1299,14 +1359,14 @@ SCREENS.s11=(stage)=>{
   stage.appendChild(prompt);stage.appendChild(card);
   function norm(s){return (s||"").replace(/\s+/g," ").trim().replace(/[.»«]/g,"").trim();}
   function setRound(r){round=r;if(window.getSelection)window.getSelection().removeAllRanges();
-    target=(r===1)?sentences[1]:sentences[0];setCounter(`${r}/2`,"Runde");
-    setInstruction(`Station ${N} · Text markieren (${r}/2)`, r===1
+    target=(r===1)?sentences[1]:(r===2)?sentences[0]:sentences[2];setCounter(`${r}/3`,"Runde");
+    setInstruction(`Station ${N} · Text markieren (${r}/3)`, r===1
       ? "Text markiert man, indem man mit <b>gedrückter linker Taste über die Wörter fährt</b>. Markiere genau diesen Satz:"
       : "Sehr gut! Markiere nun genau diesen Satz:");
     prompt.innerHTML=`Markiere: <b>»${target}«</b>`;
     setHint("Am Satzanfang die Taste drücken, bis zum Punkt ziehen, dann loslassen.","");}
   function onUp(){later(()=>{const sel=norm(window.getSelection().toString());if(!sel)return;const t=norm(target);
-    if(sel===t){sfx.step();if(round<2){setHint("Genau dieser Satz – perfekt! 🎉","good");later(()=>setRound(2),800);}
+    if(sel===t){sfx.step();if(round<3){setHint("Genau dieser Satz – perfekt! 🎉","good");later(()=>setRound(round+1),800);}
       else completeStation("s11","Text markieren durch Ziehen – stark! 🖍️");}
     else if(t.includes(sel))setHint("Fast! Du hast noch nicht den ganzen Satz erwischt – zieh bis zum Punkt.","warn");
     else setHint("Das ist zu viel oder der falsche Satz. Markiere genau den geforderten Satz.","warn");},10);}
@@ -1359,20 +1419,24 @@ SCREENS.s13=(stage)=>{
     row.innerHTML=`<span class="grip">⋮⋮</span><span class="em">${it.em}</span><span>${it.label}</span>`;
     row.addEventListener("mousedown",e=>startDrag(e,row));list.appendChild(row);});}
   function check(){const cur=order();const ok=cur.every((k,i)=>k===correct[i]);
-    if(ok){sfx.step();if(round===1){setHint("Reihenfolge stimmt – klasse! 🎉","good");later(()=>setRound(2),800);}
+    if(ok){sfx.step();if(round<3){setHint("Reihenfolge stimmt – klasse! 🎉","good");later(()=>setRound(round+1),800);}
       else completeStation("s13","Listen per Ziehen umsortieren – jetzt bist du ein echter Maus-Profi! 🔀");}
     else setHint("Noch nicht ganz – zieh die Einträge in die richtige Reihenfolge.","warn");}
   function place(items){let sh=shuffle(items);while(sh.every((it,i)=>it.key===correct[i]))sh=shuffle(items);render(sh);}
   function setRound(r){round=r;
-    if(r===1){correct=["1","2","3","4","5"];setCounter("1/2","Runde");
-      setInstruction(`Station ${N} · Umsortieren (1/2)`,
+    if(r===1){correct=["1","2","3","4","5"];setCounter("1/3","Runde");
+      setInstruction(`Station ${N} · Umsortieren (1/3)`,
         "Einträge lassen sich per Ziehen umsortieren: <b>Fasse eine Zeile an, halte gedrückt und schiebe sie nach oben oder unten.</b> Bringe die Zahlen in die Reihenfolge <b>1, 2, 3, 4, 5</b>.");
       setHint("Zeilen anfassen und in die richtige Reihenfolge ziehen.","");
       place([{key:"1",em:"1️⃣",label:"Eins"},{key:"2",em:"2️⃣",label:"Zwei"},{key:"3",em:"3️⃣",label:"Drei"},{key:"4",em:"4️⃣",label:"Vier"},{key:"5",em:"5️⃣",label:"Fünf"}]);}
-    else{correct=["mo","di","mi","do","fr"];setCounter("2/2","Runde");
-      setInstruction(`Station ${N} · Umsortieren (2/2)`,"Jetzt die Wochentage: Bringe sie per Ziehen in die richtige Reihenfolge von <b>Montag bis Freitag</b>.");
+    else if(r===2){correct=["mo","di","mi","do","fr"];setCounter("2/3","Runde");
+      setInstruction(`Station ${N} · Umsortieren (2/3)`,"Jetzt die Wochentage: Bringe sie per Ziehen in die richtige Reihenfolge von <b>Montag bis Freitag</b>.");
       setHint("Tage anfassen und richtig sortieren.","");
-      place([{key:"mo",em:"📅",label:"Montag"},{key:"di",em:"📅",label:"Dienstag"},{key:"mi",em:"📅",label:"Mittwoch"},{key:"do",em:"📅",label:"Donnerstag"},{key:"fr",em:"📅",label:"Freitag"}]);}}
+      place([{key:"mo",em:"📅",label:"Montag"},{key:"di",em:"📅",label:"Dienstag"},{key:"mi",em:"📅",label:"Mittwoch"},{key:"do",em:"📅",label:"Donnerstag"},{key:"fr",em:"📅",label:"Freitag"}]);}
+    else{correct=["xs","s","m","l","xl"];setCounter("3/3","Runde");
+      setInstruction(`Station ${N} · Umsortieren (3/3)`,"Zum Schluss der Größe nach: Bringe sie per Ziehen von <b>klein nach groß</b>.");
+      setHint("Vom kleinsten zum größten Punkt sortieren.","");
+      place([{key:"xs",em:"·",label:"Winzig"},{key:"s",em:"•",label:"Klein"},{key:"m",em:"⚫",label:"Mittel"},{key:"l",em:"🔵",label:"Groß"},{key:"xl",em:"🟠",label:"Riesig"}]);}}
   setRound(1);
 };
 
@@ -1385,7 +1449,7 @@ SCREENS.s14=(stage)=>{
   const area=document.createElement("div");area.className="scrollarea linkpara";br.appendChild(area);
   stage.appendChild(prompt);stage.appendChild(br);
   const LINKS=[["Tiere","tiere"],["Wetter","wetter"],["Sport","sport"],["Musik","musik"],["Weltall","weltall"]];
-  const rounds=["wetter","weltall","sport"];let r=0;
+  const rounds=["wetter","weltall","sport","musik","tiere"];let r=0;
   area.innerHTML=`<h3>Klick dich durch das Internet</h3>
     <p>Unterstrichene, blaue Wörter sind <b>Links</b>. Klickst du darauf, gelangst du auf eine andere Seite.
     Hier sind ein paar: ${LINKS.map(l=>`<a data-key="${l[1]}">${l[0]}</a>`).join(" · ")}.</p>
@@ -1411,7 +1475,7 @@ SCREENS.s15=(stage)=>{
     ["🌦️","Wetter","Morgen scheint die Sonne bei 22 Grad."],
     ["⚽","Sport","Das Spiel endete 3:2 nach einem späten Tor."],
     ["🎵","Musik","Auf der Bühne spielte eine laute Gitarre."]];
-  const rounds=[2,0,3];let r=0;
+  const rounds=[2,0,3,1];let r=0;
   const box=document.createElement("div");box.className="tabsbox";
   const row=document.createElement("div");row.className="tabrow";
   const panel=document.createElement("div");panel.className="tabpanel";
@@ -1446,7 +1510,10 @@ SCREENS.s16=(stage)=>{
      instr:'Vorsicht! Du willst NICHT löschen. Klicke <b>„Abbrechen"</b>, um nichts zu verändern.'},
     {title:"💬 Werbung",body:"Tolle Mäuse zu gewinnen – jetzt klicken!",want:"x",
      buttons:[{lbl:"Mehr erfahren",cls:"btn-ghost",key:"more"}],closable:true,
-     instr:'Dieses PopUp ist Werbung. Schließe es über das <b>×</b> oben rechts, ohne auf die Werbung zu klicken.'}
+     instr:'Dieses PopUp ist Werbung. Schließe es über das <b>×</b> oben rechts, ohne auf die Werbung zu klicken.'},
+    {title:"💾 Speichern",body:"Möchtest du deine Änderungen speichern?",want:"save",
+     buttons:[{lbl:"Nicht speichern",cls:"btn-ghost",key:"nosave"},{lbl:"Speichern",cls:"btn-primary",key:"save"}],
+     instr:'Du hast etwas Wichtiges bearbeitet. Klicke <b>„Speichern"</b>, damit nichts verloren geht.'}
   ];
   let t=0;
   function render(){const task=tasks[t];setCounter(`${t+1}/${tasks.length}`,"Dialog");
@@ -1484,7 +1551,8 @@ SCREENS.s17=(stage)=>{
     Ansicht:[{icon:"🔍",label:"Vergrößern"},{icon:"🔭",label:"Verkleinern"},{icon:"🌑",label:"Dunkelmodus",key:"ansicht.dunkel"}]
   };
   const rounds=[{menu:"Datei",key:"datei.speichern",lbl:"Speichern",msg:"Gespeichert! 💾"},
-    {menu:"Bearbeiten",key:"bearbeiten.kopieren",lbl:"Kopieren",msg:"Kopiert! 📋"}];
+    {menu:"Bearbeiten",key:"bearbeiten.kopieren",lbl:"Kopieren",msg:"Kopiert! 📋"},
+    {menu:"Ansicht",key:"ansicht.dunkel",lbl:"Dunkelmodus",msg:"Dunkelmodus an! 🌑"}];
   let r=0;
   Object.keys(MENUS).forEach(name=>{const mb=document.createElement("div");mb.className="mb";mb.textContent=name;
     mb.addEventListener("click",e=>{e.stopPropagation();
