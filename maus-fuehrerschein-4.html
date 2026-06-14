@@ -1965,191 +1965,162 @@ SCREENS.bonus_memory=(stage)=>{
   }});
 };
 
-// Simon (Multi-Skill, progressiv): vier farbige Pads, jede Farbe = andere Maus-Aktion.
-// Level 1 nur Linksklick (klassisch), Level 2 + Doppelklick, Level 3 + Rechtsklick, Level 4 + Halten.
+// Simon (klassisch): farbige Segmente in einem Neonkreis leuchten auf.
+// Die Folge wird vorgespielt, die Schülerin klickt sie in gleicher Reihenfolge nach.
+// Jede geschaffte Runde verlängert die Folge um eine Farbe; ein Fehler startet neu.
 SCREENS.bonus_simon=(stage)=>{
   unlock("bonus_fan");bonusBackBar();
   setInstruction("Bonus-Spiel 🎁 · Simon",
-    "Merke dir die Reihenfolge und mache mit jeder Farbe die <b>richtige Maus-Aktion</b>: "+
-    "🔴 Linksklick · 🟢 Doppelklick · 🔵 Rechtsklick · 🟡 linke Taste <b>halten</b>. "+
-    "Pro Level kommt eine neue Aktion dazu.");
-  setHint("Erst zuschauen, dann nachmachen.","");
+    "Schau genau zu, welche Farben im Kreis nacheinander <b>aufleuchten</b> – und klicke sie danach "+
+    "in der <b>gleichen Reihenfolge</b> nach. Schaffst du eine Runde, wird die Folge ein Stück länger!");
+  setHint("Erst zuschauen, dann nachklicken.","");
 
+  // Vier Neon-Segmente im klassischen Simon-Kreis (gedämpft → hell beim Aufblinken).
   const PADS=[
-    {color:"red",    bg:"#e63946", glow:"#ff8a96", freq:349, action:"click",    icon:"🖱️",    label:"Klick"},
-    {color:"green",  bg:"#2a9d8f", glow:"#7ee0d0", freq:440, action:"dblclick", icon:"🖱️🖱️", label:"Doppelklick"},
-    {color:"blue",   bg:"#264f8e", glow:"#7aa0e0", freq:587, action:"right",    icon:"➡️🖱️",  label:"Rechtsklick"},
-    {color:"yellow", bg:"#e9c46a", glow:"#fde29a", freq:659, action:"hold",     icon:"✋",    label:"Halten"}
+    {name:"Grün", dim:"#0c6b2a", bright:"#39ff5e", glow:"#9dffae", freq:392},
+    {name:"Rot",  dim:"#8e0b34", bright:"#ff2d6b", glow:"#ff89ad", freq:311},
+    {name:"Blau", dim:"#0a5a9e", bright:"#1fc8ff", glow:"#93e6ff", freq:262},
+    {name:"Gelb", dim:"#a8890a", bright:"#ffe600", glow:"#fff58a", freq:494}
   ];
-  const LEVELS=[
-    {active:1, startLen:2, intro:"Level 1 · Klassisch zum Aufwärmen — nur 🔴 Linksklick."},
-    {active:2, startLen:2, intro:"Level 2 · Neu: 🟢 braucht einen Doppelklick!"},
-    {active:3, startLen:3, intro:"Level 3 · Neu: 🔵 braucht einen Rechtsklick!"},
-    {active:4, startLen:3, intro:"Level 4 · Profi: 🟡 musst du festhalten!"}
-  ];
-  const ROUNDS_PER_LEVEL=dCount(2,2); // leicht/mittel:2, schwer:3
-  const STEP_MS=Math.round(420/diff().speed);
-  const HOLD_MIN_MS=400;
+  const TARGET=dCount(6,4);                       // leicht 4 · mittel 6 · schwer 8
+  const FLASH_MS=Math.round(380/diff().speed);    // Leuchtdauer beim Vorspielen
+  const GAP_MS=Math.round(180/diff().speed);      // Pause zwischen zwei Farben
 
   const wrap=document.createElement("div");
-  wrap.style.cssText="display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px;";
+  wrap.style.cssText="display:flex;flex-direction:column;align-items:center;gap:14px;padding:14px;";
   const banner=document.createElement("div");
   banner.style.cssText="font-size:1.05rem;font-weight:700;color:var(--ocean-deep);min-height:1.4em;text-align:center;";
   wrap.appendChild(banner);
-  const board=document.createElement("div");
-  board.style.cssText="display:grid;grid-template-columns:repeat(2,130px);grid-template-rows:repeat(2,130px);gap:16px;";
-  board.addEventListener("contextmenu",e=>e.preventDefault());
-  wrap.appendChild(board);
+
+  // --- Kreis als SVG: vier Ringsegmente um eine dunkle Mitte ---
+  const SVGNS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(SVGNS,"svg");
+  svg.setAttribute("viewBox","0 0 260 260");
+  svg.setAttribute("width","320");svg.setAttribute("height","320");
+  svg.style.cssText="max-width:82vw;height:auto;touch-action:manipulation;user-select:none;";
+  svg.addEventListener("contextmenu",e=>e.preventDefault());
+
+  const bg=document.createElementNS(SVGNS,"circle");
+  bg.setAttribute("cx","130");bg.setAttribute("cy","130");bg.setAttribute("r","128");
+  bg.setAttribute("fill","#0b1020");
+  svg.appendChild(bg);
+
+  function sector(a0,a1){
+    const cx=130,cy=130,rO=120,rI=46,rad=d=>d*Math.PI/180;
+    a0=rad(a0);a1=rad(a1);
+    const xO0=cx+rO*Math.cos(a0),yO0=cy+rO*Math.sin(a0);
+    const xO1=cx+rO*Math.cos(a1),yO1=cy+rO*Math.sin(a1);
+    const xI1=cx+rI*Math.cos(a1),yI1=cy+rI*Math.sin(a1);
+    const xI0=cx+rI*Math.cos(a0),yI0=cy+rI*Math.sin(a0);
+    return `M${xO0} ${yO0} A${rO} ${rO} 0 0 1 ${xO1} ${yO1} L${xI1} ${yI1} A${rI} ${rI} 0 0 0 ${xI0} ${yI0} Z`;
+  }
+  const RANGES=[[180,270],[270,360],[0,90],[90,180]];
+  const GAPD=3.4; // kleine Lücke zwischen den Segmenten
+  const padEls=PADS.map((p,i)=>{
+    const path=document.createElementNS(SVGNS,"path");
+    path.setAttribute("d",sector(RANGES[i][0]+GAPD,RANGES[i][1]-GAPD));
+    path.setAttribute("fill",p.dim);
+    path.style.cssText="cursor:pointer;transition:fill .1s ease,filter .15s ease;filter:brightness(.82) saturate(.9);";
+    path.addEventListener("click",()=>onPick(i));
+    svg.appendChild(path);
+    return path;
+  });
+
+  // Mitte mit Maus-Symbol
+  const hub=document.createElementNS(SVGNS,"circle");
+  hub.setAttribute("cx","130");hub.setAttribute("cy","130");hub.setAttribute("r","40");
+  hub.setAttribute("fill","#11182e");hub.setAttribute("stroke","#27345a");hub.setAttribute("stroke-width","3");
+  hub.style.pointerEvents="none";
+  svg.appendChild(hub);
+  const hubText=document.createElementNS(SVGNS,"text");
+  hubText.setAttribute("x","130");hubText.setAttribute("y","132");
+  hubText.setAttribute("text-anchor","middle");hubText.setAttribute("dominant-baseline","central");
+  hubText.setAttribute("font-size","30");hubText.style.pointerEvents="none";
+  hubText.textContent="🐭";
+  svg.appendChild(hubText);
+
+  wrap.appendChild(svg);
   stage.appendChild(wrap);
 
-  const padEls=PADS.map((p,idx)=>{
-    const el=document.createElement("div");
-    el.dataset.idx=idx;
-    el.style.cssText=`background:${p.bg};border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;`+
-      `font-size:1.9rem;color:#fff;font-weight:800;user-select:none;cursor:pointer;`+
-      `transition:transform .12s,box-shadow .12s,filter .2s,opacity .2s;`+
-      `box-shadow:0 2px 0 rgba(0,0,0,.18);`;
-    el.innerHTML=`<span class="simIcon">${p.icon}</span><span style="font-size:.7rem;font-weight:700;opacity:.95;letter-spacing:.02em;">${p.label}</span>`;
-    board.appendChild(el);
-    return el;
-  });
+  let seq=[],playerPos=0,inputLocked=true,done=false,round=0;
 
-  let level=0,roundInLevel=0,seq=[],playerPos=0,inputLocked=true,done=false;
+  function lockInput(b){ inputLocked=b; padEls.forEach(el=>el.style.pointerEvents=b?"none":""); }
+  function lightOn(el,p){
+    el.setAttribute("fill",p.bright);
+    el.style.filter=`brightness(1.15) saturate(1.3) drop-shadow(0 0 9px ${p.glow}) drop-shadow(0 0 20px ${p.glow})`;
+  }
+  function lightOff(el,p){
+    el.setAttribute("fill",p.dim);
+    el.style.filter="brightness(.82) saturate(.9)";
+  }
+  function flash(i,dur){
+    const p=PADS[i],el=padEls[i];
+    lightOn(el,p);tone(p.freq,.26,"triangle",.16);
+    later(()=>lightOff(el,p),dur||FLASH_MS);
+  }
 
-  function setActiveVisuals(activeCount){
-    padEls.forEach((el,i)=>{
-      if(i<activeCount){ el.style.filter="";el.style.opacity="1";el.style.pointerEvents=""; }
-      else { el.style.filter="grayscale(1) brightness(.7)";el.style.opacity=".55";el.style.pointerEvents="none"; }
-    });
-  }
-  function flash(el,pad){
-    el.style.boxShadow=`0 0 0 6px ${pad.glow}, 0 2px 0 rgba(0,0,0,.18)`;
-    el.style.transform="scale(1.06)";
-    tone(pad.freq,.22,"sine",.18);
-    later(()=>{el.style.boxShadow="0 2px 0 rgba(0,0,0,.18)";el.style.transform="";},280);
-  }
-  function pickIdx(){ return Math.floor(Math.random()*LEVELS[level].active); }
-
-  function startLevel(){
-    const cfg=LEVELS[level];
-    setActiveVisuals(cfg.active);
-    banner.textContent=cfg.intro;
-    seq=[];
-    for(let i=0;i<cfg.startLen;i++) seq.push(pickIdx());
-    roundInLevel=0;
-    later(playSequence,700);
-  }
   function playSequence(){
-    inputLocked=true;playerPos=0;
-    setCounter(`L${level+1} · 0/${seq.length}`,"Simon");
-    setHint("Schau zu …","");
-    seq.forEach((idx,i)=>{
-      later(()=>{ flash(padEls[idx],PADS[idx]); },i*STEP_MS+150);
-    });
-    later(()=>{ inputLocked=false; setHint("Jetzt du!",""); },seq.length*STEP_MS+250);
+    lockInput(true);playerPos=0;
+    setCounter(`${seq.length}/${TARGET}`,"Länge");
+    setHint("Schau gut zu …","");
+    banner.textContent="🐭 zeigt dir die Folge …";
+    let t=520;
+    seq.forEach(idx=>{ later(()=>flash(idx),t); t+=FLASH_MS+GAP_MS; });
+    later(()=>{
+      lockInput(false);
+      setHint("Jetzt du – klick die Farben in der gleichen Reihenfolge nach!","");
+      banner.textContent="Du bist dran! ▶";
+    },t+150);
   }
-  function expected(){ return PADS[seq[playerPos]]; }
-  function wrongPad(actualLabel){
+
+  function newRound(){
+    seq.push(Math.floor(Math.random()*PADS.length));
+    round++;
+    later(playSequence,round===1?700:950);
+  }
+
+  function win(){
+    done=true;lockInput(true);sfx.win();awardXP(25,"bonus");
+    setInstruction("Bonus geschafft! 🎁",
+      `Du hast dir eine Folge aus <b>${TARGET} Farben</b> gemerkt – starkes Gedächtnis! <b>+25 XP</b>`);
+    setHint("Perfekt nachgeblinkt!","good");
+    banner.textContent="🏆 Geschafft!";
+    showSkip(false);
+    let k=0;
+    const cel=setInterval(()=>{ flash(k%PADS.length,200); if(++k>=8)clearInterval(cel); },230);
+    _timers.push(cel);
+    showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
+  }
+
+  function miss(){
+    lockInput(true);registerAttempt(false);sfx.soft();
+    padEls.forEach(el=>{ el.setAttribute("fill","#ff2d3a"); el.style.filter="brightness(1.1) drop-shadow(0 0 12px #ff5a64)"; });
+    later(()=>padEls.forEach((el,i)=>lightOff(el,PADS[i])),380);
+    setHint("Daneben! Kein Problem – wir starten die Folge von vorn.","warn");
+    banner.textContent="Ups! Neuer Versuch …";
+    seq=[]; // klassisch: zurück auf Anfang
+    later(newRound,1300);
+  }
+
+  function onPick(idx){
     if(inputLocked||done)return;
-    inputLocked=true;sfx.soft();registerAttempt(false);
-    setHint(`Falsches Feld – schau noch mal genau hin!`,"warn");
-    later(playSequence,1200);
-  }
-  function wrongAction(actualLabel){
-    if(inputLocked||done)return;
-    inputLocked=true;sfx.soft();registerAttempt(false);
-    const exp=expected();
-    setHint(`Diese Kachel braucht <b>${exp.label}</b>, nicht ${actualLabel}.`,"warn");
-    later(playSequence,1200);
-  }
-  function rightAction(idx){
-    if(done)return;
-    const pad=PADS[idx];
-    flash(padEls[idx],pad);sfx.step();
+    flash(idx,240);sfx.step();
+    if(idx!==seq[playerPos]){ miss(); return; }
     playerPos++;
-    setCounter(`L${level+1} · ${playerPos}/${seq.length}`,"Simon");
-    if(playerPos>=seq.length){
-      inputLocked=true;sfx.good();
-      roundInLevel++;
-      if(roundInLevel>=ROUNDS_PER_LEVEL){
-        level++;
-        if(level>=LEVELS.length){
-          done=true;awardXP(25,"bonus");
-          setInstruction("Bonus geschafft! 🎁","Du hast alle vier Simon-Level gemeistert – <b>+25 XP</b>!");
-          setHint("Hervorragendes Gedächtnis!","good");showSkip(false);
-          padEls.forEach(el=>el.style.pointerEvents="none");
-          showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
-          return;
-        }
-        setHint("Geschafft! Neues Level …","good");
-        later(startLevel,1100);
-      }else{
-        seq.push(pickIdx());
-        setHint("Runde geschafft!","good");
-        later(playSequence,900);
-      }
-    }
-  }
-  function handle(idx,action,actualLabel){
-    if(inputLocked||done)return;
-    const exp=expected();
-    if(idx!==seq[playerPos]){
-      // Falsche Farbe — Aktion ist egal, das Pad war nicht dran.
-      wrongPad(actualLabel);return;
-    }
-    if(action!==exp.action){ wrongAction(actualLabel);return; }
-    rightAction(idx);
+    if(playerPos<seq.length) return;
+    // Runde komplett richtig nachgeklickt
+    lockInput(true);registerAttempt(true);
+    if(seq.length>=TARGET){ win(); return; }
+    sfx.good();
+    setHint(`Super – ${seq.length} Farben richtig! Jetzt kommt eine dazu …`,"good");
+    banner.textContent="Geschafft! 🎉";
+    newRound();
   }
 
-  // Eingabe-Erkennung pro Pad: eigene click/dblclick-Erkennung über mouseup,
-  // damit langsamere Doppelklicks zuverlässig erkannt werden und einzelne
-  // Klicks nicht durch ein nachfolgendes click-Event verworfen werden.
-  const DBL_WINDOW=300;
-  padEls.forEach((el,idx)=>{
-    let downAt=0,pendingClickTimer=null,pendingClickAt=0;
-    function clearPendingClick(){
-      if(pendingClickTimer){clearTimeout(pendingClickTimer);pendingClickTimer=null;}
-      pendingClickAt=0;
-    }
-    el.addEventListener("mousedown",e=>{
-      if(e.button!==0)return;
-      downAt=Date.now();
-      later(()=>{
-        if(downAt!==0) el.style.boxShadow=`0 0 0 6px ${PADS[idx].glow}, 0 2px 0 rgba(0,0,0,.18)`;
-      },HOLD_MIN_MS);
-    });
-    el.addEventListener("mouseup",e=>{
-      if(e.button!==0||downAt===0)return;
-      const heldFor=Date.now()-downAt;downAt=0;
-      el.style.boxShadow="0 2px 0 rgba(0,0,0,.18)";
-      if(heldFor>=HOLD_MIN_MS){
-        clearPendingClick();
-        handle(idx,"hold","Halten");
-        return;
-      }
-      const now=Date.now();
-      if(pendingClickTimer&&(now-pendingClickAt)<=DBL_WINDOW){
-        clearPendingClick();
-        handle(idx,"dblclick","Doppelklick");
-        return;
-      }
-      pendingClickAt=now;
-      pendingClickTimer=later(()=>{
-        pendingClickTimer=null;pendingClickAt=0;
-        handle(idx,"click","Linksklick");
-      },DBL_WINDOW+20);
-    });
-    el.addEventListener("contextmenu",e=>{
-      e.preventDefault();
-      clearPendingClick();
-      handle(idx,"right","Rechtsklick");
-    });
-    el.addEventListener("mouseleave",()=>{
-      if(downAt!==0){ downAt=0; el.style.boxShadow="0 2px 0 rgba(0,0,0,.18)"; }
-    });
-  });
-
-  startLevel();
+  lockInput(true);
+  setCounter(`0/${TARGET}`,"Länge");
+  banner.textContent="Gleich geht's los …";
+  newRound();
 };
 
 /* ---------- SHOLD: Halten & Steuern (Smiley) ---------- */
