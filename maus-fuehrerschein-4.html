@@ -85,12 +85,18 @@
   .btn:disabled{opacity:.4;cursor:not-allowed;}
   button:focus-visible,.stamp:focus-visible,.gear:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
 
-  .start{text-align:center;padding:14px 10px;}
+  .start{text-align:center;padding:14px 10px;display:flex;flex-direction:column;align-items:center;flex:1;}
   .start .big{font-size:3.4rem;margin:4px 0 2px;}
   .start h1{font-size:1.8rem;color:var(--ocean-deep);margin:6px 0 6px;}
   .start .lead{max-width:600px;margin:0 auto 22px;color:var(--ink-soft);line-height:1.55;}
-  .landing-footer{margin:28px auto 6px;max-width:560px;padding-top:16px;border-top:1px solid rgba(10,77,104,.18);
-    font-size:.8rem;color:var(--ink-soft);line-height:1.5;}
+  .hand-guide{max-width:640px;margin:6px auto 26px;text-align:left;background:var(--ocean-pale);
+    border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
+  .hand-guide h2{font-size:1.15rem;color:var(--ocean-deep);margin:0 0 10px;text-align:center;}
+  .hand-guide ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:9px;}
+  .hand-guide li{font-size:.9rem;color:var(--ink-soft);line-height:1.5;}
+  .hand-guide li b{color:var(--ocean-deep);}
+  .landing-footer{margin-top:auto;width:100%;max-width:560px;padding-top:16px;border-top:1px solid rgba(10,77,104,.18);
+    font-size:.8rem;color:var(--ink-soft);line-height:1.5;text-align:center;}
   .landing-footer p{margin:2px 0;}
   .landing-footer a{color:var(--ocean-mid);text-decoration:underline;}
   .mouse-intro{display:flex;align-items:center;justify-content:center;gap:30px;flex-wrap:wrap;max-width:760px;margin:6px auto 26px;text-align:left;}
@@ -780,6 +786,16 @@ SCREENS.start=(stage)=>{
         <li><span class="me">📋</span><div><b>Rechte Taste</b> – öffnet ein <b>Menü</b> mit zusätzlichen Befehlen für das, worauf du klickst.</div></li>
         <li><span class="me">🎡</span><div><b>Mausrad</b> – in der Mitte: <b>drehen zum Scrollen</b> (nach oben/unten), und man kann es auch <b>drücken (Mausradklick)</b>.</div></li>
       </ul>
+    </div>
+    <div class="hand-guide">
+      <h2>✋ So hältst du die Maus richtig</h2>
+      <ol>
+        <li>Lege die <b>ganze Handfläche</b> locker oben auf die Maus – sie soll sich in deine Hand schmiegen, ohne dass du sie fest umklammerst.</li>
+        <li>Der <b>Zeigefinger</b> liegt entspannt auf der <b>linken Taste</b>, der <b>Mittelfinger</b> auf der <b>rechten Taste</b>. Zum Scrollen rollt der Zeigefinger über das <b>Mausrad</b> in der Mitte.</li>
+        <li><b>Daumen</b> und <b>kleiner Finger</b> liegen seitlich an und führen die Maus ruhig.</li>
+        <li>Lass dein <b>Handgelenk auf dem Tisch</b> liegen und bewege die Maus aus dem ganzen Arm – nicht nur aus den Fingern.</li>
+        <li>Bleib <b>locker</b>: Schultern und Hand entspannt. Wird der Arm müde, mach kurz eine Pause.</li>
+      </ol>
     </div>
     <button class="btn btn-primary" id="goStart" style="font-size:1.1rem;padding:13px 34px;">Los geht’s ›</button>
     <footer class="landing-footer">
