@@ -691,7 +691,7 @@ function maybeOfferBonus(next){
   const n=Object.keys(state.done).length;
   if(n>0 && n%3===0 && state.current!=="exam"){
     _bonusReturn=next;
-    const games=["bonus_catch","bonus_memory","bonus_reflex","bonus_catch_left","bonus_catch_right"];const g=games[(n/3-1)%games.length];
+    const games=["bonus_catch","bonus_memory","bonus_reflex","bonus_simon","bonus_catch_left","bonus_catch_right"];const g=games[(n/3-1)%games.length];
     showSkip(true,()=>go(next));$("#skipBtn").textContent="Bonus überspringen";
     showNext(true,"🎁 Bonus-Spiel!");$("#nextBtn").onclick=()=>go(g);
     return true;
@@ -1948,6 +1948,193 @@ SCREENS.bonus_memory=(stage)=>{
     setHint("Stark!","good");showSkip(false);
     showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
   }});
+};
+
+// Simon (Multi-Skill, progressiv): vier farbige Pads, jede Farbe = andere Maus-Aktion.
+// Level 1 nur Linksklick (klassisch), Level 2 + Doppelklick, Level 3 + Rechtsklick, Level 4 + Halten.
+SCREENS.bonus_simon=(stage)=>{
+  unlock("bonus_fan");bonusBackBar();
+  setInstruction("Bonus-Spiel 🎁 · Simon",
+    "Merke dir die Reihenfolge und mache mit jeder Farbe die <b>richtige Maus-Aktion</b>: "+
+    "🔴 Linksklick · 🟢 Doppelklick · 🔵 Rechtsklick · 🟡 linke Taste <b>halten</b>. "+
+    "Pro Level kommt eine neue Aktion dazu.");
+  setHint("Erst zuschauen, dann nachmachen.","");
+
+  const PADS=[
+    {color:"red",    bg:"#e63946", glow:"#ff8a96", freq:349, action:"click",    icon:"🖱️",    label:"Klick"},
+    {color:"green",  bg:"#2a9d8f", glow:"#7ee0d0", freq:440, action:"dblclick", icon:"🖱️🖱️", label:"Doppelklick"},
+    {color:"blue",   bg:"#264f8e", glow:"#7aa0e0", freq:587, action:"right",    icon:"➡️🖱️",  label:"Rechtsklick"},
+    {color:"yellow", bg:"#e9c46a", glow:"#fde29a", freq:659, action:"hold",     icon:"✋",    label:"Halten"}
+  ];
+  const LEVELS=[
+    {active:1, startLen:2, intro:"Level 1 · Klassisch zum Aufwärmen — nur 🔴 Linksklick."},
+    {active:2, startLen:2, intro:"Level 2 · Neu: 🟢 braucht einen Doppelklick!"},
+    {active:3, startLen:3, intro:"Level 3 · Neu: 🔵 braucht einen Rechtsklick!"},
+    {active:4, startLen:3, intro:"Level 4 · Profi: 🟡 musst du festhalten!"}
+  ];
+  const ROUNDS_PER_LEVEL=dCount(2,2); // leicht/mittel:2, schwer:3
+  const STEP_MS=Math.round(420/diff().speed);
+  const HOLD_MIN_MS=400;
+
+  const wrap=document.createElement("div");
+  wrap.style.cssText="display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px;";
+  const banner=document.createElement("div");
+  banner.style.cssText="font-size:1.05rem;font-weight:700;color:var(--ocean-deep);min-height:1.4em;text-align:center;";
+  wrap.appendChild(banner);
+  const board=document.createElement("div");
+  board.style.cssText="display:grid;grid-template-columns:repeat(2,130px);grid-template-rows:repeat(2,130px);gap:16px;";
+  board.addEventListener("contextmenu",e=>e.preventDefault());
+  wrap.appendChild(board);
+  stage.appendChild(wrap);
+
+  const padEls=PADS.map((p,idx)=>{
+    const el=document.createElement("div");
+    el.dataset.idx=idx;
+    el.style.cssText=`background:${p.bg};border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;`+
+      `font-size:1.9rem;color:#fff;font-weight:800;user-select:none;cursor:pointer;`+
+      `transition:transform .12s,box-shadow .12s,filter .2s,opacity .2s;`+
+      `box-shadow:0 2px 0 rgba(0,0,0,.18);`;
+    el.innerHTML=`<span class="simIcon">${p.icon}</span><span style="font-size:.7rem;font-weight:700;opacity:.95;letter-spacing:.02em;">${p.label}</span>`;
+    board.appendChild(el);
+    return el;
+  });
+
+  let level=0,roundInLevel=0,seq=[],playerPos=0,inputLocked=true,done=false;
+
+  function setActiveVisuals(activeCount){
+    padEls.forEach((el,i)=>{
+      if(i<activeCount){ el.style.filter="";el.style.opacity="1";el.style.pointerEvents=""; }
+      else { el.style.filter="grayscale(1) brightness(.7)";el.style.opacity=".55";el.style.pointerEvents="none"; }
+    });
+  }
+  function flash(el,pad){
+    el.style.boxShadow=`0 0 0 6px ${pad.glow}, 0 2px 0 rgba(0,0,0,.18)`;
+    el.style.transform="scale(1.06)";
+    tone(pad.freq,.22,"sine",.18);
+    later(()=>{el.style.boxShadow="0 2px 0 rgba(0,0,0,.18)";el.style.transform="";},280);
+  }
+  function pickIdx(){ return Math.floor(Math.random()*LEVELS[level].active); }
+
+  function startLevel(){
+    const cfg=LEVELS[level];
+    setActiveVisuals(cfg.active);
+    banner.textContent=cfg.intro;
+    seq=[];
+    for(let i=0;i<cfg.startLen;i++) seq.push(pickIdx());
+    roundInLevel=0;
+    later(playSequence,700);
+  }
+  function playSequence(){
+    inputLocked=true;playerPos=0;
+    setCounter(`L${level+1} · 0/${seq.length}`,"Simon");
+    setHint("Schau zu …","");
+    seq.forEach((idx,i)=>{
+      later(()=>{ flash(padEls[idx],PADS[idx]); },i*STEP_MS+150);
+    });
+    later(()=>{ inputLocked=false; setHint("Jetzt du!",""); },seq.length*STEP_MS+250);
+  }
+  function expected(){ return PADS[seq[playerPos]]; }
+  function wrongPad(actualLabel){
+    if(inputLocked||done)return;
+    inputLocked=true;sfx.soft();registerAttempt(false);
+    setHint(`Falsches Feld – schau noch mal genau hin!`,"warn");
+    later(playSequence,1200);
+  }
+  function wrongAction(actualLabel){
+    if(inputLocked||done)return;
+    inputLocked=true;sfx.soft();registerAttempt(false);
+    const exp=expected();
+    setHint(`Diese Kachel braucht <b>${exp.label}</b>, nicht ${actualLabel}.`,"warn");
+    later(playSequence,1200);
+  }
+  function rightAction(idx){
+    if(done)return;
+    const pad=PADS[idx];
+    flash(padEls[idx],pad);sfx.step();
+    playerPos++;
+    setCounter(`L${level+1} · ${playerPos}/${seq.length}`,"Simon");
+    if(playerPos>=seq.length){
+      inputLocked=true;sfx.good();
+      roundInLevel++;
+      if(roundInLevel>=ROUNDS_PER_LEVEL){
+        level++;
+        if(level>=LEVELS.length){
+          done=true;awardXP(25,"bonus");
+          setInstruction("Bonus geschafft! 🎁","Du hast alle vier Simon-Level gemeistert – <b>+25 XP</b>!");
+          setHint("Hervorragendes Gedächtnis!","good");showSkip(false);
+          padEls.forEach(el=>el.style.pointerEvents="none");
+          showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
+          return;
+        }
+        setHint("Geschafft! Neues Level …","good");
+        later(startLevel,1100);
+      }else{
+        seq.push(pickIdx());
+        setHint("Runde geschafft!","good");
+        later(playSequence,900);
+      }
+    }
+  }
+  function handle(idx,action,actualLabel){
+    if(inputLocked||done)return;
+    const exp=expected();
+    if(idx!==seq[playerPos]){
+      // Falsche Farbe — Aktion ist egal, das Pad war nicht dran.
+      wrongPad(actualLabel);return;
+    }
+    if(action!==exp.action){ wrongAction(actualLabel);return; }
+    rightAction(idx);
+  }
+
+  // Eingabe-Erkennung pro Pad. Click-vs-Doppelklick wird über einen Timer
+  // unterschieden, damit ein Doppelklick auf 🔴 nicht als zwei Einzelklicks zählt.
+  padEls.forEach((el,idx)=>{
+    let downAt=0,holdTimer=null,clickTimer=null,suppressClick=false;
+    el.addEventListener("mousedown",e=>{
+      if(e.button!==0)return;
+      downAt=Date.now();
+      // Bei "halten"-Pads visuelles Signal, wenn Mindestzeit erreicht.
+      holdTimer=later(()=>{
+        holdTimer=null;
+        if(downAt!==0) el.style.boxShadow=`0 0 0 6px ${PADS[idx].glow}, 0 2px 0 rgba(0,0,0,.18)`;
+      },HOLD_MIN_MS);
+    });
+    el.addEventListener("mouseup",e=>{
+      if(e.button!==0||downAt===0)return;
+      const heldFor=Date.now()-downAt;downAt=0;
+      el.style.boxShadow="0 2px 0 rgba(0,0,0,.18)";
+      // Halten erkennen: lang genug gedrückt -> hold-Aktion.
+      if(heldFor>=HOLD_MIN_MS){
+        suppressClick=true;
+        // Den anschließenden click-Event verwerfen.
+        later(()=>{suppressClick=false;},50);
+        handle(idx,"hold","Halten");
+        return;
+      }
+      // Andernfalls: warte kurz auf möglichen dblclick.
+    });
+    el.addEventListener("click",e=>{
+      if(suppressClick)return;
+      if(clickTimer){clearTimeout(clickTimer);clickTimer=null;}
+      clickTimer=later(()=>{
+        clickTimer=null;
+        handle(idx,"click","Linksklick");
+      },state.dblTolerance+40);
+    });
+    el.addEventListener("dblclick",e=>{
+      if(clickTimer){clearTimeout(clickTimer);clickTimer=null;}
+      handle(idx,"dblclick","Doppelklick");
+    });
+    el.addEventListener("contextmenu",e=>{
+      e.preventDefault();
+      handle(idx,"right","Rechtsklick");
+    });
+    el.addEventListener("mouseleave",()=>{
+      if(downAt!==0){ downAt=0; el.style.boxShadow="0 2px 0 rgba(0,0,0,.18)"; }
+    });
+  });
+
+  startLevel();
 };
 
 /* ---------- SHOLD: Halten & Steuern (Smiley) ---------- */
