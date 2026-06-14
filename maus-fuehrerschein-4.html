@@ -290,6 +290,7 @@
     border:none;border-bottom:2px solid var(--ocean-bright);padding:6px 4px;background:transparent;}
   .urkunde .nameline input:focus{outline:none;border-color:var(--ocean-mid);}
   .urkunde .nameline .cap{font-size:.74rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
+  .urkunde .nameline .privacy-note{font-size:.7rem;color:var(--ink-soft);margin-top:6px;opacity:.85;}
   .urkunde .badges{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:18px 0;}
   .urkunde .badge{background:var(--success-soft);color:var(--success);border-radius:20px;padding:5px 11px;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:6px;}
   .urkunde .badge.ach{background:#fbf0e2;color:#8a5616;border:1px solid #f0d9b8;}
@@ -387,6 +388,7 @@
     main{padding:0;} .play{padding:0;}
     .urkunde{border-color:#000;max-width:100%;}
     .urkunde .nameline input{border-bottom:1px solid #000;}
+    .urkunde .nameline .privacy-note{display:none!important;}
   }
 </style>
 </head>
@@ -432,6 +434,8 @@
 
 <footer class="sitefooter">
   <p>© 2026 Wolfgang Schneider</p>
+  <p>🔒 Datenschutz: Dieses Programm läuft vollständig auf deinem Gerät.
+    Es werden keine Daten gespeichert oder ins Internet gesendet.</p>
   <p>Dieses Werk ist lizenziert unter
     <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>
     (Namensnennung – Nicht kommerziell – Weitergabe unter gleichen Bedingungen).</p>
@@ -2575,7 +2579,8 @@ SCREENS.exam_done=(stage)=>{
   stage.innerHTML=`<div class="urkunde" id="urkunde"><div class="seal">🏅</div>
     <h1>Maus-Führerschein</h1>
     <div class="sub">Diese Urkunde bestätigt, dass die Maus sicher bedient werden kann.</div>
-    <div class="nameline"><input id="nameInput" type="text" placeholder="Dein Name" aria-label="Name"><div class="cap">Name</div></div>
+    <div class="nameline"><input id="nameInput" type="text" placeholder="Dein Name" aria-label="Name"><div class="cap">Name</div>
+      <div class="privacy-note">Wird nur für die Urkunde verwendet – nicht gespeichert oder gesendet.</div></div>
     <div class="badges">${skillBadges}</div>
     <div style="font-size:.8rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin:14px 0 6px;">Gesammelte Abzeichen</div>
     <div class="badges">${achBadges}</div>
