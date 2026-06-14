@@ -85,7 +85,7 @@
   .btn:disabled{opacity:.4;cursor:not-allowed;}
   button:focus-visible,.stamp:focus-visible,.gear:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
 
-  .start{text-align:center;padding:14px 10px;display:flex;flex-direction:column;align-items:center;flex:1;}
+  .start{text-align:center;padding:14px 10px;}
   .start .big{font-size:3.4rem;margin:4px 0 2px;}
   .start h1{font-size:1.8rem;color:var(--ocean-deep);margin:6px 0 6px;}
   .start .lead{max-width:600px;margin:0 auto 22px;color:var(--ink-soft);line-height:1.55;}
@@ -95,10 +95,11 @@
   .hand-guide ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:9px;}
   .hand-guide li{font-size:.9rem;color:var(--ink-soft);line-height:1.5;}
   .hand-guide li b{color:var(--ocean-deep);}
-  .landing-footer{margin-top:auto;width:100%;max-width:560px;padding-top:16px;border-top:1px solid rgba(10,77,104,.18);
-    font-size:.8rem;color:var(--ink-soft);line-height:1.5;text-align:center;}
-  .landing-footer p{margin:2px 0;}
-  .landing-footer a{color:var(--ocean-mid);text-decoration:underline;}
+  footer.sitefooter{background:linear-gradient(120deg,var(--ocean-deep),var(--ocean-mid) 55%,var(--ocean-bright));
+    color:#fff;padding:14px 22px;text-align:center;font-size:.8rem;line-height:1.5;
+    box-shadow:0 -4px 18px rgba(10,77,104,.25);}
+  footer.sitefooter p{margin:2px 0;}
+  footer.sitefooter a{color:#fff;text-decoration:underline;}
   .mouse-intro{display:flex;align-items:center;justify-content:center;gap:30px;flex-wrap:wrap;max-width:760px;margin:6px auto 26px;text-align:left;}
   .mouse-pic{flex:none;}
   .mouse-list{list-style:none;margin:0;padding:0;max-width:430px;display:flex;flex-direction:column;gap:14px;}
@@ -426,6 +427,13 @@
     </div>
   </div>
 </main>
+
+<footer class="sitefooter">
+  <p>© 2026 Wolfgang Schneider</p>
+  <p>Dieses Werk ist lizenziert unter
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>
+    (Namensnennung – Nicht kommerziell – Weitergabe unter gleichen Bedingungen).</p>
+</footer>
 
 <div class="ctxmenu" id="ctxmenu" role="menu"></div>
 <div class="submenu" id="submenu" role="menu"></div>
@@ -797,13 +805,7 @@ SCREENS.start=(stage)=>{
         <li>Bleib <b>locker</b>: Schultern und Hand entspannt. Wird der Arm müde, mach kurz eine Pause.</li>
       </ol>
     </div>
-    <button class="btn btn-primary" id="goStart" style="font-size:1.1rem;padding:13px 34px;">Los geht’s ›</button>
-    <footer class="landing-footer">
-      <p>© 2026 Wolfgang Schneider</p>
-      <p>Dieses Werk ist lizenziert unter
-        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>
-        (Namensnennung – Nicht kommerziell – Weitergabe unter gleichen Bedingungen).</p>
-    </footer></div>`;
+    <button class="btn btn-primary" id="goStart" style="font-size:1.1rem;padding:13px 34px;">Los geht’s ›</button></div>`;
   $("#goStart").addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go("s0"); });
 };
 
