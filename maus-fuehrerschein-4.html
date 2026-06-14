@@ -1497,11 +1497,20 @@ SCREENS.s9=(stage)=>{
     let targetCount=0;
     for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=document.createElement("div");c.className="cell";
       if(shapeFn(x,y,W,H,cell)){c.classList.add("target");c.dataset.target="1";targetCount++;}grid.appendChild(c);}
-    let painted=0;setCounter(`0/${targetCount}`,"Felder");
-    function paintAt(el){if(!el||!el.classList||!el.classList.contains("cell"))return;
+    let painted=0,lost=false;setCounter(`0/${targetCount}`,"Felder");
+    // Ein falsch markiertes Feld lässt die Runde verlieren und neu starten. Das
+    // lost-Flag stoppt den noch laufenden Drag, damit er nicht ins neue Gitter malt.
+    function loseRound(){
+      if(lost)return;lost=true;sfx.soft();
+      setHint("Daneben! 🎨 Das war kein Feld der Vorlage – die Runde beginnt von vorn.","warn");
+      later(()=>makeRound(shapeFn,W,H,cell,label,name,onDone),900);
+    }
+    function paintAt(el){if(lost)return;
+      if(!el||!el.classList||!el.classList.contains("cell"))return;
       if(el.classList.contains("paint"))return;el.classList.add("paint");
       if(el.dataset.target){painted++;sfx.step();setCounter(`${painted}/${targetCount}`,"Felder");
-        if(painted===targetCount)onDone();}}
+        if(painted===targetCount)onDone();}
+      else loseRound();}
     grid.addEventListener("mousedown",e=>{e.preventDefault();paintAt(e.target);
       dragMove(e,ev=>{const t=document.elementFromPoint(ev.clientX,ev.clientY);paintAt(t);},null);});
   }
