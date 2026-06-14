@@ -948,12 +948,16 @@ SCREENS.s1=(stage)=>{
 
 /* Geschenk-Modal mit einem lustigen Witz – Belohnung, wenn alle Boxen offen sind. */
 const GIFT_JOKES=[
-  {q:"Was macht ein Keks unter einem Baum?",a:"Krümel! 🍪"},
-  {q:"Warum kann man im Wald so schlecht Verstecken spielen?",a:"Weil die Bäume so viele Blätter haben – die petzen alles weiter! 🌳"},
-  {q:"Was sagt eine Maus zur anderen Maus?",a:"„Wir sehen uns am Mausefallen-Stammtisch!“ 🐭"},
-  {q:"Was ist orange und schaut durchs Fenster?",a:"Eine Spannende Karotte! 🥕"},
-  {q:"Warum nehmen Bienen einen Kamm mit zur Schule?",a:"Wegen der Honigwaben-Frisur! 🐝"},
-  {q:"Was macht ein Computer, wenn er müde ist?",a:"Er macht ein Nickerchen im Standby! 💤"}
+  {q:"Was macht ein Pirat am Computer?",a:"Er drückt die Enter-Taste! ⚓"},
+  {q:"Was sagt die Null zur Acht?",a:"„Schicker Gürtel!“ 🔢"},
+  {q:"Wie nennt man einen Bumerang, der nicht zurückkommt?",a:"Einen Stock! 🪃"},
+  {q:"Welche Frucht hat keinen Mut?",a:"Die Feige! 🍐"},
+  {q:"Was hat einen Hals, aber keinen Kopf?",a:"Eine Flasche! 🍾"},
+  {q:"Warum können Geister so schlecht schwindeln?",a:"Weil man durch sie hindurchsehen kann! 👻"},
+  {q:"Was rief der Luftballon, kurz bevor er platzte?",a:"„Vorsicht, ein Kaktus!“ 🎈"},
+  {q:"Was ist grün und klopft an die Tür?",a:"Ein Klopfsalat! 🥬"},
+  {q:"Was ist weiß und stört beim Frühstück?",a:"Eine Lawine! ❄️"},
+  {q:"Wie heißt ein Zauberer, der für jeden Trick eine Stunde braucht?",a:"Harry Stotter! 🪄"}
 ];
 function showGiftJoke(onContinue){
   const j=GIFT_JOKES[Math.floor(Math.random()*GIFT_JOKES.length)];
@@ -2219,9 +2223,15 @@ SCREENS.shold=(stage)=>{
         });
       },3000);
     }
-    function resetPac(){px=START.x;py=START.y;held=false;wasCaught=true;invulnUntil=performance.now()+800;
-      pac.classList.add("hit","safe");later(()=>pac.classList.remove("hit"),500);later(()=>pac.classList.remove("safe"),800);
-      setHint("Erwischt! Deine Punkte bleiben – einfach weiter halten und ausweichen.","warn");}
+    // Von einem Geist getroffen: die Runde geht verloren und startet komplett neu.
+    function loseRound(){
+      if(doneFlag)return;            // mehrfache Treffer im selben Frame abfangen
+      doneFlag=true;wasCaught=true;  // wasCaught verhindert das Perfekt-Badge
+      cleanup();stopLoop();          // Listener/Loop stoppen – vor later() aufrufen!
+      pac.classList.add("hit");sfx.soft();
+      setHint("Erwischt! 👻 Die Runde beginnt von vorn – halte gut durch!","warn");
+      later(()=>makeRound(cfg,onDone),1100); // dieselbe Runde komplett neu aufbauen
+    }
     (function loop(){
       if(!board.isConnected||doneFlag){cleanup();return;}
       const now=performance.now();
@@ -2242,7 +2252,7 @@ SCREENS.shold=(stage)=>{
         if(g.x<16+padding||g.x>W()-16-padding)g.vx*=-1;if(g.y<16+padding||g.y>H()-16-padding)g.vy*=-1;
         g.x=Math.max(16+padding,Math.min(W()-16-padding,g.x));g.y=Math.max(16+padding,Math.min(H()-16-padding,g.y));
         g.el.style.left=g.x+"px";g.el.style.top=g.y+"px";
-        if(now>invulnUntil && Math.hypot(g.x-px,g.y-py)<26)resetPac();});
+        if(now>invulnUntil && Math.hypot(g.x-px,g.y-py)<26)loseRound();});
       _raf=requestAnimationFrame(loop);
     })();
   }
