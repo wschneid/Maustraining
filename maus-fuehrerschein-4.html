@@ -503,7 +503,7 @@ function defaultGamify(){
 }
 const state = Object.assign({
   current:"start", done:{}, dblTolerance:750, sound:true, difficulty:"mittel",
-  mascotName:"Robi",
+  mascotName:"Codi",
   reduced: matchMedia("(prefers-reduced-motion:reduce)").matches
 }, defaultGamify());
 
@@ -670,7 +670,7 @@ function maybeOfferBonus(next){
   const n=Object.keys(state.done).length;
   if(n>0 && n%3===0 && state.current!=="exam"){
     _bonusReturn=next;
-    const games=["bonus_catch","bonus_memory","bonus_catch_left","bonus_catch_right"];const g=games[(n/3-1)%games.length];
+    const games=["bonus_catch","bonus_memory","bonus_reflex","bonus_catch_left","bonus_catch_right"];const g=games[(n/3-1)%games.length];
     showSkip(true,()=>go(next));$("#skipBtn").textContent="Bonus überspringen";
     showNext(true,"🎁 Bonus-Spiel!");$("#nextBtn").onclick=()=>go(g);
     return true;
@@ -937,19 +937,26 @@ SCREENS.s2=(stage)=>{
   function roundList(){
     stage.innerHTML="";
     setInstruction(`Station ${N} · Ordner öffnen (2/3)`,
-      "So öffnet man in Windows Ordner und Dateien: per Doppelklick auf die Zeile. <b>Öffne alle vier Ordner.</b>");
-    setHint("Doppelklick direkt auf eine Zeile.","");
-    const rows=[["📁","Bilder"],["📁","Musik"],["📁","Schule"],["📄","liesmich.txt"]];
-    let opened=0;setCounter(`0/${rows.length}`,"geöffnet");
+      "Hier liegen <b>Ordner</b> und <b>Dateien</b> gemischt. Ordner erkennst du am 📁. <b>Öffne nur die vier Ordner</b> per Doppelklick – die Dateien lässt du zu.");
+    setHint("Doppelklick direkt auf eine Ordner-Zeile (📁).","");
+    const rows=[{em:"📁",name:"Bilder",folder:true},{em:"📄",name:"liesmich.txt",folder:false},
+      {em:"📁",name:"Musik",folder:true},{em:"📄",name:"notiz.txt",folder:false},
+      {em:"📁",name:"Schule",folder:true},{em:"🎵",name:"lied.mp3",folder:false},
+      {em:"📁",name:"Spiele",folder:true},{em:"🖼️",name:"foto.jpg",folder:false}];
+    const TOTALF=rows.filter(r=>r.folder).length;
+    let opened=0;setCounter(`0/${TOTALF}`,"geöffnet");
     const list=document.createElement("div");list.className="filelist";
     list.innerHTML=`<div class="fhead">📂 Dieser PC › Dokumente</div>`;
     rows.forEach(rw=>{const row=document.createElement("div");row.className="frow";
-      row.innerHTML=`<span class="em">${rw[0]}</span><span>${rw[1]}</span><span class="st">geschlossen</span>`;let last=0;
+      row.innerHTML=`<span class="em">${rw.em}</span><span>${rw.name}</span><span class="st">geschlossen</span>`;let last=0;
       row.addEventListener("click",()=>{if(row.classList.contains("open"))return;const now=performance.now();
-        if(now-last<=state.dblTolerance&&last>0){row.classList.remove("selected");row.classList.add("open");
-          row.querySelector(".st").textContent="geöffnet ✓";opened++;sfx.good();setCounter(`${opened}/${rows.length}`,"geöffnet");last=0;
-          if(opened===rows.length){sfx.good();setHint("Alle offen! Jetzt wird's gemischt.","good");later(roundMixed,800);}
-          else setHint(`Geöffnet! Noch ${rows.length-opened}.`,"good");
+        if(now-last<=state.dblTolerance&&last>0){last=0;
+          if(!rw.folder){row.classList.remove("selected");registerAttempt(false);
+            setHint("Das ist eine <b>Datei</b>, kein Ordner. Öffne nur die Zeilen mit 📁.","warn");return;}
+          row.classList.remove("selected");row.classList.add("open");
+          row.querySelector(".st").textContent="geöffnet ✓";opened++;sfx.good();setCounter(`${opened}/${TOTALF}`,"geöffnet");
+          if(opened===TOTALF){sfx.good();setHint("Alle Ordner offen! Jetzt wird's gemischt.","good");later(roundMixed,800);}
+          else setHint(`Ordner geöffnet! Noch ${TOTALF-opened}.`,"good");
         }else{$$(".frow",list).forEach(x=>x.classList.remove("selected"));row.classList.add("selected");
           setHint("Ausgewählt ✓ – jetzt noch ein zweites Mal schnell klicken!","warn");last=now;
           later(()=>{if(!row.classList.contains("open"))row.classList.remove("selected");},state.dblTolerance+50);}});
@@ -1404,15 +1411,17 @@ SCREENS.s8=(stage)=>{
 /* ---------- S9: Malen durch Ziehen ---------- */
 SCREENS.s9=(stage)=>{
   const N=stationNumber("s9");
-  const W=13,H=11,cell=24;
+  const W=15,H=13,cell=22;
   // Formeln je Form
   function inHeart(cx,cy){const a=(cx+0.5)/W*2.8-1.4,b=1.4-(cy+0.5)/H*2.8;const v=Math.pow(a*a+b*b-1,3)-a*a*b*b*b;return v<=0;}
   const STAR_PTS=(()=>{const p=[];for(let i=0;i<10;i++){const r=i%2===0?1.0:0.40,a=-Math.PI/2+i*Math.PI/5;p.push([Math.cos(a)*r,Math.sin(a)*r]);}return p;})();
-  // In Pixel-Koordinaten rechnen, damit der Stern proportional (nicht verzerrt) ist
-  // und tatsächlich wie ein Stern aussieht – das Gitter ist breiter als hoch.
+  // In Pixel-Koordinaten rechnen, damit der Stern proportional (nicht verzerrt) ist.
+  // Ein Stern ist nach oben höher als nach unten – mit STAR_OFF schieben wir ihn ein
+  // Stück nach unten, damit er mittig im Gitter sitzt und wie ein Stern aussieht.
+  const STAR_OFF=0.10;
   function inStar(cx,cy){
-    const Wp=W*cell,Hp=H*cell,R=Math.min(Wp,Hp)/2*0.96;
-    const px=(cx+0.5)*cell-Wp/2,py=(cy+0.5)*cell-Hp/2;let inside=false;
+    const Wp=W*cell,Hp=H*cell,R=Math.min(Wp,Hp)/2;
+    const px=(cx+0.5)*cell-Wp/2,py=(cy+0.5)*cell-Hp/2-STAR_OFF*R;let inside=false;
     for(let i=0,j=STAR_PTS.length-1;i<STAR_PTS.length;j=i++){
       const xi=STAR_PTS[i][0]*R,yi=STAR_PTS[i][1]*R,xj=STAR_PTS[j][0]*R,yj=STAR_PTS[j][1]*R;
       const it=((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi);if(it)inside=!inside;}return inside;}
@@ -1837,6 +1846,44 @@ function catchGame(stage,mode){
 SCREENS.bonus_catch=(stage)=>catchGame(stage,"hover");
 SCREENS.bonus_catch_left=(stage)=>catchGame(stage,"left");
 SCREENS.bonus_catch_right=(stage)=>catchGame(stage,"right");
+// Blitz-Reaktion: ein Feld blinkt links oder rechts auf, die passende Maustaste drücken.
+function reflexGame(stage){
+  unlock("bonus_fan");bonusBackBar();
+  setInstruction("Bonus-Spiel 🎁 · Blitz-Reaktion",
+    "Ein Feld blinkt <b>links</b> oder <b>rechts</b> auf. Drücke schnell die passende Maustaste: <b>linkes Feld → linke Taste</b>, <b>rechtes Feld → rechte Taste</b>. Sammle in <b>30 Sekunden</b> so viele Treffer wie möglich – jeder gibt <b>+2 XP</b>!");
+  setHint("Linkes Feld = linke Maustaste, rechtes Feld = rechte Maustaste.","");
+  const board=document.createElement("div");
+  board.style.cssText="display:flex;gap:18px;justify-content:center;align-items:stretch;height:300px;padding:18px;";
+  const left=document.createElement("div"),right=document.createElement("div");
+  [[left,"◀ LINKS","linke Taste"],[right,"RECHTS ▶","rechte Taste"]].forEach(([el,lbl,sub])=>{
+    el.style.cssText="flex:1;border-radius:18px;border:3px solid var(--line);background:var(--ocean-pale);display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;font-size:1.7rem;font-weight:800;color:var(--ink-soft);user-select:none;transition:background .08s,border-color .08s,transform .08s;cursor:pointer;";
+    el.innerHTML=`<span>${lbl}</span><span style="font-size:.85rem;font-weight:600;opacity:.8">${sub}</span>`;
+    board.appendChild(el);});
+  // Rechtsklick-Kontextmenü auf dem ganzen Spielfeld unterdrücken
+  board.addEventListener("contextmenu",e=>e.preventDefault());
+  stage.appendChild(board);
+  let score=0,timeLeft=30,active=null,over=false;setCounter(`${timeLeft}s`,"Zeit");
+  function light(el,on){el.style.background=on?"var(--ocean-bright)":"var(--ocean-pale)";
+    el.style.borderColor=on?"var(--ocean-deep)":"var(--line)";el.style.transform=on?"scale(1.04)":"scale(1)";}
+  function clearActive(){if(active)light(active.el,false);active=null;}
+  function blink(){if(over)return;clearActive();
+    const side=Math.random()<0.5?"left":"right";const el=side==="left"?left:right;
+    light(el,true);active={side,el};}
+  function hit(side){if(over)return;
+    if(!active){setHint("Warte, bis ein Feld aufblinkt.","warn");return;}
+    if(side===active.side){score++;awardXP(2,"bonus");sfx.good();setHint(`Treffer! Punkte: ${score}`,"good");
+      clearActive();later(blink,dCount(700,400));}
+    else{registerAttempt(false);sfx.soft();setHint("Falsche Maustaste! Achte auf die blinkende Seite.","warn");}}
+  board.addEventListener("mousedown",e=>{if(e.button===0)hit("left");else if(e.button===2)hit("right");});
+  later(blink,600);
+  later(function t(){timeLeft--;setCounter(`${Math.max(0,timeLeft)}s`,"Zeit");
+    if(timeLeft<=0){over=true;clearActive();stopLoop();board.style.pointerEvents="none";
+      setInstruction("Bonus geschafft! 🎁",`Du hast <b>${score}</b> Treffer gelandet und <b>${score*2} XP</b> verdient!`);
+      setHint("Super Reaktion!","good");showSkip(false);
+      showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
+    }else later(t,1000);},1000);
+}
+SCREENS.bonus_reflex=(stage)=>reflexGame(stage);
 SCREENS.bonus_memory=(stage)=>{
   unlock("bonus_fan");bonusBackBar();
   memoryGame(stage,{bonus:true,pairs:dCount(5,4),onDone:()=>{
