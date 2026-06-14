@@ -97,7 +97,9 @@
   .hand-guide li b{color:var(--ocean-deep);}
   footer.sitefooter{background:linear-gradient(120deg,var(--ocean-deep),var(--ocean-mid) 55%,var(--ocean-bright));
     color:#fff;padding:14px 22px;text-align:center;font-size:.8rem;line-height:1.5;
-    box-shadow:0 -4px 18px rgba(10,77,104,.25);}
+    box-shadow:0 -4px 18px rgba(10,77,104,.25);display:none;}
+  /* Footer nur auf der Landing Page (Start-Screen) sichtbar. */
+  body[data-screen="start"] footer.sitefooter{display:block;}
   footer.sitefooter p{margin:2px 0;}
   footer.sitefooter a{color:#fff;text-decoration:underline;}
   .mouse-intro{display:flex;align-items:center;justify-content:center;gap:30px;flex-wrap:wrap;max-width:760px;margin:6px auto 26px;text-align:left;}
@@ -675,6 +677,7 @@ function markDone(id){ state.done[id]=true; refreshProgress(); }
 function go(id){
   stopLoop();hideCtx();
   state.current=id;
+  document.body.dataset.screen=id;
   const stage=$("#stage");stage.innerHTML="";
   setHint("","");showNext(false);showReplay(false);showSkip(false);setCounter(null);
   refreshProgress();refreshHUD();
