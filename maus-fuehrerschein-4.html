@@ -2019,8 +2019,8 @@ function arkanoidGame(stage){
     const ang=(-Math.PI/2)+(Math.random()*0.6-0.3); // nach oben mit etwas Streuung
     vx=Math.cos(ang)*baseSpeed; vy=Math.sin(ang)*baseSpeed;
   }
-  // Steine erst bauen, sobald Layout steht
-  later(()=>{ buildBricks(); resetBall(); },20);
+  // Steine sofort bauen – field ist bereits im DOM, Maße stehen.
+  buildBricks(); resetBall();
 
   field.addEventListener("mousemove",e=>{
     if(over)return;
@@ -2072,7 +2072,7 @@ function arkanoidGame(stage){
     // unten heraus → Re-Spawn
     if(by>H()){ resetBall(); sfx.soft(); }
     // Alle Steine weg?
-    if(bricks.every(b=>!b.alive) && !over){
+    if(bricks.length>0 && bricks.every(b=>!b.alive) && !over){
       over=true;stopLoop();field.style.pointerEvents="none";
       awardXP(10,"bonus"); // Clear-Bonus
       setInstruction("Alle Steine geschafft! 🎁",
