@@ -483,6 +483,8 @@ const DIFF = {
 const diff = () => DIFF[state.difficulty] || DIFF.mittel;
 /* skaliert eine Anzahl auf die gewählte Stufe (mind. min) */
 const dCount = (base,min=2) => Math.max(min, Math.round(base*diff().count));
+/* Anzahl Runden = schwierigkeitsskaliert, gedeckelt auf den Inhaltspool. */
+const dRounds = (poolLen,base,min=2) => Math.min(poolLen, dCount(base,min));
 
 function defaultGamify(){
   return {
@@ -969,49 +971,74 @@ SCREENS.s2=(stage)=>{
 /* ---------- S3: Rechtsklick ---------- */
 SCREENS.s3=(stage)=>{
   const N=stationNumber("s3");
-  let step=0; // 0 Ordner, 1 Umbenennen, 2 Sortieren-Untermenü
   const desk=document.createElement("div");desk.className="desktop";
   const icons=document.createElement("div");icons.className="icons";desk.appendChild(icons);
   const tb=document.createElement("div");tb.className="taskbar";tb.innerHTML=`<span class="st-btn">⊞ Start</span><span>🖥️ Desktop · Rechtsklick üben</span>`;desk.appendChild(tb);
   stage.appendChild(desk);
   const fileIc=document.createElement("div");fileIc.className="icon";fileIc.dataset.role="file";
   fileIc.innerHTML=`<span class="em">📄</span><span class="lb">notiz.txt</span>`;icons.appendChild(fileIc);
-
-  function s0(){step=0;setCounter("1/3","Aufgabe");setInstruction(`Station ${N} · Der Rechtsklick (1/3)`,
-    "Mit der <b>rechten</b> Maustaste öffnest du das Menü. Mache einen <b>Rechtsklick auf den freien Desktop</b> und wähle <b>„Neuer Ordner“</b>.");
-    setHint("Rechte Maustaste auf die dunkle Fläche drücken.","");}
-  function s1(){step=1;setCounter("2/3","Aufgabe");setInstruction(`Station ${N} · Umbenennen (2/3)`,
-    "Klasse! Jetzt: <b>Rechtsklick auf die Datei „notiz.txt“</b> 📄 und wähle <b>„Umbenennen“</b>.");
-    setHint("Rechtsklick direkt auf das Datei-Symbol.","");}
-  function s2(){step=2;setCounter("3/3","Aufgabe");setInstruction(`Station ${N} · Untermenü (3/3)`,
-    "Manche Menüpunkte haben ein <b>Untermenü</b> (Pfeil ▸). Rechtsklick auf den Desktop, fahre auf <b>„Sortieren nach“</b> und wähle dann <b>„Name“</b>.");
-    setHint("Erst auf „Sortieren nach“ fahren, dann ins Untermenü.","");}
+  const fileIc2=document.createElement("div");fileIc2.className="icon";fileIc2.dataset.role="file2";
+  fileIc2.innerHTML=`<span class="em">📄</span><span class="lb">alt.txt</span>`;
+  // Schwierigkeitsabhängige Schrittfolge (leicht 3, mittel 4, schwer 5)
+  const SEQ = state.difficulty==="leicht"?["folder","rename","sort"]
+    : state.difficulty==="schwer"?["folder","rename","copy","del","sort"]
+    : ["folder","rename","copy","sort"];
+  if(SEQ.includes("del"))icons.appendChild(fileIc2);
+  const total=SEQ.length;
+  const STEP={
+    folder:{tgt:"desk",title:"Der Rechtsklick",
+      instr:"Mit der <b>rechten</b> Maustaste öffnest du das Menü. Mache einen <b>Rechtsklick auf den freien Desktop</b> und wähle <b>„Neuer Ordner“</b>.",
+      hint:"Rechte Maustaste auf die dunkle Fläche drücken.",
+      menu:adv=>[{icon:"👁️",label:"Anzeigen"},{icon:"↕️",label:"Sortieren nach",disabled:true},{icon:"🔄",label:"Aktualisieren"},{sep:true},
+        {icon:"📁",label:"Neuer Ordner",action:()=>{const f=document.createElement("div");f.className="icon pop";f.innerHTML=`<span class="em">📁</span><span class="lb">Neuer Ordner</span>`;icons.appendChild(f);sfx.step();adv();}},
+        {icon:"⚙️",label:"Eigenschaften",key:"Alt+Enter"}]},
+    rename:{tgt:"file",icon:fileIc,title:"Umbenennen",
+      instr:"Klasse! Jetzt: <b>Rechtsklick auf die Datei „notiz.txt“</b> 📄 und wähle <b>„Umbenennen“</b>.",
+      hint:"Rechtsklick direkt auf das Datei-Symbol.",
+      menu:adv=>[{icon:"📂",label:"Öffnen"},{icon:"✂️",label:"Ausschneiden"},{icon:"📋",label:"Kopieren"},{sep:true},
+        {icon:"✏️",label:"Umbenennen",key:"F2",action:()=>{fileIc.querySelector(".lb").textContent="meine_notiz.txt";fileIc.classList.add("pop");sfx.step();adv();}},
+        {icon:"🗑️",label:"Löschen",key:"Entf"}]},
+    copy:{tgt:"file",icon:fileIc,title:"Kopieren",
+      instr:"Gut! Jetzt <b>Rechtsklick auf die Datei</b> 📄 und wähle <b>„Kopieren“</b>.",
+      hint:"Rechtsklick auf das Datei-Symbol, dann „Kopieren“.",
+      menu:adv=>[{icon:"📂",label:"Öffnen"},{icon:"✂️",label:"Ausschneiden"},
+        {icon:"📋",label:"Kopieren",key:"Strg+C",action:()=>{fileIc.classList.add("pop");sfx.step();adv();}},{sep:true},
+        {icon:"✏️",label:"Umbenennen",key:"F2"},{icon:"🗑️",label:"Löschen",key:"Entf"}]},
+    del:{tgt:"file",icon:fileIc2,title:"Löschen",
+      instr:"Räum auf: <b>Rechtsklick auf die Datei „alt.txt“</b> 📄 und wähle <b>„Löschen“</b>.",
+      hint:"Rechtsklick auf „alt.txt“, dann „Löschen“.",
+      menu:adv=>[{icon:"📂",label:"Öffnen"},{icon:"✂️",label:"Ausschneiden"},{icon:"📋",label:"Kopieren"},{sep:true},
+        {icon:"✏️",label:"Umbenennen",key:"F2"},
+        {icon:"🗑️",label:"Löschen",key:"Entf",action:()=>{fileIc2.classList.add("pop");later(()=>fileIc2.remove(),150);sfx.step();adv();}}]},
+    sort:{tgt:"desk",title:"Untermenü",
+      instr:"Manche Menüpunkte haben ein <b>Untermenü</b> (Pfeil ▸). Rechtsklick auf den Desktop, fahre auf <b>„Sortieren nach“</b> und wähle dann <b>„Name“</b>.",
+      hint:"Erst auf „Sortieren nach“ fahren, dann ins Untermenü.",
+      menu:adv=>[{icon:"👁️",label:"Anzeigen"},
+        {icon:"↕️",label:"Sortieren nach",sub:[
+          {icon:"🔤",label:"Name",action:()=>{sfx.step();adv();}},
+          {icon:"📏",label:"Größe",action:()=>{setHint("Fast! Wähle diesmal „Name“.","warn");}},
+          {icon:"📅",label:"Datum",action:()=>{setHint("Fast! Wähle diesmal „Name“.","warn");}}]},
+        {icon:"🔄",label:"Aktualisieren"},{sep:true},{icon:"📁",label:"Neuer Ordner"}]}
+  };
+  let idx=0;
+  const cur=()=>STEP[SEQ[idx]];
+  function showStep(){const s=cur();setCounter(`${idx+1}/${total}`,"Aufgabe");
+    setInstruction(`Station ${N} · Rechtsklick (${idx+1}/${total})`,s.instr);setHint(s.hint,"");}
+  function advance(){ if(idx+1<total){idx++;showStep();} else completeStation("s3","Perfekt! Rechtsklick, Menü und Untermenü sitzen. 📋"); }
 
   desk.addEventListener("contextmenu",e=>{
-    if(e.target.closest(".icon"))return;e.preventDefault();
-    if(step===0){showCtx(e.clientX,e.clientY,[
-      {icon:"👁️",label:"Anzeigen"},{icon:"↕️",label:"Sortieren nach",disabled:true},{icon:"🔄",label:"Aktualisieren"},{sep:true},
-      {icon:"📁",label:"Neuer Ordner",action:()=>{const f=document.createElement("div");f.className="icon pop";
-        f.innerHTML=`<span class="em">📁</span><span class="lb">Neuer Ordner</span>`;icons.appendChild(f);sfx.step();s1();}},
-      {icon:"⚙️",label:"Eigenschaften",key:"Alt+Enter"}]);}
-    else if(step===2){showCtx(e.clientX,e.clientY,[
-      {icon:"👁️",label:"Anzeigen"},
-      {icon:"↕️",label:"Sortieren nach",sub:[
-        {icon:"🔤",label:"Name",action:()=>{sfx.step();completeStation("s3","Perfekt! Rechtsklick, Menü und Untermenü sitzen. 📋");}},
-        {icon:"📏",label:"Größe",action:()=>{setHint("Fast! Wähle diesmal „Name“.","warn");}},
-        {icon:"📅",label:"Datum",action:()=>{setHint("Fast! Wähle diesmal „Name“.","warn");}}]},
-      {icon:"🔄",label:"Aktualisieren"},{sep:true},{icon:"📁",label:"Neuer Ordner"}]);}
-    else{setHint("Diesmal brauchst du die Datei – Rechtsklick auf „notiz.txt“.","warn");}
+    if(e.target.closest(".icon"))return;e.preventDefault();const s=cur();
+    if(s.tgt==="desk")showCtx(e.clientX,e.clientY,s.menu(advance));
+    else setHint("Diesmal brauchst du die Datei – Rechtsklick auf das Datei-Symbol.","warn");
   });
-  fileIc.addEventListener("contextmenu",e=>{e.preventDefault();e.stopPropagation();
-    if(step!==1){setHint(step===0?"Erst den neuen Ordner anlegen – Rechtsklick auf die freie Fläche.":"Jetzt brauchst du den Desktop – Rechtsklick auf die freie Fläche.","warn");return;}
-    fileIc.classList.add("selected");
-    showCtx(e.clientX,e.clientY,[{icon:"📂",label:"Öffnen"},{icon:"✂️",label:"Ausschneiden"},{icon:"📋",label:"Kopieren"},{sep:true},
-      {icon:"✏️",label:"Umbenennen",key:"F2",action:()=>{fileIc.querySelector(".lb").textContent="meine_notiz.txt";fileIc.classList.add("pop");sfx.step();s2();}},
-      {icon:"🗑️",label:"Löschen",key:"Entf"}]);});
+  function onFileCtx(e,iconEl){e.preventDefault();e.stopPropagation();const s=cur();
+    if(s.tgt!=="file"||s.icon!==iconEl){setHint(s.tgt==="desk"?"Jetzt brauchst du den Desktop – Rechtsklick auf die freie Fläche.":"Rechtsklick auf die genannte Datei.","warn");return;}
+    iconEl.classList.add("selected");showCtx(e.clientX,e.clientY,s.menu(advance));}
+  fileIc.addEventListener("contextmenu",e=>onFileCtx(e,fileIc));
+  fileIc2.addEventListener("contextmenu",e=>onFileCtx(e,fileIc2));
   desk.addEventListener("click",e=>{if(e.target.closest(".ctxmenu")||e.target.closest(".submenu"))return;
     setHint("Das war die linke Taste. Probiere die <b>rechte</b> Maustaste. 🖱️","warn");});
-  s0();
+  showStep();
 };
 
 /* ---------- S4: Scrollen ---------- */
@@ -1329,7 +1356,9 @@ SCREENS.s9=(stage)=>{
 /* ---------- S10: Umschalt-Klick (Bereichsauswahl) ---------- */
 SCREENS.s10=(stage)=>{
   const N=stationNumber("s10");
-  const ITEMS=[["🎵","Lied 1"],["🎵","Lied 2"],["🎵","Lied 3"],["🎵","Lied 4"],["🎵","Lied 5"],["🎵","Lied 6"],["🎵","Lied 7"],["🎵","Lied 8"]];
+  const ITEMS=[["🎵","Lied 1"],["🎵","Lied 2"],["🎵","Lied 3"],["🎵","Lied 4"],["🎵","Lied 5"],["🎵","Lied 6"],["🎵","Lied 7"],["🎵","Lied 8"],["🎵","Lied 9"],["🎵","Lied 10"]];
+  const ROUNDS=[{target:[1,2,3,4],lo:2,hi:5,intro:true},{target:[4,5,6,7],lo:5,hi:8},{target:[0,1,2],lo:1,hi:3},{target:[5,6,7,8,9],lo:6,hi:10},{target:[2,3,4,5,6],lo:3,hi:7}];
+  const total=dRounds(ROUNDS.length,4,3);
   let round=1,anchor=null,target=[];
   const list=document.createElement("div");list.className="listsel";stage.appendChild(list);
   const rows=ITEMS.map((it,i)=>{const r=document.createElement("div");r.className="lrow";r.dataset.i=i;
@@ -1338,25 +1367,17 @@ SCREENS.s10=(stage)=>{
   function selectRange(a,b){clearSel();for(let i=Math.min(a,b);i<=Math.max(a,b);i++)rows[i].classList.add("sel");}
   function selected(){return rows.filter(r=>r.classList.contains("sel")).map(r=>+r.dataset.i);}
   function check(){const s=selected();const ok=s.length===target.length&&s.every((v,i)=>v===target[i]);
-    if(ok){sfx.step();if(round<3){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(round+1),800);}
+    if(ok){sfx.step();if(round<total){setHint("Genau dieser Bereich – super! 🎉","good");later(()=>setRound(round+1),800);}
       else completeStation("s10","Bereichsauswahl mit der Umschalt-Taste sitzt! 📑");}
     else{sfx.soft();const a=target[0]+1,b=target[target.length-1]+1;
       // Falscher Bereich: nicht stillschweigend ignorieren, sondern – wie bei der
       // Strg-Klick-Station – klar sagen, welcher Bereich gesucht ist.
       setHint(`Das ist noch nicht der richtige Bereich. Klicke <b>Lied ${a}</b> an und dann mit gedrückter <b>Umschalt-Taste (⇧)</b> auf <b>Lied ${b}</b>.`,"warn");}}
-  function setRound(r){round=r;anchor=null;clearSel();
-    if(r===1){target=[1,2,3,4];setCounter("1/3","Runde");
-      setInstruction(`Station ${N} · Umschalt-Klick (1/3)`,
-        "So markiert man einen ganzen Bereich: Klicke <b>Lied 2</b> an, halte dann die <b>Umschalt-Taste (⇧)</b> gedrückt und klicke <b>Lied 5</b>. Alles dazwischen wird mitmarkiert.");
-      setHint("Erst Lied 2 anklicken, dann mit gedrückter Umschalt-Taste Lied 5.","");}
-    else if(r===2){target=[4,5,6,7];setCounter("2/3","Runde");
-      setInstruction(`Station ${N} · Umschalt-Klick (2/3)`,
-        "Noch einmal: Markiere den Bereich von <b>Lied 5</b> bis <b>Lied 8</b> mit Klick und Umschalt-Klick.");
-      setHint("Lied 5 anklicken, dann Umschalt gedrückt halten und Lied 8 anklicken.","");}
-    else{target=[0,1,2];setCounter("3/3","Runde");
-      setInstruction(`Station ${N} · Umschalt-Klick (3/3)`,
-        "Zum Schluss: Markiere die ersten drei – <b>Lied 1</b> bis <b>Lied 3</b> mit Klick und Umschalt-Klick.");
-      setHint("Lied 1 anklicken, dann Umschalt gedrückt halten und Lied 3 anklicken.","");}}
+  function setRound(r){round=r;anchor=null;clearSel();const rd=ROUNDS[r-1];target=rd.target;setCounter(`${r}/${total}`,"Runde");
+    setInstruction(`Station ${N} · Umschalt-Klick (${r}/${total})`, rd.intro
+      ? `So markiert man einen ganzen Bereich: Klicke <b>Lied ${rd.lo}</b> an, halte dann die <b>Umschalt-Taste (⇧)</b> gedrückt und klicke <b>Lied ${rd.hi}</b>. Alles dazwischen wird mitmarkiert.`
+      : `Markiere den Bereich von <b>Lied ${rd.lo}</b> bis <b>Lied ${rd.hi}</b> mit Klick und Umschalt-Klick.`);
+    setHint(`Erst Lied ${rd.lo} anklicken, dann mit gedrückter Umschalt-Taste Lied ${rd.hi}.`,"");}
   rows.forEach(r=>r.addEventListener("click",e=>{const i=+r.dataset.i;
     if(e.shiftKey&&anchor!=null){selectRange(anchor,i);check();}
     else if(anchor!=null&&i!==anchor){
@@ -1372,7 +1393,11 @@ SCREENS.s10=(stage)=>{
 /* ---------- S11: Text markieren durch Ziehen ---------- */
 SCREENS.s11=(stage)=>{
   const N=stationNumber("s11");
-  const sentences=["Die Maus hat meistens zwei Tasten.","In der Mitte sitzt oft ein Scrollrad.","Mit der Maus steuerst du den Zeiger."];
+  const sentences=["Die Maus hat meistens zwei Tasten.","In der Mitte sitzt oft ein Scrollrad.","Mit der Maus steuerst du den Zeiger.","Ein einzelner Klick wählt etwas aus.","Eine ruhige Hand hilft beim Zielen.","Üben macht dich immer sicherer."];
+  // Reihenfolge der zu markierenden Sätze, Anzahl skaliert mit der Schwierigkeit
+  const orderIdx=[1,0,2,3,4,5];
+  const total=dRounds(sentences.length,4,3);
+  const targets=orderIdx.slice(0,total).map(i=>sentences[i]);
   let round=1,target="";
   const prompt=document.createElement("div");prompt.className="prompt";
   const card=document.createElement("div");card.className="textcard selectable";
@@ -1380,14 +1405,14 @@ SCREENS.s11=(stage)=>{
   stage.appendChild(prompt);stage.appendChild(card);
   function norm(s){return (s||"").replace(/\s+/g," ").trim().replace(/[.»«]/g,"").trim();}
   function setRound(r){round=r;if(window.getSelection)window.getSelection().removeAllRanges();
-    target=(r===1)?sentences[1]:(r===2)?sentences[0]:sentences[2];setCounter(`${r}/3`,"Runde");
-    setInstruction(`Station ${N} · Text markieren (${r}/3)`, r===1
+    target=targets[r-1];setCounter(`${r}/${total}`,"Runde");
+    setInstruction(`Station ${N} · Text markieren (${r}/${total})`, r===1
       ? "Text markiert man, indem man mit <b>gedrückter linker Taste über die Wörter fährt</b>. Markiere genau diesen Satz:"
       : "Sehr gut! Markiere nun genau diesen Satz:");
     prompt.innerHTML=`Markiere: <b>»${target}«</b>`;
     setHint("Am Satzanfang die Taste drücken, bis zum Punkt ziehen, dann loslassen.","");}
   function onUp(){later(()=>{const sel=norm(window.getSelection().toString());if(!sel)return;const t=norm(target);
-    if(sel===t){sfx.step();if(round<3){setHint("Genau dieser Satz – perfekt! 🎉","good");later(()=>setRound(round+1),800);}
+    if(sel===t){sfx.step();if(round<total){setHint("Genau dieser Satz – perfekt! 🎉","good");later(()=>setRound(round+1),800);}
       else completeStation("s11","Text markieren durch Ziehen – stark! 🖍️");}
     else if(t.includes(sel))setHint("Fast! Du hast noch nicht den ganzen Satz erwischt – zieh bis zum Punkt.","warn");
     else setHint("Das ist zu viel oder der falsche Satz. Markiere genau den geforderten Satz.","warn");},10);}
@@ -1399,26 +1424,42 @@ SCREENS.s11=(stage)=>{
 SCREENS.s12=(stage)=>{
   const N=stationNumber("s12");
   let round=1;
-  const word="Computer", line="Ein Doppelklick markiert ein einzelnes Wort.";
+  const TASKS=[
+    {type:"word",target:"Computer",card:`<p>Der Computer gehört zu den wichtigsten Geräten der Welt. Eine Maus hilft dir, den Computer zu steuern.</p>`,
+      instr:"Ein <b>Doppelklick</b> auf ein Wort markiert genau dieses Wort. Mache einen <b>Doppelklick auf das Wort »Computer«</b>.",
+      prompt:`Doppelklick auf: <b>»Computer«</b>`,hint:"Zweimal schnell auf das Wort klicken."},
+    {type:"word",target:"Maus",card:`<p>Die Maus liegt ruhig unter deiner Hand. Mit der Maus zeigst und klickst du.</p>`,
+      instr:"Noch ein Wort: Mache einen <b>Doppelklick auf das Wort »Maus«</b>.",
+      prompt:`Doppelklick auf: <b>»Maus«</b>`,hint:"Zweimal schnell auf das Wort klicken."},
+    {type:"line",target:"Ein Doppelklick markiert ein einzelnes Wort.",card:`<p id="tl">Ein Doppelklick markiert ein einzelnes Wort.</p><p>Diesen zweiten Satz brauchst du nicht.</p>`,
+      instr:"Ein <b>Dreifachklick</b> (dreimal schnell) markiert eine ganze Zeile. Mache einen <b>Dreifachklick auf den ersten Satz</b>.",
+      prompt:`Dreifachklick auf den <b>ersten Satz</b>.`,hint:"Dreimal schnell hintereinander klicken."},
+    {type:"word",target:"Zeiger",card:`<p>Der Zeiger folgt deiner Hand über den Bildschirm. Bewege den Zeiger ganz ruhig.</p>`,
+      instr:"Mache einen <b>Doppelklick auf das Wort »Zeiger«</b>.",
+      prompt:`Doppelklick auf: <b>»Zeiger«</b>`,hint:"Zweimal schnell auf das Wort klicken."},
+    {type:"line",target:"Ein Dreifachklick markiert die ganze Zeile.",card:`<p id="tl">Ein Dreifachklick markiert die ganze Zeile.</p><p>Diesen Satz brauchst du nicht.</p>`,
+      instr:"Noch eine Zeile: Mache einen <b>Dreifachklick auf den ersten Satz</b>.",
+      prompt:`Dreifachklick auf den <b>ersten Satz</b>.`,hint:"Dreimal schnell hintereinander klicken."}
+  ];
+  const total=dRounds(TASKS.length,4,2);
+  let cur=TASKS[0];
   const prompt=document.createElement("div");prompt.className="prompt";
   const card=document.createElement("div");card.className="textcard selectable";
   stage.appendChild(prompt);stage.appendChild(card);
   function norm(s){return (s||"").replace(/\s+/g," ").trim().replace(/[.»«,]/g,"").trim();}
-  function setRound(r){round=r;if(window.getSelection)window.getSelection().removeAllRanges();setCounter(`${r}/2`,"Runde");
-    if(r===1){card.innerHTML=`<p>Der Computer gehört zu den wichtigsten Geräten der Welt. Eine Maus hilft dir, den Computer zu steuern.</p>`;
-      setInstruction(`Station ${N} · Wort & Zeile (1/2)`,"Ein <b>Doppelklick</b> auf ein Wort markiert genau dieses Wort. Mache einen <b>Doppelklick auf das Wort »Computer«</b>.");
-      prompt.innerHTML=`Doppelklick auf: <b>»Computer«</b>`;setHint("Zweimal schnell auf das Wort klicken.","");}
-    else{card.innerHTML=`<p id="tl">${line}</p><p>Diesen zweiten Satz brauchst du nicht.</p>`;
-      setInstruction(`Station ${N} · Wort & Zeile (2/2)`,"Ein <b>Dreifachklick</b> (dreimal schnell) markiert eine ganze Zeile. Mache einen <b>Dreifachklick auf den ersten Satz</b>.");
-      prompt.innerHTML=`Dreifachklick auf den <b>ersten Satz</b>.`;setHint("Dreimal schnell hintereinander klicken.","");}}
-  card.addEventListener("dblclick",()=>{if(round!==1)return;
+  function advance(){if(round<total){setHint("Genau richtig! 🎉","good");later(()=>setRound(round+1),800);}
+    else completeStation("s12","Wort per Doppelklick, Zeile per Dreifachklick – top! ✏️");}
+  function setRound(r){round=r;cur=TASKS[r-1];if(window.getSelection)window.getSelection().removeAllRanges();
+    setCounter(`${r}/${total}`,"Runde");card.innerHTML=cur.card;
+    setInstruction(`Station ${N} · Wort & Zeile (${r}/${total})`,cur.instr);
+    prompt.innerHTML=cur.prompt;setHint(cur.hint,"");}
+  card.addEventListener("dblclick",()=>{if(cur.type!=="word")return;
     later(()=>{const sel=norm(window.getSelection().toString());
-      if(sel===norm(word)){sfx.step();setHint("Genau – ein ganzes Wort mit einem Doppelklick! 🎉","good");later(()=>setRound(2),800);}
-      else if(sel)setHint("Doppelklicke genau auf das Wort »Computer«.","warn");},10);});
-  card.addEventListener("click",e=>{if(round!==2||e.detail<3)return;
-    later(()=>{const ns=norm(window.getSelection().toString()),nl=norm(line);
-      if(ns===nl||ns.includes(nl)||(nl.includes(ns)&&ns.length>=nl.length*0.7)){
-        sfx.step();completeStation("s12","Wort per Doppelklick, Zeile per Dreifachklick – top! ✏️");}
+      if(sel===norm(cur.target)){sfx.step();advance();}
+      else if(sel)setHint(`Doppelklicke genau auf das Wort »${cur.target}«.`,"warn");},10);});
+  card.addEventListener("click",e=>{if(cur.type!=="line"||e.detail<3)return;
+    later(()=>{const ns=norm(window.getSelection().toString()),nl=norm(cur.target);
+      if(ns===nl||ns.includes(nl)||(nl.includes(ns)&&ns.length>=nl.length*0.7)){sfx.step();advance();}
       else setHint("Klicke dreimal schnell auf den ersten Satz.","warn");},10);});
   setRound(1);
 };
@@ -1427,6 +1468,29 @@ SCREENS.s12=(stage)=>{
 SCREENS.s13=(stage)=>{
   const N=stationNumber("s13");
   let round=1,correct=[];
+  const ROUNDS=[
+    {correct:["1","2","3","4","5"],
+      instr:"Einträge lassen sich per Ziehen umsortieren: <b>Fasse eine Zeile an, halte gedrückt und schiebe sie nach oben oder unten.</b> Bringe die Zahlen in die Reihenfolge <b>1, 2, 3, 4, 5</b>.",
+      hint:"Zeilen anfassen und in die richtige Reihenfolge ziehen.",
+      items:[{key:"1",em:"1️⃣",label:"Eins"},{key:"2",em:"2️⃣",label:"Zwei"},{key:"3",em:"3️⃣",label:"Drei"},{key:"4",em:"4️⃣",label:"Vier"},{key:"5",em:"5️⃣",label:"Fünf"}]},
+    {correct:["mo","di","mi","do","fr"],
+      instr:"Jetzt die Wochentage: Bringe sie per Ziehen in die richtige Reihenfolge von <b>Montag bis Freitag</b>.",
+      hint:"Tage anfassen und richtig sortieren.",
+      items:[{key:"mo",em:"📅",label:"Montag"},{key:"di",em:"📅",label:"Dienstag"},{key:"mi",em:"📅",label:"Mittwoch"},{key:"do",em:"📅",label:"Donnerstag"},{key:"fr",em:"📅",label:"Freitag"}]},
+    {correct:["xs","s","m","l","xl"],
+      instr:"Der Größe nach: Bringe sie per Ziehen von <b>klein nach groß</b>.",
+      hint:"Vom kleinsten zum größten Punkt sortieren.",
+      items:[{key:"xs",em:"·",label:"Winzig"},{key:"s",em:"•",label:"Klein"},{key:"m",em:"⚫",label:"Mittel"},{key:"l",em:"🔵",label:"Groß"},{key:"xl",em:"🟠",label:"Riesig"}]},
+    {correct:["a","b","c","d","e"],
+      instr:"Jetzt die Buchstaben: Bringe sie per Ziehen in die richtige Reihenfolge von <b>A bis E</b>.",
+      hint:"Nach dem Alphabet sortieren.",
+      items:[{key:"a",em:"🅰️",label:"A"},{key:"b",em:"🅱️",label:"B"},{key:"c",em:"©️",label:"C"},{key:"d",em:"🇩",label:"D"},{key:"e",em:"📧",label:"E"}]},
+    {correct:["jan","feb","mar","apr","mai"],
+      instr:"Zum Schluss die Monate: Bringe sie per Ziehen in die richtige Reihenfolge von <b>Januar bis Mai</b>.",
+      hint:"Die Monate der Reihe nach ordnen.",
+      items:[{key:"jan",em:"❄️",label:"Januar"},{key:"feb",em:"💝",label:"Februar"},{key:"mar",em:"🌱",label:"März"},{key:"apr",em:"🌧️",label:"April"},{key:"mai",em:"🌷",label:"Mai"}]}
+  ];
+  const total=dRounds(ROUNDS.length,4,3);
   const list=document.createElement("div");list.className="sortlist";stage.appendChild(list);
   function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
   function order(){return [...list.querySelectorAll(".sortitem")].map(r=>r.dataset.key);}
@@ -1440,24 +1504,13 @@ SCREENS.s13=(stage)=>{
     row.innerHTML=`<span class="grip">⋮⋮</span><span class="em">${it.em}</span><span>${it.label}</span>`;
     row.addEventListener("mousedown",e=>startDrag(e,row));list.appendChild(row);});}
   function check(){const cur=order();const ok=cur.every((k,i)=>k===correct[i]);
-    if(ok){sfx.step();if(round<3){setHint("Reihenfolge stimmt – klasse! 🎉","good");later(()=>setRound(round+1),800);}
+    if(ok){sfx.step();if(round<total){setHint("Reihenfolge stimmt – klasse! 🎉","good");later(()=>setRound(round+1),800);}
       else completeStation("s13","Listen per Ziehen umsortieren – jetzt bist du ein echter Maus-Profi! 🔀");}
     else setHint("Noch nicht ganz – zieh die Einträge in die richtige Reihenfolge.","warn");}
   function place(items){let sh=shuffle(items);while(sh.every((it,i)=>it.key===correct[i]))sh=shuffle(items);render(sh);}
-  function setRound(r){round=r;
-    if(r===1){correct=["1","2","3","4","5"];setCounter("1/3","Runde");
-      setInstruction(`Station ${N} · Umsortieren (1/3)`,
-        "Einträge lassen sich per Ziehen umsortieren: <b>Fasse eine Zeile an, halte gedrückt und schiebe sie nach oben oder unten.</b> Bringe die Zahlen in die Reihenfolge <b>1, 2, 3, 4, 5</b>.");
-      setHint("Zeilen anfassen und in die richtige Reihenfolge ziehen.","");
-      place([{key:"1",em:"1️⃣",label:"Eins"},{key:"2",em:"2️⃣",label:"Zwei"},{key:"3",em:"3️⃣",label:"Drei"},{key:"4",em:"4️⃣",label:"Vier"},{key:"5",em:"5️⃣",label:"Fünf"}]);}
-    else if(r===2){correct=["mo","di","mi","do","fr"];setCounter("2/3","Runde");
-      setInstruction(`Station ${N} · Umsortieren (2/3)`,"Jetzt die Wochentage: Bringe sie per Ziehen in die richtige Reihenfolge von <b>Montag bis Freitag</b>.");
-      setHint("Tage anfassen und richtig sortieren.","");
-      place([{key:"mo",em:"📅",label:"Montag"},{key:"di",em:"📅",label:"Dienstag"},{key:"mi",em:"📅",label:"Mittwoch"},{key:"do",em:"📅",label:"Donnerstag"},{key:"fr",em:"📅",label:"Freitag"}]);}
-    else{correct=["xs","s","m","l","xl"];setCounter("3/3","Runde");
-      setInstruction(`Station ${N} · Umsortieren (3/3)`,"Zum Schluss der Größe nach: Bringe sie per Ziehen von <b>klein nach groß</b>.");
-      setHint("Vom kleinsten zum größten Punkt sortieren.","");
-      place([{key:"xs",em:"·",label:"Winzig"},{key:"s",em:"•",label:"Klein"},{key:"m",em:"⚫",label:"Mittel"},{key:"l",em:"🔵",label:"Groß"},{key:"xl",em:"🟠",label:"Riesig"}]);}}
+  function setRound(r){round=r;const rd=ROUNDS[r-1];correct=rd.correct;setCounter(`${r}/${total}`,"Runde");
+    setInstruction(`Station ${N} · Umsortieren (${r}/${total})`,rd.instr);
+    setHint(rd.hint,"");place(rd.items);}
   setRound(1);
 };
 
@@ -1469,8 +1522,9 @@ SCREENS.s14=(stage)=>{
   br.innerHTML=`<div class="bar"><span class="st-btn" style="background:var(--ocean-mid);color:#fff;border-radius:6px;padding:3px 8px;">🌐</span><div class="url">https://www.maus-uebung.de/lesen</div></div>`;
   const area=document.createElement("div");area.className="scrollarea linkpara";br.appendChild(area);
   stage.appendChild(prompt);stage.appendChild(br);
-  const LINKS=[["Tiere","tiere"],["Wetter","wetter"],["Sport","sport"],["Musik","musik"],["Weltall","weltall"]];
-  const rounds=["wetter","weltall","sport","musik","tiere"];let r=0;
+  const LINKS=[["Tiere","tiere"],["Wetter","wetter"],["Sport","sport"],["Musik","musik"],["Weltall","weltall"],["Kochen","kochen"],["Reisen","reisen"],["Technik","technik"]];
+  const roundOrder=["wetter","weltall","kochen","sport","technik","musik","reisen","tiere"];
+  const rounds=roundOrder.slice(0,dRounds(LINKS.length,6,4));let r=0;
   area.innerHTML=`<h3>Klick dich durch das Internet</h3>
     <p>Unterstrichene, blaue Wörter sind <b>Links</b>. Klickst du darauf, gelangst du auf eine andere Seite.
     Hier sind ein paar: ${LINKS.map(l=>`<a data-key="${l[1]}">${l[0]}</a>`).join(" · ")}.</p>
@@ -1495,8 +1549,11 @@ SCREENS.s15=(stage)=>{
   const TABS=[["🐱","Tiere","Katzen schnurren, Hunde bellen und Vögel singen."],
     ["🌦️","Wetter","Morgen scheint die Sonne bei 22 Grad."],
     ["⚽","Sport","Das Spiel endete 3:2 nach einem späten Tor."],
-    ["🎵","Musik","Auf der Bühne spielte eine laute Gitarre."]];
-  const rounds=[2,0,3,1];let r=0;
+    ["🎵","Musik","Auf der Bühne spielte eine laute Gitarre."],
+    ["🚀","Weltall","Die Rakete flog weit hinaus zu den Sternen."],
+    ["🍳","Kochen","In der Pfanne brutzelt ein leckeres Ei."]];
+  const roundOrder=[2,0,4,3,5,1];
+  const rounds=roundOrder.slice(0,dRounds(TABS.length,5,4));let r=0;
   const box=document.createElement("div");box.className="tabsbox";
   const row=document.createElement("div");row.className="tabrow";
   const panel=document.createElement("div");panel.className="tabpanel";
@@ -1522,7 +1579,7 @@ SCREENS.s15=(stage)=>{
 SCREENS.s16=(stage)=>{
   const N=stationNumber("s16");
   const wrap=document.createElement("div");wrap.className="dlgstage";stage.appendChild(wrap);
-  const tasks=[
+  const ALL=[
     {title:"🔔 Hinweis",body:"Deine Zeichnung wurde gespeichert.",want:"ok",
      buttons:[{lbl:"OK",cls:"btn-primary",key:"ok"}],
      instr:'Ein PopUp ist ein kleines Fenster, das aufspringt. Bestätige diesen Hinweis mit <b>„OK"</b>.'},
@@ -1534,8 +1591,18 @@ SCREENS.s16=(stage)=>{
      instr:'Dieses PopUp ist Werbung. Schließe es über das <b>×</b> oben rechts, ohne auf die Werbung zu klicken.'},
     {title:"💾 Speichern",body:"Möchtest du deine Änderungen speichern?",want:"save",
      buttons:[{lbl:"Nicht speichern",cls:"btn-ghost",key:"nosave"},{lbl:"Speichern",cls:"btn-primary",key:"save"}],
-     instr:'Du hast etwas Wichtiges bearbeitet. Klicke <b>„Speichern"</b>, damit nichts verloren geht.'}
+     instr:'Du hast etwas Wichtiges bearbeitet. Klicke <b>„Speichern"</b>, damit nichts verloren geht.'},
+    {title:"🍪 Cookies",body:"Diese Seite möchte Cookies speichern.",want:"decline",
+     buttons:[{lbl:"Alle akzeptieren",cls:"btn-ghost",key:"accept"},{lbl:"Ablehnen",cls:"btn-primary",key:"decline"}],
+     instr:'Du musst nicht alles annehmen. Klicke <b>„Ablehnen"</b>.'},
+    {title:"⬆️ Update",body:"Ein Update ist verfügbar. Jetzt neu starten?",want:"later",
+     buttons:[{lbl:"Jetzt neu starten",cls:"btn-ghost",key:"restart"},{lbl:"Später",cls:"btn-primary",key:"later"}],
+     instr:'Du arbeitest gerade. Wähle <b>„Später"</b>, damit nichts unterbrochen wird.'},
+    {title:"🎁 Gewinnspiel",body:"Klicke hier für deinen Preis!",want:"x",
+     buttons:[{lbl:"Teilnehmen",cls:"btn-ghost",key:"join"}],closable:true,
+     instr:'Auch das ist Werbung. Schließe das Fenster mit dem <b>×</b>, ohne zu klicken.'}
   ];
+  const tasks=ALL.slice(0,dRounds(ALL.length,5,3));
   let t=0;
   function render(){const task=tasks[t];setCounter(`${t+1}/${tasks.length}`,"Dialog");
     setInstruction(`Station ${N} · PopUps & Dialoge (${t+1}/${tasks.length})`,task.instr);
@@ -1567,13 +1634,18 @@ SCREENS.s17=(stage)=>{
   doc.innerHTML=`<h3 style="color:var(--ocean-deep);margin-top:0">📝 Mein Dokument</h3><p>Oben siehst du eine <b>Menüleiste</b>. Klicke einen Menünamen an – dann klappt ein Menü auf.</p><p id="docMsg" style="color:var(--success);font-weight:600;"></p>`;
   win.appendChild(bar);win.appendChild(doc);stage.appendChild(win);
   const MENUS={
-    Datei:[{icon:"📄",label:"Neu"},{icon:"📂",label:"Öffnen"},{icon:"💾",label:"Speichern",key:"datei.speichern"},{sep:true},{icon:"🚪",label:"Beenden"}],
-    Bearbeiten:[{icon:"↩️",label:"Rückgängig"},{icon:"✂️",label:"Ausschneiden"},{icon:"📋",label:"Kopieren",key:"bearbeiten.kopieren"},{icon:"📥",label:"Einfügen"}],
-    Ansicht:[{icon:"🔍",label:"Vergrößern"},{icon:"🔭",label:"Verkleinern"},{icon:"🌑",label:"Dunkelmodus",key:"ansicht.dunkel"}]
+    Datei:[{icon:"📄",label:"Neu",key:"datei.neu"},{icon:"📂",label:"Öffnen",key:"datei.oeffnen"},{icon:"💾",label:"Speichern",key:"datei.speichern"},{sep:true},{icon:"🚪",label:"Beenden"}],
+    Bearbeiten:[{icon:"↩️",label:"Rückgängig",key:"bearbeiten.rueckgaengig"},{icon:"✂️",label:"Ausschneiden"},{icon:"📋",label:"Kopieren",key:"bearbeiten.kopieren"},{icon:"📥",label:"Einfügen",key:"bearbeiten.einfuegen"}],
+    Ansicht:[{icon:"🔍",label:"Vergrößern",key:"ansicht.gross"},{icon:"🔭",label:"Verkleinern"},{icon:"🌑",label:"Dunkelmodus",key:"ansicht.dunkel"}],
+    Hilfe:[{icon:"❓",label:"Hilfe anzeigen"},{icon:"ℹ️",label:"Über das Programm",key:"hilfe.ueber"}]
   };
-  const rounds=[{menu:"Datei",key:"datei.speichern",lbl:"Speichern",msg:"Gespeichert! 💾"},
+  const roundPool=[{menu:"Datei",key:"datei.speichern",lbl:"Speichern",msg:"Gespeichert! 💾"},
     {menu:"Bearbeiten",key:"bearbeiten.kopieren",lbl:"Kopieren",msg:"Kopiert! 📋"},
-    {menu:"Ansicht",key:"ansicht.dunkel",lbl:"Dunkelmodus",msg:"Dunkelmodus an! 🌑"}];
+    {menu:"Ansicht",key:"ansicht.dunkel",lbl:"Dunkelmodus",msg:"Dunkelmodus an! 🌑"},
+    {menu:"Datei",key:"datei.oeffnen",lbl:"Öffnen",msg:"Datei geöffnet! 📂"},
+    {menu:"Bearbeiten",key:"bearbeiten.einfuegen",lbl:"Einfügen",msg:"Eingefügt! 📥"},
+    {menu:"Hilfe",key:"hilfe.ueber",lbl:"Über das Programm",msg:"Über-Fenster geöffnet! ℹ️"}];
+  const rounds=roundPool.slice(0,dRounds(roundPool.length,4,3));
   let r=0;
   Object.keys(MENUS).forEach(name=>{const mb=document.createElement("div");mb.className="mb";mb.textContent=name;
     mb.addEventListener("click",e=>{e.stopPropagation();
@@ -1871,30 +1943,32 @@ SCREENS.sfiles=(stage)=>{
             else setHint("Lass die Datei direkt über einem Ziel los.","warn");}});});
       tray.appendChild(el);});
   }
-  function round1(){
-    buildDnD(
-      [{em:"🐶",name:"Hund.jpg",type:"bilder"},{em:"🌅",name:"Foto.png",type:"bilder"},
+  const ROUNDS=[
+    {files:[{em:"🐶",name:"Hund.jpg",type:"bilder"},{em:"🌅",name:"Foto.png",type:"bilder"},
        {em:"📄",name:"Brief.txt",type:"doks"},{em:"📝",name:"Liste.txt",type:"doks"},
        {em:"🎵",name:"Lied.mp3",type:"usb"},{em:"🎬",name:"Film.mp4",type:"usb"}],
-      [{type:"bilder",nm:"Bilder",em:"🖼️"},{type:"doks",nm:"Dokumente",em:"📁"},{type:"usb",nm:"USB-Stick",em:"💾"}],
-      "Diese Dateien an den richtigen Ort ziehen:",
-      `Station ${N} · Dateien verschieben (1/2)`,
-      "Dateien zieht man mit gedrückter Taste an ihren Platz. Bilder → <b>Bilder</b>, Texte → <b>Dokumente</b>, Musik/Filme → <b>USB-Stick 💾</b>.",
-      ()=>{sfx.step();setHint("Alles einsortiert! Weiter zum Aufräumen.","good");later(round2,800);}
-    );
-  }
-  function round2(){
-    buildDnD(
-      [{em:"🐱",name:"Katze.jpg",type:"usb"},{em:"🏞️",name:"Berg.jpg",type:"usb"},{em:"📑",name:"Wichtig.pdf",type:"usb"},
+     folders:[{type:"bilder",nm:"Bilder",em:"🖼️"},{type:"doks",nm:"Dokumente",em:"📁"},{type:"usb",nm:"USB-Stick",em:"💾"}],
+     tray:"Diese Dateien an den richtigen Ort ziehen:",title:"Dateien verschieben",
+     text:"Dateien zieht man mit gedrückter Taste an ihren Platz. Bilder → <b>Bilder</b>, Texte → <b>Dokumente</b>, Musik/Filme → <b>USB-Stick 💾</b>."},
+    {files:[{em:"🐱",name:"Katze.jpg",type:"usb"},{em:"🏞️",name:"Berg.jpg",type:"usb"},{em:"📑",name:"Wichtig.pdf",type:"usb"},
        {em:"❌",name:"kaputt.tmp",type:"muell"},{em:"♻️",name:"alt.bak",type:"muell"},{em:"🗑️",name:"leer.tmp",type:"muell"}],
-      [{type:"usb",nm:"USB-Stick",em:"💾"},{type:"muell",nm:"Papierkorb",em:"🗑️",bin:true}],
-      "Aufräumen – sichern oder wegwerfen:",
-      `Station ${N} · Aufräumen (2/2)`,
-      "Jetzt aufräumen: Gute Dateien auf den <b>USB-Stick 💾</b> sichern, kaputte/leere in den <b>Papierkorb 🗑️</b>.",
-      ()=>{unlock("file_master");completeStation("sfiles","Dateien sicher verschoben und aufgeräumt – top! 🗂️");}
-    );
+     folders:[{type:"usb",nm:"USB-Stick",em:"💾"},{type:"muell",nm:"Papierkorb",em:"🗑️",bin:true}],
+     tray:"Aufräumen – sichern oder wegwerfen:",title:"Aufräumen",
+     text:"Jetzt aufräumen: Gute Dateien auf den <b>USB-Stick 💾</b> sichern, kaputte/leere in den <b>Papierkorb 🗑️</b>."},
+    {files:[{em:"🐰",name:"Hase.jpg",type:"bilder"},{em:"🌸",name:"Blume.png",type:"bilder"},
+       {em:"🎸",name:"Rock.mp3",type:"musik"},{em:"🎹",name:"Piano.mp3",type:"musik"},
+       {em:"📃",name:"Notiz.txt",type:"doks"},{em:"📒",name:"Heft.pdf",type:"doks"}],
+     folders:[{type:"bilder",nm:"Bilder",em:"🖼️"},{type:"musik",nm:"Musik",em:"🎶"},{type:"doks",nm:"Dokumente",em:"📁"}],
+     tray:"Noch einmal sortieren:",title:"Sortieren",
+     text:"Sortiere weiter: Bilder → <b>Bilder</b>, Lieder → <b>Musik 🎶</b>, Texte → <b>Dokumente</b>."}
+  ];
+  const total=dRounds(ROUNDS.length,3,2);
+  function run(i){const rd=ROUNDS[i];
+    buildDnD(rd.files,rd.folders,rd.tray,`Station ${N} · ${rd.title} (${i+1}/${total})`,rd.text,
+      ()=>{ if(i+1<total){sfx.step();setHint("Stark! Weiter zur nächsten Runde.","good");later(()=>run(i+1),800);}
+        else{unlock("file_master");completeStation("sfiles","Dateien sicher verschoben und aufgeräumt – top! 🗂️");} });
   }
-  round1();
+  run(0);
 };
 
 /* ---------- Prüfung (mit Bugfix) ---------- */
