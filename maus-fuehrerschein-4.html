@@ -662,7 +662,7 @@ function maybeOfferBonus(next){
   const n=Object.keys(state.done).length;
   if(n>0 && n%3===0 && state.current!=="exam"){
     _bonusReturn=next;
-    const games=["bonus_catch","bonus_memory"];const g=games[(n/3-1)%games.length];
+    const games=["bonus_catch","bonus_memory","bonus_catch_left","bonus_catch_right"];const g=games[(n/3-1)%games.length];
     showSkip(true,()=>go(next));$("#skipBtn").textContent="Bonus überspringen";
     showNext(true,"🎁 Bonus-Spiel!");$("#nextBtn").onclick=()=>go(g);
     return true;
@@ -1326,9 +1326,14 @@ SCREENS.s9=(stage)=>{
   const W=13,H=11,cell=24;
   // Formeln je Form
   function inHeart(cx,cy){const a=(cx+0.5)/W*2.8-1.4,b=1.4-(cy+0.5)/H*2.8;const v=Math.pow(a*a+b*b-1,3)-a*a*b*b*b;return v<=0;}
-  const STAR_PTS=(()=>{const p=[];for(let i=0;i<10;i++){const r=i%2===0?0.96:0.42,a=-Math.PI/2+i*Math.PI/5;p.push([Math.cos(a)*r,Math.sin(a)*r]);}return p;})();
-  function inStar(cx,cy){const px=(cx+0.5)/W*2-1,py=((cy+0.5)/H*2-1)*0.92;let inside=false;
-    for(let i=0,j=STAR_PTS.length-1;i<STAR_PTS.length;j=i++){const xi=STAR_PTS[i][0],yi=STAR_PTS[i][1],xj=STAR_PTS[j][0],yj=STAR_PTS[j][1];
+  const STAR_PTS=(()=>{const p=[];for(let i=0;i<10;i++){const r=i%2===0?1.0:0.40,a=-Math.PI/2+i*Math.PI/5;p.push([Math.cos(a)*r,Math.sin(a)*r]);}return p;})();
+  // In Pixel-Koordinaten rechnen, damit der Stern proportional (nicht verzerrt) ist
+  // und tatsächlich wie ein Stern aussieht – das Gitter ist breiter als hoch.
+  function inStar(cx,cy){
+    const Wp=W*cell,Hp=H*cell,R=Math.min(Wp,Hp)/2*0.96;
+    const px=(cx+0.5)*cell-Wp/2,py=(cy+0.5)*cell-Hp/2;let inside=false;
+    for(let i=0,j=STAR_PTS.length-1;i<STAR_PTS.length;j=i++){
+      const xi=STAR_PTS[i][0]*R,yi=STAR_PTS[i][1]*R,xj=STAR_PTS[j][0]*R,yj=STAR_PTS[j][1]*R;
       const it=((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi);if(it)inside=!inside;}return inside;}
   function makeRound(shapeFn,label,name,onDone){
     stage.innerHTML="";
@@ -1704,13 +1709,26 @@ function bonusBackBar(){
   showReplay(false);
   showSkip(true,()=>go(_bonusReturn||nextStationId()));$("#skipBtn").textContent="Weiter ohne Bonus";
 }
-SCREENS.bonus_catch=(stage)=>{
+// Schmetterlingsjagd in drei Varianten:
+//  mode "hover" – mit dem Zeiger drüberfahren
+//  mode "left"  – jedes Tier mit der linken Maustaste anklicken
+//  mode "right" – jedes Tier mit der rechten Maustaste anklicken
+function catchGame(stage,mode){
   unlock("bonus_fan");bonusBackBar();
-  setInstruction("Bonus-Spiel 🎁 · Schmetterlingsjagd",
-    "Fang in <b>15 Sekunden</b> so viele Tiere wie möglich – jedes gibt <b>+5 XP</b>! Einfach mit dem Zeiger drüberfahren.");
+  const titleExtra=mode==="left"?" · Linksklick":mode==="right"?" · Rechtsklick":"";
+  const howto=mode==="left"?"Klicke jedes Tier mit der <b>linken Maustaste</b> an"
+            :mode==="right"?"Klicke jedes Tier mit der <b>rechten Maustaste</b> an"
+            :"Einfach mit dem Zeiger drüberfahren";
+  setInstruction("Bonus-Spiel 🎁 · Schmetterlingsjagd"+titleExtra,
+    `Fang in <b>30 Sekunden</b> so viele Tiere wie möglich – jedes gibt <b>+5 XP</b>! ${howto}.`);
+  setHint(mode==="left"?"Mit der linken Maustaste auf die Tiere klicken."
+        :mode==="right"?"Mit der rechten Maustaste auf die Tiere klicken."
+        :"Mit dem Zeiger über die Tiere fahren.","");
   const meadow=document.createElement("div");meadow.className="meadow";stage.appendChild(meadow);
+  // Beim Rechtsklick-Modus das Kontextmenü auf der ganzen Wiese unterdrücken
+  if(mode==="right")meadow.addEventListener("contextmenu",e=>e.preventDefault());
   const W=()=>meadow.clientWidth,H=()=>meadow.clientHeight;
-  let caught=0,timeLeft=15;setCounter(`${timeLeft}s`,"Zeit");
+  let caught=0,timeLeft=30;setCounter(`${timeLeft}s`,"Zeit");
   const pool=["🦋","🐝","🐞","🐛"];const bugs=[];const speed=(state.reduced?0.4:1.1);
   function addBug(){const b=document.createElement("div");b.className="flutter";b.textContent=pool[Math.floor(Math.random()*pool.length)];
     const x=Math.random()*(W()-50)+10,y=Math.random()*(H()-60)+10,ang=Math.random()*Math.PI*2;
@@ -1719,7 +1737,9 @@ SCREENS.bonus_catch=(stage)=>{
     const grab=()=>{if(bug.dead)return;bug.dead=true;b.classList.add("caught");caught++;awardXP(5,"bonus");sfx.step();
       setHint(`Gefangen: ${caught} 🦋`,"good");later(()=>{b.remove();},200);
       const idx=bugs.indexOf(bug);if(idx>=0)bugs.splice(idx,1);later(addBug,300);};
-    b.addEventListener("mouseenter",grab);b.addEventListener("click",grab);
+    if(mode==="left"){b.addEventListener("click",e=>{if(e.button===0)grab();});}
+    else if(mode==="right"){b.addEventListener("contextmenu",e=>{e.preventDefault();grab();});}
+    else{b.addEventListener("mouseenter",grab);b.addEventListener("click",grab);}
     meadow.appendChild(b);bugs.push(bug);}
   for(let i=0;i<5;i++)addBug();
   (function loop(){bugs.forEach(bug=>{if(bug.dead)return;bug.x+=bug.vx;bug.y+=bug.vy;
@@ -1732,7 +1752,10 @@ SCREENS.bonus_catch=(stage)=>{
       setHint("Klasse gemacht!","good");showSkip(false);
       showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
     }else later(t,1000);},1000);
-};
+}
+SCREENS.bonus_catch=(stage)=>catchGame(stage,"hover");
+SCREENS.bonus_catch_left=(stage)=>catchGame(stage,"left");
+SCREENS.bonus_catch_right=(stage)=>catchGame(stage,"right");
 SCREENS.bonus_memory=(stage)=>{
   unlock("bonus_fan");bonusBackBar();
   memoryGame(stage,{bonus:true,pairs:dCount(5,4),onDone:()=>{
@@ -1830,85 +1853,98 @@ function makeMaze(cols,rows){
 }
 SCREENS.smaze=(stage)=>{
   const N=stationNumber("smaze");
-  setInstruction(`Station ${N} · Labyrinth`,
-    "Führe den <b>Mauszeiger</b> ruhig durch die Gänge von 🏁 bis zum Ziel 🧀 – <b>ohne die blauen Wände zu berühren</b>. Wand berührt? Es geht einfach vom Start neu los.");
-  setHint("Langsam und ruhig steuern – Gang für Gang.","");
-  const board=document.createElement("div");board.className="mazeboard";stage.appendChild(board);
-  // Gittergröße nach Schwierigkeit
-  const sizes={leicht:[6,5],mittel:[8,6],schwer:[11,8]};
-  const [cols,rows]=sizes[state.difficulty]||sizes.mittel;
-  const maze=makeMaze(cols,rows);
-  let touchedWall=false,won=false,active=false;
-  const startCell={x:0,y:0},goalCell={x:cols-1,y:rows-1};
-  // Wände erst nach Layout zeichnen (board hat dann seine Maße)
-  let cw=0,ch=0,wallRects=[],pad=0,sx=0,sy=0,gx=0,gy=0;
-  const cellCenter=(cx,cy)=>({x:pad+cx*cw+cw/2,y:pad+cy*ch+ch/2});
-  const dot=document.createElement("div");dot.className="mazedot";board.appendChild(dot);
-  function placeMarker(cls,cx,cy,emoji){
-    const m=document.createElement("div");m.className="mazecell "+cls;m.textContent=emoji;
-    const c=cellCenter(cx,cy);m.style.left=c.x+"px";m.style.top=c.y+"px";board.appendChild(m);
-  }
-  function build(){
-    pad=10;
-    cw=(board.clientWidth-pad*2)/cols;
-    ch=(board.clientHeight-pad*2)/rows;
-    // Wandstärke und Toleranz (leicht = großzügiger)
-    const tol=state.difficulty==="leicht"?9:state.difficulty==="schwer"?4:6;
-    const th=Math.max(5,Math.min(cw,ch)*0.14);
-    wallRects=[];
-    function wall(x1,y1,x2,y2){
-      const el=document.createElement("div");el.className="mazewall";
-      const left=Math.min(x1,x2)-th/2,top=Math.min(y1,y2)-th/2;
-      const w=Math.abs(x2-x1)+th,h=Math.abs(y2-y1)+th;
-      el.style.left=left+"px";el.style.top=top+"px";el.style.width=w+"px";el.style.height=h+"px";
-      board.appendChild(el);
-      // Kollisionsrechteck mit Toleranz
-      wallRects.push({x1:left-tol,y1:top-tol,x2:left+w+tol,y2:top+h+tol});
+  // Unterstationen mit ansteigendem Schwierigkeitsgrad: immer größeres Gitter
+  // und engere Toleranz. Bei „leicht"/„schwer" wird die ganze Folge etwas
+  // großzügiger bzw. kniffliger gestaltet.
+  const grow=state.difficulty==="leicht"?-1:state.difficulty==="schwer"?1:0;
+  const LEVELS=[
+    {cols:5,rows:4,tol:9,label:"Einfach"},
+    {cols:7,rows:6,tol:6,label:"Mittel"},
+    {cols:10,rows:8,tol:4,label:"Schwer"},
+  ].map(l=>({cols:Math.max(4,l.cols+grow),rows:Math.max(3,l.rows+grow),
+             tol:Math.max(3,l.tol-grow),label:l.label}));
+  const TOTAL=LEVELS.length;
+  let anyTouched=false,cleanup=()=>{};
+  function playLevel(idx){
+    cleanup();
+    stage.innerHTML="";
+    const lv=LEVELS[idx];
+    setInstruction(`Station ${N} · Labyrinth (${idx+1}/${TOTAL} · ${lv.label})`,
+      "Führe den <b>Mauszeiger</b> ruhig durch die Gänge von 🏁 bis zum Ziel 🧀 – <b>ohne die blauen Wände zu berühren</b>. Wand berührt? Es geht einfach vom Start neu los.");
+    setHint(idx===0?"Langsam und ruhig steuern – Gang für Gang."
+                   :`Stufe ${idx+1} von ${TOTAL} – jetzt wird es etwas kniffliger.`,"");
+    setCounter(`${idx+1}/${TOTAL}`,"Labyrinth");
+    const board=document.createElement("div");board.className="mazeboard";stage.appendChild(board);
+    const cols=lv.cols,rows=lv.rows;
+    const maze=makeMaze(cols,rows);
+    let touchedWall=false,won=false,active=false;
+    const startCell={x:0,y:0},goalCell={x:cols-1,y:rows-1};
+    let cw=0,ch=0,wallRects=[],pad=0,sx=0,sy=0,gx=0,gy=0;
+    const cellCenter=(cx,cy)=>({x:pad+cx*cw+cw/2,y:pad+cy*ch+ch/2});
+    const dot=document.createElement("div");dot.className="mazedot";board.appendChild(dot);
+    function placeMarker(cls,cx,cy,emoji){
+      const m=document.createElement("div");m.className="mazecell "+cls;m.textContent=emoji;
+      const c=cellCenter(cx,cy);m.style.left=c.x+"px";m.style.top=c.y+"px";board.appendChild(m);
     }
-    maze.cells.forEach(c=>{
-      const x0=pad+c.x*cw,y0=pad+c.y*ch,x1=x0+cw,y1=y0+ch;
-      if(c.walls.N)wall(x0,y0,x1,y0);
-      if(c.walls.W)wall(x0,y0,x0,y1);
-      if(c.x===cols-1&&c.walls.E)wall(x1,y0,x1,y1);
-      if(c.y===rows-1&&c.walls.S)wall(x0,y1,x1,y1);
-    });
-    const sc=cellCenter(startCell.x,startCell.y),gc=cellCenter(goalCell.x,goalCell.y);
-    sx=sc.x;sy=sc.y;gx=gc.x;gy=gc.y;
-    placeMarker("start",startCell.x,startCell.y,"🏁");
-    placeMarker("goal",goalCell.x,goalCell.y,"🧀");
-    dot.style.left=sx+"px";dot.style.top=sy+"px";
-  }
-  function inWall(x,y){ return wallRects.some(r=>x>=r.x1&&x<=r.x2&&y>=r.y1&&y<=r.y2); }
-  function reset(){
-    touchedWall=true;active=false;
-    dot.classList.add("hit");later(()=>dot.classList.remove("hit"),500);
-    dot.style.left=sx+"px";dot.style.top=sy+"px";
-    sfx.soft();setHint("Wand berührt – noch einmal ruhig vom Start. 🏁","warn");
-  }
-  function onMove(e){
-    if(!board.isConnected){cleanup();return;}
-    if(won||!cw)return;
-    const r=board.getBoundingClientRect();
-    const x=e.clientX-r.left,y=e.clientY-r.top;
-    if(x<0||y<0||x>board.clientWidth||y>board.clientHeight)return;
-    // Start erst „scharf", wenn der Zeiger nahe am Start ist
-    if(!active){
-      if(Math.hypot(x-sx,y-sy)<Math.min(cw,ch)*0.6){active=true;setHint("Los geht's – ruhig zum Ziel. 🧀","good");}
-      else return;
+    function build(){
+      pad=10;
+      cw=(board.clientWidth-pad*2)/cols;
+      ch=(board.clientHeight-pad*2)/rows;
+      const tol=lv.tol;
+      const th=Math.max(5,Math.min(cw,ch)*0.14);
+      wallRects=[];
+      function wall(x1,y1,x2,y2){
+        const el=document.createElement("div");el.className="mazewall";
+        const left=Math.min(x1,x2)-th/2,top=Math.min(y1,y2)-th/2;
+        const w=Math.abs(x2-x1)+th,h=Math.abs(y2-y1)+th;
+        el.style.left=left+"px";el.style.top=top+"px";el.style.width=w+"px";el.style.height=h+"px";
+        board.appendChild(el);
+        wallRects.push({x1:left-tol,y1:top-tol,x2:left+w+tol,y2:top+h+tol});
+      }
+      maze.cells.forEach(c=>{
+        const x0=pad+c.x*cw,y0=pad+c.y*ch,x1=x0+cw,y1=y0+ch;
+        if(c.walls.N)wall(x0,y0,x1,y0);
+        if(c.walls.W)wall(x0,y0,x0,y1);
+        if(c.x===cols-1&&c.walls.E)wall(x1,y0,x1,y1);
+        if(c.y===rows-1&&c.walls.S)wall(x0,y1,x1,y1);
+      });
+      const sc=cellCenter(startCell.x,startCell.y),gc=cellCenter(goalCell.x,goalCell.y);
+      sx=sc.x;sy=sc.y;gx=gc.x;gy=gc.y;
+      placeMarker("start",startCell.x,startCell.y,"🏁");
+      placeMarker("goal",goalCell.x,goalCell.y,"🧀");
+      dot.style.left=sx+"px";dot.style.top=sy+"px";
     }
-    if(inWall(x,y)){reset();return;}
-    dot.style.left=x+"px";dot.style.top=y+"px";
-    if(Math.hypot(x-gx,y-gy)<Math.min(cw,ch)*0.5){
-      won=true;cleanup();stopLoop();
-      completeStation("smaze","Sicher durch das Labyrinth navigiert! 🌀",{perfect:!touchedWall});
+    function inWall(x,y){ return wallRects.some(r=>x>=r.x1&&x<=r.x2&&y>=r.y1&&y<=r.y2); }
+    function reset(){
+      touchedWall=true;anyTouched=true;active=false;
+      dot.classList.add("hit");later(()=>dot.classList.remove("hit"),500);
+      dot.style.left=sx+"px";dot.style.top=sy+"px";
+      sfx.soft();setHint("Wand berührt – noch einmal ruhig vom Start. 🏁","warn");
     }
+    function onMove(e){
+      if(!board.isConnected){cleanup();return;}
+      if(won||!cw)return;
+      const r=board.getBoundingClientRect();
+      const x=e.clientX-r.left,y=e.clientY-r.top;
+      if(x<0||y<0||x>board.clientWidth||y>board.clientHeight)return;
+      if(!active){
+        if(Math.hypot(x-sx,y-sy)<Math.min(cw,ch)*0.6){active=true;setHint("Los geht's – ruhig zum Ziel. 🧀","good");}
+        else return;
+      }
+      if(inWall(x,y)){reset();return;}
+      dot.style.left=x+"px";dot.style.top=y+"px";
+      if(Math.hypot(x-gx,y-gy)<Math.min(cw,ch)*0.5){
+        won=true;cleanup();stopLoop();
+        if(idx+1<TOTAL){sfx.good();setHint(`Stufe ${idx+1} geschafft! Weiter zur nächsten. 🌀`,"good");later(()=>playLevel(idx+1),800);}
+        else completeStation("smaze","Alle Labyrinth-Stufen sicher gemeistert! 🌀",{perfect:!anyTouched});
+      }
+    }
+    cleanup=()=>{document.removeEventListener("mousemove",onMove);};
+    document.addEventListener("mousemove",onMove);
+    later(()=>{ if(board.isConnected)build(); },30);
+    (function watch(){ if(!board.isConnected){cleanup();return;} _raf=requestAnimationFrame(watch); })();
   }
-  function cleanup(){document.removeEventListener("mousemove",onMove);}
-  document.addEventListener("mousemove",onMove);
-  // Layout nach dem Einhängen aufbauen (Board hat dann Maße)
-  later(()=>{ if(board.isConnected)build(); },30);
-  // Aufräumen, falls die Station verlassen wird, ohne dass onMove feuert
-  (function watch(){ if(!board.isConnected){cleanup();return;} _raf=requestAnimationFrame(watch); })();
+  playLevel(0);
 };
 
 /* ---------- SFILES: Dateien verschieben (Drag&Drop) ---------- */
