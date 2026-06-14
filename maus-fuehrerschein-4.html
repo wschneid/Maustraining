@@ -89,12 +89,13 @@
   .start .big{font-size:3.4rem;margin:4px 0 2px;}
   .start h1{font-size:1.8rem;color:var(--ocean-deep);margin:6px 0 6px;}
   .start .lead{max-width:600px;margin:0 auto 22px;color:var(--ink-soft);line-height:1.55;}
-  .roadmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;max-width:840px;margin:0 auto 26px;}
-  .road{background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:12px 8px;}
-  .road .n{font-size:.68rem;font-weight:700;color:var(--ocean-bright);letter-spacing:1px;}
-  .road .e{font-size:1.55rem;margin:3px 0;}
-  .road .t{font-size:.82rem;font-weight:600;color:var(--ocean-deep);}
-  .road .d{font-size:.72rem;color:var(--ink-soft);margin-top:2px;line-height:1.3;}
+  .mouse-intro{display:flex;align-items:center;justify-content:center;gap:30px;flex-wrap:wrap;max-width:760px;margin:6px auto 26px;text-align:left;}
+  .mouse-pic{flex:none;}
+  .mouse-list{list-style:none;margin:0;padding:0;max-width:430px;display:flex;flex-direction:column;gap:14px;}
+  .mouse-list li{display:flex;gap:12px;align-items:flex-start;background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:11px 13px;}
+  .mouse-list .me{font-size:1.6rem;line-height:1;flex:none;}
+  .mouse-list b{color:var(--ocean-deep);}
+  .mouse-list div{font-size:.86rem;color:var(--ink-soft);line-height:1.45;}
 
   .desktop{flex:1;border-radius:12px;position:relative;overflow:hidden;
     background:linear-gradient(160deg,#1a6e8e,#0d5775 70%,#0a4d68);box-shadow:inset 0 0 60px rgba(0,0,0,.25);min-height:330px;}
@@ -198,8 +199,15 @@
     box-shadow:0 14px 34px rgba(10,77,104,.25);min-width:120px;min-height:90px;display:flex;flex-direction:column;}
   .winmove .tbar{background:linear-gradient(90deg,var(--ocean-deep),var(--ocean-mid));color:#fff;padding:7px 10px;font-size:.82rem;
     display:flex;align-items:center;gap:8px;cursor:grab;flex:none;}
-  .winmove .tbar .x{margin-left:auto;width:18px;height:18px;border-radius:4px;background:rgba(255,255,255,.25);display:grid;place-items:center;cursor:pointer;font-size:.8rem;}
+  .winmove .tbar .ctl{width:18px;height:18px;border-radius:4px;background:rgba(255,255,255,.25);display:grid;place-items:center;cursor:pointer;font-size:.8rem;}
+  .winmove .tbar .ctl:hover{background:rgba(255,255,255,.45);}
+  .winmove .tbar .min{margin-left:auto;}
+  .winmove .tbar .x{width:18px;height:18px;border-radius:4px;background:rgba(255,255,255,.25);display:grid;place-items:center;cursor:pointer;font-size:.8rem;}
+  .winmove .tbar .min + .x, .winmove .tbar .max + .x{margin-left:0;}
+  .winmove .tbar .x{margin-left:auto;}
   .winmove .tbar .x:hover{background:#e25555;}
+  .winmove.mind{height:34px!important;min-height:34px;opacity:.85;}
+  .winmove.mind .wc,.winmove.mind .reshandle{display:none;}
   .winmove .wc{flex:1;padding:10px;font-size:.82rem;color:var(--ink-soft);overflow:hidden;}
   .winmove .reshandle{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;
     background:linear-gradient(135deg,transparent 50%,var(--ocean-mid) 50%);}
@@ -744,20 +752,32 @@ const SCREENS={};
 
 /* ---------- Start ---------- */
 SCREENS.start=(stage)=>{
-  const nStations=STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam").length;
   setInstruction(`Hallo, ich bin ${state.mascotName}! 🤖`,
-    `Schön, dass du da bist! Wir erobern zusammen den <b>Maus-Führerschein</b>. Für jede Aufgabe gibt es <b>XP und Münzen</b>, dazu Abzeichen und einen Levelaufstieg – am Ende deine Urkunde.`);
-  setHint("Klicke auf „Los geht’s“, um zu starten.","");
-  stage.innerHTML=`<div class="start"><div class="big">🖱️</div>
-    <h1>Dein Weg zum Maus-Meister</h1>
-    <p class="lead">${nStations} Stationen und eine große Prüfung warten auf dich. Jede Station hat mehrere Runden, sammle dabei XP und Abzeichen. Du kannst alles so oft wiederholen, wie du möchtest – auf Tempo kommt es nicht an.</p>
-    <div class="roadmap" id="roadmap"></div>
+    `Bevor es losgeht, lernen wir die <b>Maus</b> kennen. Schau dir die Tasten und das Rad an – damit kannst du gleich alles steuern.`);
+  setHint("Schau dir die Maus an und klicke dann auf „Los geht’s“.","");
+  stage.innerHTML=`<div class="start">
+    <h1>Das ist deine Maus 🖱️</h1>
+    <p class="lead">Mit der Maus steuerst du den Zeiger auf dem Bildschirm. Sie hat zwei Tasten und in der Mitte ein Rad. Hier siehst du, wofür jeder Teil da ist:</p>
+    <div class="mouse-intro">
+      <div class="mouse-pic">
+        <svg viewBox="0 0 160 240" width="150" height="225" role="img" aria-label="Skizze einer Computermaus">
+          <rect x="20" y="10" width="120" height="220" rx="60" fill="#fbfdfe" stroke="#0a4d68" stroke-width="3"/>
+          <path d="M80 10 a60 60 0 0 0 -60 60 v25 h60 z" fill="rgba(19,184,212,.18)"/>
+          <path d="M80 10 a60 60 0 0 1 60 60 v25 h-60 z" fill="rgba(231,111,81,.18)"/>
+          <line x1="80" y1="10" x2="80" y2="95" stroke="#0a4d68" stroke-width="2"/>
+          <line x1="20" y1="95" x2="140" y2="95" stroke="#0a4d68" stroke-width="2"/>
+          <rect x="71" y="30" width="18" height="44" rx="9" fill="#13b8d4" stroke="#0a4d68" stroke-width="2"/>
+          <text x="46" y="62" font-size="13" text-anchor="middle" fill="#0a4d68" font-weight="700">L</text>
+          <text x="114" y="62" font-size="13" text-anchor="middle" fill="#0a4d68" font-weight="700">R</text>
+        </svg>
+      </div>
+      <ul class="mouse-list">
+        <li><span class="me">👆</span><div><b>Linke Taste</b> – die wichtigste Taste: <b>Klicken</b> und auswählen, <b>Doppelklick</b> zum Öffnen, sowie <b>Ziehen &amp; Ablegen</b> (gedrückt halten und bewegen).</div></li>
+        <li><span class="me">📋</span><div><b>Rechte Taste</b> – öffnet ein <b>Menü</b> mit zusätzlichen Befehlen für das, worauf du klickst.</div></li>
+        <li><span class="me">🎡</span><div><b>Mausrad</b> – in der Mitte: <b>drehen zum Scrollen</b> (nach oben/unten), und man kann es auch <b>drücken (Mausradklick)</b>.</div></li>
+      </ul>
+    </div>
     <button class="btn btn-primary" id="goStart" style="font-size:1.1rem;padding:13px 34px;">Los geht’s ›</button></div>`;
-  const rm=$("#roadmap");
-  STATIONS.filter(s=>s.id!=="start").forEach(s=>{
-    const num = s.id==="exam" ? "★" : stationNumber(s.id);
-    const el=document.createElement("div");el.className="road";
-    el.innerHTML=`<div class="n">STATION ${num}</div><div class="e">${s.icon}</div><div class="t">${s.title}</div><div class="d">${s.desc}</div>`;rm.appendChild(el);});
   $("#goStart").addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go("s0"); });
 };
 
@@ -1110,19 +1130,22 @@ SCREENS.s5=(stage)=>{
     ic.style.left=o.x+"px";ic.style.top=o.y+"px";ic.innerHTML=`<span class="em">${o.em}</span>`;icons.appendChild(ic);});
   const allIcons=()=>$$(".icon",icons);
 
-  let round=1; // 1 Sterne-Rahmen, 2 Hunde-Rahmen, 3 Strg-Klick Äpfel
+  let round=1; // 1 Sterne-Rahmen, 2 Hunde-Rahmen, 3 Strg-Klick Äpfel, 4 Strg-Klick Hunde
   function clearSel(){allIcons().forEach(ic=>ic.classList.remove("selected"));}
   function setRound(r){
-    round=r;clearSel();setCounter(`${r}/3`,"Runde");
-    if(r===1){setInstruction(`Station ${N} · Rahmen ziehen (1/3)`,
+    round=r;clearSel();setCounter(`${r}/4`,"Runde");
+    if(r===1){setInstruction(`Station ${N} · Rahmen ziehen (1/4)`,
       "In Windows kannst du mehrere Dinge auf einmal markieren: <b>Drücke auf die freie Fläche, halte gedrückt und ziehe einen Rahmen</b> um alle <b>Sterne ⭐</b>. Dann loslassen.");
       setHint("Auf freier Fläche starten und einen Rahmen um die Sterne ziehen.","");enableMarquee("star");}
-    else if(r===2){setInstruction(`Station ${N} · Rahmen ziehen (2/3)`,
+    else if(r===2){setInstruction(`Station ${N} · Rahmen ziehen (2/4)`,
       "Sehr gut! Ziehe nun einen Rahmen um <b>alle Hunde 🐶</b>.");
       setHint("Rahmen um alle Hunde aufziehen.","");enableMarquee("dog");}
-    else{setInstruction(`Station ${N} · Strg-Klick (3/3)`,
+    else if(r===3){setInstruction(`Station ${N} · Strg-Klick (3/4)`,
       "Einzelne Dinge gezielt auswählen: <b>Halte die Strg-Taste gedrückt</b> und klicke nacheinander <b>alle Äpfel 🍎</b> an.");
       setHint("Strg gedrückt halten und die Äpfel anklicken.","");enableCtrlClick("apple");}
+    else{setInstruction(`Station ${N} · Strg-Klick (4/4)`,
+      "Noch einmal: <b>Halte die Strg-Taste gedrückt</b> und klicke nacheinander <b>alle Hunde 🐶</b> an.");
+      setHint("Strg gedrückt halten und die Hunde anklicken.","");enableCtrlClick("dog");}
   }
   let marqueeOn=false;
   function enableMarquee(type){
@@ -1150,7 +1173,7 @@ SCREENS.s5=(stage)=>{
     const targets=allIcons().filter(ic=>ic.dataset.t===type);
     const ok = sel.length===targets.length && sel.every(ic=>ic.dataset.t===type);
     if(ok){sfx.step();
-      if(round<3){setHint("Genau richtig markiert! 🎉","good");later(()=>setRound(round+1),700);}
+      if(round<4){setHint("Genau richtig markiert! 🎉","good");later(()=>setRound(round+1),700);}
       else completeStation("s5","Markieren mit Rahmen und Strg-Klick – richtig gut! ▭");
     }else if(!silent){sfx.soft();
       const extra=sel.filter(ic=>ic.dataset.t!==type).length;
@@ -1227,8 +1250,8 @@ SCREENS.s7=(stage)=>{
   const ws=document.createElement("div");ws.className="winstage";stage.appendChild(ws);
 
   function roundMove(){
-    ws.innerHTML="";setCounter("1/2","Aufgabe");
-    setInstruction(`Station ${N} · Fenster bewegen (1/2)`,
+    ws.innerHTML="";setCounter("1/5","Aufgabe");
+    setInstruction(`Station ${N} · Fenster bewegen (1/5)`,
       "Fenster fasst man an der <b>Titelleiste</b> oben an. <b>Halte die Titelleiste gedrückt und schiebe das Fenster auf das markierte Feld.</b>");
     setHint("Titelleiste anfassen und das Fenster ins gestrichelte Feld ziehen.","");
     const zone=document.createElement("div");zone.className="target-zone";
@@ -1254,8 +1277,8 @@ SCREENS.s7=(stage)=>{
     });
   }
   function roundResize(){
-    ws.innerHTML="";setCounter("2/2","Aufgabe");
-    setInstruction(`Station ${N} · Größe ändern (2/2)`,
+    ws.innerHTML="";setCounter("2/5","Aufgabe");
+    setInstruction(`Station ${N} · Größe ändern (2/5)`,
       "Unten rechts am Fenster ist ein <b>Ziehpunkt</b> ◢. <b>Halte ihn gedrückt und ziehe</b>, bis das Fenster genau den gestrichelten Rahmen ausfüllt.");
     setHint("Ziehpunkt unten rechts anfassen und das Fenster größer ziehen.","");
     const TW=320,TH=230;
@@ -1272,8 +1295,66 @@ SCREENS.s7=(stage)=>{
         const close=Math.abs(w-TW)<24&&Math.abs(h-TH)<24;win.classList.toggle("fit",close);
       },()=>{const w=parseFloat(win.style.width),h=parseFloat(win.style.height);
         if(Math.abs(w-TW)<24&&Math.abs(h-TH)<24){win.style.width=TW+"px";win.style.height=TH+"px";win.classList.add("fit");sfx.step();
-          completeStation("s7","Fenster bewegen und vergrößern – das war kniffliges Ziehen! 🪟");}
+          setHint("Perfekt vergrößert!","good");later(roundMinMax,800);}
         else setHint("Fast! Zieh die Ecke, bis das Fenster den Rahmen genau ausfüllt.","warn");});});
+  }
+  function roundMinMax(){
+    ws.innerHTML="";setCounter("3/5","Aufgabe");
+    setInstruction(`Station ${N} · Minimieren & Maximieren (3/5)`,
+      "Oben in der Titelleiste gibt es zwei Knöpfe: <b>▢ maximiert</b> das Fenster (macht es ganz groß) und <b>– minimiert</b> es. <b>Klicke zuerst auf ▢, dann auf –.</b>");
+    setHint("Zuerst auf den Maximieren-Knopf ▢ klicken.","");
+    const win=document.createElement("div");win.className="winmove";win.style.left="40px";win.style.top="40px";win.style.width="200px";win.style.height="140px";
+    win.innerHTML=`<div class="tbar">🪟 Fenster <span class="ctl min" title="Minimieren">–</span><span class="ctl max" title="Maximieren">▢</span><span class="x" title="Schließen">×</span></div><div class="wc">Erst maximieren, dann minimieren.</div>`;
+    ws.appendChild(win);
+    let maxed=false;
+    win.querySelector(".x").addEventListener("click",()=>setHint("Nicht schließen – nutze ▢ und –. 😊","warn"));
+    win.querySelector(".max").addEventListener("click",()=>{
+      win.classList.remove("mind");win.classList.add("maxd");maxed=true;
+      win.style.left="0px";win.style.top="0px";win.style.width=ws.clientWidth+"px";win.style.height=ws.clientHeight+"px";
+      sfx.step();setHint("Groß! Jetzt auf den Minimieren-Knopf – klicken.","good");});
+    win.querySelector(".min").addEventListener("click",()=>{
+      if(!maxed){setHint("Klicke erst auf ▢ (maximieren).","warn");return;}
+      win.classList.remove("maxd");win.classList.add("mind");
+      win.style.left="40px";win.style.top=(ws.clientHeight-44)+"px";win.style.width="200px";win.style.height="";
+      sfx.step();setHint("Super – maximiert und minimiert!","good");later(roundClose,800);});
+  }
+  function roundClose(){
+    ws.innerHTML="";setCounter("4/5","Aufgabe");
+    setInstruction(`Station ${N} · Fenster schließen (4/5)`,
+      "Jedes Fenster kann man mit dem <b>×</b> oben rechts schließen. <b>Schließe nur das Werbe-Fenster „Gewinnspiel 🎁“</b> – die anderen Fenster lässt du offen.");
+    setHint("Klicke auf das × des Gewinnspiel-Fensters.","");
+    const wins=[
+      {t:"📄 Notizen",wc:"Wichtige Notizen – offen lassen.",x:30,y:30,close:false},
+      {t:"🎁 Gewinnspiel",wc:"Du hast gewonnen! (Werbung)",x:210,y:90,close:true},
+      {t:"🖼️ Fotos",wc:"Urlaubsbilder – offen lassen.",x:90,y:170,close:false}
+    ];
+    wins.forEach((w,i)=>{const win=document.createElement("div");win.className="winmove";win.style.left=w.x+"px";win.style.top=w.y+"px";win.style.width="190px";win.style.height="120px";win.style.zIndex=3+i;
+      win.innerHTML=`<div class="tbar">${w.t}<span class="x" title="Schließen">×</span></div><div class="wc">${w.wc}</div>`;
+      win.querySelector(".x").addEventListener("click",()=>{
+        if(w.close){win.remove();sfx.step();setHint("Genau – das Werbe-Fenster ist geschlossen!","good");later(roundFront,800);}
+        else{sfx.soft();setHint("Dieses Fenster soll offen bleiben. Schließe das Gewinnspiel-Fenster 🎁.","warn");}});
+      ws.appendChild(win);});
+  }
+  function roundFront(){
+    ws.innerHTML="";setCounter("5/5","Aufgabe");
+    setInstruction(`Station ${N} · In den Vordergrund holen (5/5)`,
+      "Mehrere Fenster überdecken sich. <b>Klicke das Fenster „Rechner 🧮“ an</b>, damit es ganz nach <b>vorne</b> kommt.");
+    setHint("Klicke irgendwo auf das Rechner-Fenster.","");
+    let topZ=10;
+    const wins=[
+      {t:"📄 Notizen",wc:"Notizen",x:30,y:30,target:false},
+      {t:"🧮 Rechner",wc:"Hol mich nach vorne!",x:80,y:70,target:true},
+      {t:"🖼️ Fotos",wc:"Fotos",x:130,y:110,target:false}
+    ];
+    const els=wins.map((w,i)=>{const win=document.createElement("div");win.className="winmove";win.style.left=w.x+"px";win.style.top=w.y+"px";win.style.width="200px";win.style.height="130px";win.style.zIndex=3+i;win.dataset.target=w.target;
+      win.innerHTML=`<div class="tbar">${w.t}</div><div class="wc">${w.wc}</div>`;
+      win.addEventListener("mousedown",()=>{
+        win.style.zIndex=(++topZ);
+        const frontmost=els.reduce((a,b)=>(+b.style.zIndex>+a.style.zIndex?b:a));
+        if(frontmost.dataset.target==="true"){sfx.step();setHint("Klasse – der Rechner ist jetzt ganz vorne!","good");
+          later(()=>completeStation("s7","Fenster bewegen, schließen und sortieren – du bist Fenster-Profi! 🪟"),700);}
+        else setHint("Noch nicht vorne. Klicke auf das Rechner-Fenster 🧮.","warn");});
+      ws.appendChild(win);return win;});
   }
   roundMove();
 };
