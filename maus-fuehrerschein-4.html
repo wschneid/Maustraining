@@ -2086,16 +2086,20 @@ SCREENS.bonus_simon=(stage)=>{
     rightAction(idx);
   }
 
-  // Eingabe-Erkennung pro Pad. Click-vs-Doppelklick wird über einen Timer
-  // unterschieden, damit ein Doppelklick auf 🔴 nicht als zwei Einzelklicks zählt.
+  // Eingabe-Erkennung pro Pad: eigene click/dblclick-Erkennung über mouseup,
+  // damit langsamere Doppelklicks zuverlässig erkannt werden und einzelne
+  // Klicks nicht durch ein nachfolgendes click-Event verworfen werden.
+  const DBL_WINDOW=300;
   padEls.forEach((el,idx)=>{
-    let downAt=0,holdTimer=null,clickTimer=null,suppressClick=false;
+    let downAt=0,pendingClickTimer=null,pendingClickAt=0;
+    function clearPendingClick(){
+      if(pendingClickTimer){clearTimeout(pendingClickTimer);pendingClickTimer=null;}
+      pendingClickAt=0;
+    }
     el.addEventListener("mousedown",e=>{
       if(e.button!==0)return;
       downAt=Date.now();
-      // Bei "halten"-Pads visuelles Signal, wenn Mindestzeit erreicht.
-      holdTimer=later(()=>{
-        holdTimer=null;
+      later(()=>{
         if(downAt!==0) el.style.boxShadow=`0 0 0 6px ${PADS[idx].glow}, 0 2px 0 rgba(0,0,0,.18)`;
       },HOLD_MIN_MS);
     });
@@ -2103,30 +2107,26 @@ SCREENS.bonus_simon=(stage)=>{
       if(e.button!==0||downAt===0)return;
       const heldFor=Date.now()-downAt;downAt=0;
       el.style.boxShadow="0 2px 0 rgba(0,0,0,.18)";
-      // Halten erkennen: lang genug gedrückt -> hold-Aktion.
       if(heldFor>=HOLD_MIN_MS){
-        suppressClick=true;
-        // Den anschließenden click-Event verwerfen.
-        later(()=>{suppressClick=false;},50);
+        clearPendingClick();
         handle(idx,"hold","Halten");
         return;
       }
-      // Andernfalls: warte kurz auf möglichen dblclick.
-    });
-    el.addEventListener("click",e=>{
-      if(suppressClick)return;
-      if(clickTimer){clearTimeout(clickTimer);clickTimer=null;}
-      clickTimer=later(()=>{
-        clickTimer=null;
+      const now=Date.now();
+      if(pendingClickTimer&&(now-pendingClickAt)<=DBL_WINDOW){
+        clearPendingClick();
+        handle(idx,"dblclick","Doppelklick");
+        return;
+      }
+      pendingClickAt=now;
+      pendingClickTimer=later(()=>{
+        pendingClickTimer=null;pendingClickAt=0;
         handle(idx,"click","Linksklick");
-      },state.dblTolerance+40);
-    });
-    el.addEventListener("dblclick",e=>{
-      if(clickTimer){clearTimeout(clickTimer);clickTimer=null;}
-      handle(idx,"dblclick","Doppelklick");
+      },DBL_WINDOW+20);
     });
     el.addEventListener("contextmenu",e=>{
       e.preventDefault();
+      clearPendingClick();
       handle(idx,"right","Rechtsklick");
     });
     el.addEventListener("mouseleave",()=>{
