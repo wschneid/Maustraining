@@ -693,7 +693,7 @@ function maybeOfferBonus(next){
   const n=Object.keys(state.done).length;
   if(n>0 && n%3===0 && state.current!=="exam"){
     _bonusReturn=next;
-    const games=["bonus_catch","bonus_memory","bonus_reflex","bonus_simon","bonus_catch_left","bonus_catch_right"];const g=games[(n/3-1)%games.length];
+    const games=["bonus_catch","bonus_memory","bonus_reflex","bonus_simon","bonus_catch_left","bonus_catch_right","bonus_arkanoid"];const g=games[(n/3-1)%games.length];
     showSkip(true,()=>go(next));$("#skipBtn").textContent="Bonus überspringen";
     showNext(true,"🎁 Bonus-Spiel!");$("#nextBtn").onclick=()=>go(g);
     return true;
@@ -1955,6 +1955,151 @@ function reflexGame(stage){
     }else later(t,1000);},1000);
 }
 SCREENS.bonus_reflex=(stage)=>reflexGame(stage);
+
+// Ball & Paddel (Arkanoid-Stil): das Paddel folgt der horizontalen Maus,
+// der Ball prallt von Wänden, Paddel und Steinen ab. Trainiert ruhige Mausführung.
+function arkanoidGame(stage){
+  unlock("bonus_fan");bonusBackBar();
+  setInstruction("Bonus-Spiel 🎁 · Ball & Paddel",
+    "Bewege die Maus nach <b>links und rechts</b>, um das Paddel zu steuern. "+
+    "Der Ball prallt von oben zurück und zerlegt die Steine – jeder gibt <b>+2 XP</b>. "+
+    "Du hast <b>45 Sekunden</b>!");
+  setHint("Maus ruhig nach links/rechts bewegen – kein Klicken nötig.","");
+  const field=document.createElement("div");field.className="meadow";
+  field.style.position="relative";field.style.overflow="hidden";stage.appendChild(field);
+  const W=()=>field.clientWidth, H=()=>field.clientHeight;
+
+  const d=diff();
+  const ROWS=dCount(5,3);
+  const COLS=8;
+  const padW=Math.round(110/d.size), padH=14;
+  const ballR=8;
+  const baseSpeed=(state.reduced?2.2:3.6)*d.speed;
+  const colors=["#ff6b6b","#ffa94d","#ffd43b","#51cf66","#22b8cf","#845ef7"];
+
+  // Steine bauen
+  const bricks=[];
+  function buildBricks(){
+    const padX=10, gap=4;
+    const bw=Math.floor((W()-padX*2-gap*(COLS-1))/COLS);
+    const bh=18;
+    const top=14;
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const b=document.createElement("div");
+        b.style.cssText=`position:absolute;width:${bw}px;height:${bh}px;border-radius:4px;`+
+          `left:${padX+c*(bw+gap)}px;top:${top+r*(bh+gap)}px;`+
+          `background:${colors[r%colors.length]};box-shadow:0 2px 0 rgba(0,0,0,.12);`;
+        field.appendChild(b);
+        bricks.push({el:b,x:padX+c*(bw+gap),y:top+r*(bh+gap),w:bw,h:bh,alive:true});
+      }
+    }
+  }
+  // Paddel
+  const pad=document.createElement("div");
+  pad.style.cssText=`position:absolute;height:${padH}px;border-radius:8px;`+
+    `background:linear-gradient(180deg,var(--ocean-bright),var(--ocean-mid));`+
+    `box-shadow:0 3px 0 var(--ocean-deep);bottom:14px;`;
+  field.appendChild(pad);
+  // Ball
+  const ball=document.createElement("div");
+  ball.style.cssText=`position:absolute;width:${ballR*2}px;height:${ballR*2}px;border-radius:50%;`+
+    `background:var(--hint);box-shadow:0 0 8px rgba(217,131,36,.6);`;
+  field.appendChild(ball);
+
+  let padX=0, padY=0, bx=0, by=0, vx=0, vy=0;
+  let score=0,timeLeft=45,over=false;
+  setCounter(`${timeLeft}s`,"Zeit");
+
+  function resetBall(){
+    padX=Math.max(0,Math.min(W()-padW,(W()-padW)/2));
+    padY=H()-14-padH;
+    bx=padX+padW/2-ballR;
+    by=padY-ballR*2-2;
+    const ang=(-Math.PI/2)+(Math.random()*0.6-0.3); // nach oben mit etwas Streuung
+    vx=Math.cos(ang)*baseSpeed; vy=Math.sin(ang)*baseSpeed;
+  }
+  // Steine erst bauen, sobald Layout steht
+  later(()=>{ buildBricks(); resetBall(); },20);
+
+  field.addEventListener("mousemove",e=>{
+    if(over)return;
+    const rect=field.getBoundingClientRect();
+    padX=Math.max(0,Math.min(W()-padW, e.clientX-rect.left-padW/2));
+  });
+
+  function intersects(x,y,w,h,cx,cy,r){
+    const nx=Math.max(x,Math.min(cx,x+w));
+    const ny=Math.max(y,Math.min(cy,y+h));
+    const dx=cx-nx, dy=cy-ny;
+    return dx*dx+dy*dy <= r*r;
+  }
+
+  (function loop(){
+    if(over)return;
+    if(W()>0 && H()>0 && pad.style.width!==padW+"px"){pad.style.width=padW+"px";}
+    bx+=vx; by+=vy;
+    // Wände
+    if(bx<0){bx=0;vx=Math.abs(vx);}
+    if(bx>W()-ballR*2){bx=W()-ballR*2;vx=-Math.abs(vx);}
+    if(by<0){by=0;vy=Math.abs(vy);}
+    // Paddel
+    const cx=bx+ballR, cy=by+ballR;
+    if(intersects(padX,padY,padW,padH,cx,cy,ballR) && vy>0){
+      vy=-Math.abs(vy);
+      // Winkel je nach Auftreffpunkt
+      const rel=((cx-padX)/padW)-0.5; // -0.5..0.5
+      vx=rel*baseSpeed*1.8;
+      // Geschwindigkeit normalisieren
+      const sp=Math.hypot(vx,vy)||baseSpeed;
+      vx=vx/sp*baseSpeed; vy=vy/sp*baseSpeed;
+      sfx.step();
+    }
+    // Steine
+    for(const b of bricks){
+      if(!b.alive)continue;
+      if(intersects(b.x,b.y,b.w,b.h,cx,cy,ballR)){
+        b.alive=false;b.el.remove();
+        // simple Reflexion nach Hauptachse
+        const overlapX=Math.min(cx-b.x, b.x+b.w-cx);
+        const overlapY=Math.min(cy-b.y, b.y+b.h-cy);
+        if(overlapX<overlapY)vx=-vx; else vy=-vy;
+        score++;awardXP(2,"bonus");sfx.good();
+        setHint(`Steine: ${score} 💥`,"good");
+        break;
+      }
+    }
+    // unten heraus → Re-Spawn
+    if(by>H()){ resetBall(); sfx.soft(); }
+    // Alle Steine weg?
+    if(bricks.every(b=>!b.alive) && !over){
+      over=true;stopLoop();field.style.pointerEvents="none";
+      awardXP(10,"bonus"); // Clear-Bonus
+      setInstruction("Alle Steine geschafft! 🎁",
+        `Stark! <b>${score}</b> Steine + <b>10 XP</b> Bonus = <b>${score*2+10} XP</b>.`);
+      setHint("Perfekt gespielt!","good");showSkip(false);
+      showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
+      return;
+    }
+    pad.style.left=padX+"px";
+    ball.style.left=bx+"px";ball.style.top=by+"px";
+    _raf=requestAnimationFrame(loop);
+  })();
+
+  later(function t(){
+    if(over)return;
+    timeLeft--;setCounter(`${Math.max(0,timeLeft)}s`,"Zeit");
+    if(timeLeft<=0){
+      over=true;stopLoop();field.style.pointerEvents="none";
+      setInstruction("Bonus geschafft! 🎁",
+        `Du hast <b>${score}</b> Steine zerlegt und <b>${score*2} XP</b> verdient!`);
+      setHint("Schöne Mausführung!","good");showSkip(false);
+      showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
+    }else later(t,1000);
+  },1000);
+}
+SCREENS.bonus_arkanoid=(stage)=>arkanoidGame(stage);
+
 SCREENS.bonus_memory=(stage)=>{
   unlock("bonus_fan");bonusBackBar();
   memoryGame(stage,{bonus:true,pairs:dCount(5,4),onDone:()=>{
