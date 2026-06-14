@@ -99,9 +99,14 @@
     color:#fff;padding:14px 22px;text-align:center;font-size:.8rem;line-height:1.5;
     box-shadow:0 -4px 18px rgba(10,77,104,.25);display:none;}
   /* Footer nur auf der Landing Page (Start-Screen) sichtbar. */
-  body[data-screen="start"] footer.sitefooter{display:block;}
+  body[data-screen="start"] footer.sitefooter{display:flex;}
+  footer.sitefooter{align-items:center;justify-content:space-between;gap:14px;text-align:left;flex-wrap:wrap;}
+  footer.sitefooter .foot-main{flex:1;min-width:220px;}
   footer.sitefooter p{margin:2px 0;}
   footer.sitefooter a{color:#fff;text-decoration:underline;}
+  footer.sitefooter .privacy-pill{flex:none;display:inline-flex;align-items:center;gap:6px;
+    background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:999px;
+    padding:8px 14px;font-size:.76rem;line-height:1.35;max-width:300px;}
   .mouse-intro{display:flex;align-items:center;justify-content:center;gap:30px;flex-wrap:wrap;max-width:760px;margin:6px auto 26px;text-align:left;}
   .mouse-pic{flex:none;}
   .mouse-list{list-style:none;margin:0;padding:0;max-width:430px;display:flex;flex-direction:column;gap:14px;}
@@ -433,12 +438,14 @@
 </main>
 
 <footer class="sitefooter">
-  <p>© 2026 Wolfgang Schneider</p>
-  <p>🔒 Datenschutz: Dieses Programm läuft vollständig auf deinem Gerät.
-    Es werden keine Daten gespeichert oder ins Internet gesendet.</p>
-  <p>Dieses Werk ist lizenziert unter
-    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>
-    (Namensnennung – Nicht kommerziell – Weitergabe unter gleichen Bedingungen).</p>
+  <div class="foot-main">
+    <p>© 2026 Wolfgang Schneider</p>
+    <p>Dieses Werk ist lizenziert unter
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>
+      (Namensnennung – Nicht kommerziell – Weitergabe unter gleichen Bedingungen).</p>
+  </div>
+  <span class="privacy-pill">🔒 Datenschutz: Dieses Programm läuft vollständig auf deinem Gerät.
+    Es werden keine Daten gespeichert oder ins Internet gesendet.</span>
 </footer>
 
 <div class="ctxmenu" id="ctxmenu" role="menu"></div>
