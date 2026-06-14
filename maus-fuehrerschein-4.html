@@ -1956,9 +1956,10 @@ SCREENS.shold=(stage)=>{
   // Drei Spielrunden mit steigendem Schwierigkeitsgrad: mehr Münzen, mehr und
   // schnellere Geister. Die globale Schwierigkeit skaliert zusätzlich mit.
   const ROUNDS=[
-    {coins:8,  ghosts:2, gmul:0.8, label:"1/3", lead:"Zum Aufwärmen: nur wenige, langsame Geister."},
-    {coins:12, ghosts:4, gmul:1.1, label:"2/3", lead:"Etwas kniffliger: mehr Münzen und mehr Geister."},
-    {coins:16, ghosts:6, gmul:1.5, label:"3/3", lead:"Profi-Runde: viele schnelle Geister – bleib ruhig!"}
+    {coins:15, ghosts:4,  gmul:0.8, label:"1/4", lead:"Zum Aufwärmen: viele Münzen, langsame Geister."},
+    {coins:22, ghosts:6,  gmul:1.1, label:"2/4", lead:"Etwas kniffliger: noch mehr Münzen und Geister."},
+    {coins:30, ghosts:10, gmul:1.5, label:"3/4", lead:"Profi-Runde: viele schnelle Geister – bleib ruhig!"},
+    {coins:20, ghosts:8,  gmul:1.7, label:"4/4", lead:"Bonus-Runde: das Spielfeld schrumpft – halte die Maus ruhig!", shrink:true}
   ];
   let wasCaught=false; // über alle Runden hinweg für die Auszeichnung
   function makeRound(cfg,onDone){
@@ -1970,6 +1971,14 @@ SCREENS.shold=(stage)=>{
     const W=()=>board.clientWidth,H=()=>board.clientHeight;
     const START={x:42,y:42};
     let px=START.x,py=START.y,tx=px,ty=py,held=false,invulnUntil=0,doneFlag=false;
+    // Bonus-Runde: das Spielfeld schrumpft langsam vom Rand her.
+    let padding=0,shrinkTimer=null;
+    const PAD_MAX=()=>Math.max(0,Math.min(W(),H())/2-80);
+    function applyShrinkVisual(){
+      board.style.boxShadow=padding>0
+        ? `inset 0 0 0 ${padding}px rgba(0,0,0,.38), inset 0 0 18px rgba(0,0,0,.35)`
+        : "";
+    }
     const pac=document.createElement("div");pac.className="pac";pac.textContent="😀";
     pac.style.left=px+"px";pac.style.top=py+"px";board.appendChild(pac);
     // Münzen
@@ -2000,7 +2009,27 @@ SCREENS.shold=(stage)=>{
     board.addEventListener("mousedown",onDown);
     document.addEventListener("mousemove",onMove);
     document.addEventListener("mouseup",onUp);
-    function cleanup(){document.removeEventListener("mousemove",onMove);document.removeEventListener("mouseup",onUp);}
+    function cleanup(){
+      document.removeEventListener("mousemove",onMove);
+      document.removeEventListener("mouseup",onUp);
+      if(shrinkTimer){clearInterval(shrinkTimer);shrinkTimer=null;}
+      board.style.boxShadow="";
+    }
+    if(cfg.shrink){
+      shrinkTimer=setInterval(()=>{
+        if(doneFlag||!board.isConnected)return;
+        padding=Math.min(PAD_MAX(),padding+12);
+        applyShrinkVisual();
+        // Münzen, die durch den Rand "weggeschnitten" werden, gelten als gesammelt.
+        dots.forEach(d=>{
+          if(d.got)return;
+          if(d.x<padding+12||d.x>W()-padding-12||d.y<padding+12||d.y>H()-padding-12){
+            d.got=true;d.el.remove();got++;sfx.step();setCounter(`${got}/${DOTS}`,"Münzen");
+            if(got===DOTS){doneFlag=true;cleanup();stopLoop();onDone();}
+          }
+        });
+      },3000);
+    }
     function resetPac(){px=START.x;py=START.y;held=false;wasCaught=true;invulnUntil=performance.now()+800;
       pac.classList.add("hit","safe");later(()=>pac.classList.remove("hit"),500);later(()=>pac.classList.remove("safe"),800);
       setHint("Erwischt! Deine Punkte bleiben – einfach weiter halten und ausweichen.","warn");}
@@ -2011,7 +2040,7 @@ SCREENS.shold=(stage)=>{
         // Mindestens pacSpeed, bei größerer Distanz die Hälfte der Lücke pro Frame –
         // so bleibt der Smiley nah am Zeiger und ruckelt nicht hinterher.
         if(dist>1){const m=Math.min(dist,Math.max(pacSpeed,dist*0.5));px+=dx/dist*m;py+=dy/dist*m;}
-        px=Math.max(18,Math.min(W()-18,px));py=Math.max(18,Math.min(H()-18,py));
+        px=Math.max(18+padding,Math.min(W()-18-padding,px));py=Math.max(18+padding,Math.min(H()-18-padding,py));
         pac.style.left=px+"px";pac.style.top=py+"px";
       }
       // Punkte einsammeln
@@ -2021,8 +2050,8 @@ SCREENS.shold=(stage)=>{
         else if(got%4===0)setHint(`Super! Noch ${DOTS-got} Münzen.`,"good");}});
       // Geister bewegen + Kollision
       ghosts.forEach(g=>{g.x+=g.vx;g.y+=g.vy;
-        if(g.x<16||g.x>W()-16)g.vx*=-1;if(g.y<16||g.y>H()-16)g.vy*=-1;
-        g.x=Math.max(16,Math.min(W()-16,g.x));g.y=Math.max(16,Math.min(H()-16,g.y));
+        if(g.x<16+padding||g.x>W()-16-padding)g.vx*=-1;if(g.y<16+padding||g.y>H()-16-padding)g.vy*=-1;
+        g.x=Math.max(16+padding,Math.min(W()-16-padding,g.x));g.y=Math.max(16+padding,Math.min(H()-16-padding,g.y));
         g.el.style.left=g.x+"px";g.el.style.top=g.y+"px";
         if(now>invulnUntil && Math.hypot(g.x-px,g.y-py)<26)resetPac();});
       _raf=requestAnimationFrame(loop);
