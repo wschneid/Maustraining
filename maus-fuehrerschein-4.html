@@ -1489,7 +1489,8 @@ SCREENS.spuzzle=(stage)=>{
       el.style.clipPath=clipPath(bw,bh,ext,e);
       el._home={r,c,cw,ch,ext,bw,bh};
       attachDrag(el,board,()=>{placed++;setCounter(`${placed}/${TOTAL}`,"Teile");
-        if(placed===TOTAL)onDone();else setHint(`Eingerastet! Noch ${TOTAL-placed}.`,"good");});
+        if(placed===TOTAL){tray.remove();onDone();}
+        else setHint(`Eingerastet! Noch ${TOTAL-placed}.`,"good");});
       pieces.push(el);
     }
     pieces.sort(()=>Math.random()-0.5).forEach(el=>tray.appendChild(el));
