@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tastatur-Führerschein</title>
+<style>
+  :root{
+    --ocean-deep:#0a4d68; --ocean-mid:#088395; --ocean-bright:#13b8d4; --ocean-pale:#e6f3f7;
+    --bg:#f1f7fa; --card:#fff; --ink:#143540; --ink-soft:#4a6670; --line:#d4e6ec;
+    --success:#2a9d8f; --success-soft:#e4f5f1; --hint:#d98324; --hint-soft:#fbf0e2;
+    --shadow:0 10px 30px rgba(10,77,104,.10); --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{font-family:"Segoe UI","Frutiger",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);
+    color:var(--ink);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh;}
+  .stage,.no-select{user-select:none;-webkit-user-select:none;}
+
+  header.app{background:linear-gradient(120deg,var(--ocean-deep),var(--ocean-mid) 55%,var(--ocean-bright));
+    color:#fff;padding:14px 22px;display:flex;align-items:center;gap:18px;
+    box-shadow:0 4px 18px rgba(10,77,104,.25);flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:1.22rem;white-space:nowrap;}
+  .brand .glyph{font-size:1.5rem;}
+  .brand small{display:block;font-weight:400;font-size:.7rem;opacity:.82;letter-spacing:.5px;text-transform:uppercase;}
+  .progress{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap;}
+  .stamp{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:999px;
+    padding:5px 11px 5px 7px;font-size:.74rem;display:flex;align-items:center;gap:6px;cursor:pointer;transition:.18s;white-space:nowrap;}
+  .stamp:hover{background:rgba(255,255,255,.26);}
+  .stamp .dot{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:.72rem;line-height:1;}
+  .stamp.done{background:#fff;color:var(--ocean-deep);border-color:#fff;font-weight:600;}
+  .stamp.done .dot{background:var(--success);color:#fff;}
+  .stamp.active{outline:2px solid #fff;outline-offset:1px;}
+  .gear{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:40px;height:40px;
+    border-radius:10px;font-size:1.2rem;cursor:pointer;display:grid;place-items:center;}
+  .gear:hover{background:rgba(255,255,255,.28);}
+
+  .hud{display:flex;align-items:center;gap:9px;color:#fff;white-space:nowrap;}
+  .hud .lvl{background:var(--ocean-bright);color:#06303f;font-weight:700;border-radius:999px;padding:4px 10px;font-size:.78rem;cursor:default;}
+  .hud .xpbar{position:relative;width:120px;height:13px;background:rgba(255,255,255,.2);border-radius:8px;overflow:hidden;}
+  .hud .xpfill{height:100%;width:0;background:linear-gradient(90deg,var(--hint),#ffd479);transition:width .45s ease;}
+  .hud .xptxt{position:absolute;inset:0;display:grid;place-items:center;font-size:.62rem;font-weight:700;color:#06303f;text-shadow:0 0 3px rgba(255,255,255,.5);}
+  .hud .coins{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:600;}
+  .xpfloat{position:fixed;z-index:90;transform:translateX(-50%);font-weight:800;color:var(--hint);
+    text-shadow:0 1px 4px rgba(0,0,0,.25);pointer-events:none;animation:rise 1.1s ease-out forwards;}
+  @keyframes rise{0%{opacity:0;transform:translate(-50%,6px) scale(.8);}20%{opacity:1;}100%{opacity:0;transform:translate(-50%,-34px) scale(1.1);}}
+  .toast{position:fixed;top:70px;right:18px;z-index:90;max-width:300px;background:#fff;border-left:5px solid var(--ocean-mid);
+    border-radius:10px;box-shadow:0 12px 30px rgba(10,77,104,.28);padding:12px 16px;font-size:.9rem;color:var(--ink);line-height:1.4;
+    opacity:0;transform:translateX(30px);transition:opacity .3s,transform .3s;}
+  .toast.show{opacity:1;transform:translateX(0);}
+  .toast.good{border-left-color:var(--success);}
+  .bot{transition:transform .15s;}
+  .bot.bot-happy{animation:botHappy .9s ease;}
+  .bot.bot-cheer{animation:botCheer .9s ease;}
+  .bot.bot-think{animation:botThink .9s ease;}
+  @keyframes botHappy{0%,100%{transform:translateY(0);}30%{transform:translateY(-7px);}60%{transform:translateY(-2px);}}
+  @keyframes botCheer{0%,100%{transform:rotate(0) scale(1);}25%{transform:rotate(-9deg) scale(1.12);}55%{transform:rotate(9deg) scale(1.12);}80%{transform:rotate(-4deg) scale(1.05);}}
+  @keyframes botThink{0%,100%{transform:rotate(0);}40%{transform:rotate(-6deg);}}
+
+  main{flex:1;display:flex;justify-content:center;padding:22px 18px 30px;}
+  .card{background:var(--card);width:min(980px,100%);border-radius:var(--radius);box-shadow:var(--shadow);
+    overflow:hidden;display:flex;flex-direction:column;}
+  .instruct{display:flex;gap:14px;align-items:flex-start;padding:18px 22px;border-bottom:1px solid var(--line);background:var(--ocean-pale);}
+  .bot{flex:none;width:50px;height:50px;border-radius:50%;background:#fff;border:2px solid var(--ocean-bright);
+    display:grid;place-items:center;box-shadow:0 4px 12px rgba(10,77,104,.12);}
+  .bot svg{width:30px;height:30px;}
+  .instruct .txt{flex:1;}
+  .instruct h2{margin:0 0 3px;font-size:1.12rem;color:var(--ocean-deep);}
+  .instruct p{margin:0;color:var(--ink-soft);font-size:.96rem;line-height:1.45;}
+  .counter{flex:none;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center;font-size:.78rem;color:var(--ink-soft);min-width:78px;}
+  .counter b{display:block;font-size:1.2rem;color:var(--ocean-mid);line-height:1.1;}
+
+  .play{padding:24px 22px;min-height:360px;display:flex;flex-direction:column;}
+  .footbar{display:flex;align-items:center;gap:14px;padding:14px 22px;border-top:1px solid var(--line);background:#fbfdfe;min-height:62px;flex-wrap:wrap;}
+  .hint{flex:1;min-width:200px;font-size:.95rem;color:var(--ink-soft);display:flex;align-items:center;gap:9px;transition:.2s;}
+  .hint.good{color:var(--success);font-weight:600;}
+  .hint.warn{color:var(--hint);}
+  .hint .ic{font-size:1.15rem;}
+  .btn{border:none;border-radius:10px;padding:11px 22px;font-size:.98rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.16s;}
+  .btn-primary{background:var(--ocean-mid);color:#fff;}
+  .btn-primary:hover{background:var(--ocean-deep);}
+  .btn-ghost{background:#fff;color:var(--ocean-mid);border:1.5px solid var(--ocean-mid);}
+  .btn-ghost:hover{background:var(--ocean-pale);}
+  .btn-small{padding:7px 14px;font-size:.85rem;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  button:focus-visible,.stamp:focus-visible,.gear:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+
+  .start{text-align:center;padding:14px 10px;}
+  .start .big{font-size:3.4rem;margin:4px 0 2px;}
+  .start h1{font-size:1.8rem;color:var(--ocean-deep);margin:6px 0 6px;}
+  .start .lead{max-width:640px;margin:0 auto 22px;color:var(--ink-soft);line-height:1.55;}
+  .hand-guide{max-width:660px;margin:6px auto 26px;text-align:left;background:var(--ocean-pale);
+    border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
+  .hand-guide h2{font-size:1.15rem;color:var(--ocean-deep);margin:0 0 10px;text-align:center;}
+  .hand-guide ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:9px;}
+  .hand-guide li{font-size:.9rem;color:var(--ink-soft);line-height:1.5;}
+  .hand-guide li b{color:var(--ocean-deep);}
+  footer.sitefooter{background:linear-gradient(120deg,var(--ocean-deep),var(--ocean-mid) 55%,var(--ocean-bright));
+    color:#fff;padding:14px 22px;text-align:center;font-size:.8rem;line-height:1.5;
+    box-shadow:0 -4px 18px rgba(10,77,104,.25);display:none;}
+  body[data-screen="start"] footer.sitefooter{display:block;}
+  footer.sitefooter p{margin:2px 0;}
+  footer.sitefooter a{color:#fff;text-decoration:underline;}
+
+  /* ===== Bildschirm-Tastatur ===== */
+  .kbwrap{margin-top:auto;display:flex;justify-content:center;width:100%;overflow-x:auto;padding-top:10px;}
+  .keyboard{display:inline-flex;flex-direction:column;gap:6px;align-items:center;padding:14px;border-radius:14px;
+    background:linear-gradient(160deg,#0d5775,#0a4d68);box-shadow:inset 0 0 40px rgba(0,0,0,.25);}
+  .krow{display:flex;gap:6px;justify-content:center;}
+  .key{position:relative;min-width:42px;height:46px;border-radius:8px;background:#fbfdfe;color:#143540;display:grid;place-items:center;
+    font-size:.95rem;font-weight:600;box-shadow:0 3px 0 rgba(0,0,0,.2);user-select:none;border:1px solid #cdd9de;
+    transition:transform .06s,background .12s,box-shadow .08s;padding:0 6px;}
+  .key.special{font-size:.7rem;color:#4a6670;}
+  .key .fb{position:absolute;top:4px;left:50%;transform:translateX(-50%);width:62%;height:4px;border-radius:2px;background:var(--fc,transparent);}
+  .key.bump::after{content:"";position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:12px;height:3px;border-radius:2px;background:#9bb4bd;}
+  .key.hot{background:var(--hint);color:#fff;animation:keypulse 1s ease-in-out infinite;}
+  .key.ok{background:var(--success)!important;color:#fff;}
+  .key.bad{background:#e25555!important;color:#fff;}
+  .key.press{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.2);}
+  @keyframes keypulse{0%,100%{box-shadow:0 0 0 3px rgba(217,131,36,.5),0 3px 0 rgba(0,0,0,.2);}50%{box-shadow:0 0 0 8px rgba(217,131,36,.12),0 3px 0 rgba(0,0,0,.2);}}
+
+  .fingerlegend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;}
+  .fingerlegend .fl{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:20px;padding:3px 9px;}
+  .fingerlegend .sw{width:12px;height:12px;border-radius:50%;}
+
+  /* ===== Tipp-Anzeige ===== */
+  .typebox{display:flex;flex-direction:column;gap:14px;align-items:center;flex:1;justify-content:center;width:100%;}
+  .typetarget{font-size:1.9rem;letter-spacing:1px;background:#fff;border:2px solid var(--line);border-radius:12px;
+    padding:16px 22px;line-height:1.7;max-width:720px;text-align:center;}
+  .typetarget .ch{padding:0 1px;border-radius:4px;}
+  .typetarget .ch.space{display:inline-block;min-width:.55em;color:#b9d4dd;}
+  .typetarget .ch.cur{background:var(--hint-soft);box-shadow:0 3px 0 var(--hint);}
+  .typetarget .ch.ok{color:var(--success);}
+  .typetarget .ch.bad{color:#fff;background:#e25555;}
+  .statbar{display:flex;gap:22px;justify-content:center;font-size:.95rem;color:var(--ink-soft);}
+  .statbar b{color:var(--ocean-mid);font-size:1.1rem;}
+  .bigchar{font-size:2.4rem;font-weight:800;color:var(--ocean-deep);}
+
+  /* ===== Wortregen ===== */
+  .rainfield{flex:1;position:relative;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#bfe9f2,#e6f7f2 70%,#d6f0e2);min-height:340px;border:1px solid var(--line);}
+  .raindrop{position:absolute;background:#fff;border:2px solid var(--ocean-mid);border-radius:10px;padding:6px 12px;font-size:1.15rem;font-weight:700;
+    color:var(--ocean-deep);box-shadow:0 4px 10px rgba(10,77,104,.18);white-space:nowrap;transform:translateX(-50%);}
+  .raindrop .typed{color:var(--success);}
+  .raindrop.active{border-color:var(--hint);box-shadow:0 0 0 3px rgba(217,131,36,.3);}
+  .rainbottom{position:absolute;left:0;right:0;bottom:0;height:46px;background:rgba(8,131,149,.92);display:flex;align-items:center;
+    justify-content:center;gap:10px;color:#fff;font-size:1rem;z-index:5;}
+  .rainbottom .raininput{font-weight:800;letter-spacing:2px;min-width:60px;text-align:center;}
+
+  /* ===== Tipp-Rennen ===== */
+  .racewrap{flex:1;display:flex;flex-direction:column;gap:16px;justify-content:center;}
+  .racetrack{position:relative;height:60px;background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;
+    overflow:hidden;background-image:repeating-linear-gradient(90deg,transparent,transparent 48px,rgba(10,77,104,.06) 48px,rgba(10,77,104,.06) 50px);}
+  .racerunner{position:absolute;top:50%;left:4%;transform:translate(-50%,-50%);font-size:2.1rem;transition:left .35s ease;}
+  .racefinish{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:1.8rem;}
+
+  /* ===== Blitz-Taste ===== */
+  .reflexbig{flex:1;display:grid;place-items:center;}
+  .bigkey{width:130px;height:130px;border-radius:20px;background:var(--ocean-mid);color:#fff;display:grid;place-items:center;
+    font-size:3.4rem;font-weight:800;box-shadow:0 10px 0 rgba(0,0,0,.2);transition:background .1s;}
+  .bigkey.go{background:var(--hint);animation:pop .35s;}
+  @keyframes pop{0%{transform:scale(1);}45%{transform:scale(1.16);}100%{transform:scale(1);}}
+
+  /* ===== Prüfung ===== */
+  .examwrap{flex:1;display:flex;gap:18px;flex-wrap:wrap;}
+  .examdesk{flex:2;min-width:300px;display:flex;flex-direction:column;}
+  .checklist{flex:1;min-width:210px;background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:16px;}
+  .checklist h3{margin:0 0 12px;color:var(--ocean-deep);font-size:1rem;}
+  .checklist ol{margin:0;padding:0;list-style:none;counter-reset:step;}
+  .checklist li{position:relative;padding:9px 8px 9px 38px;font-size:.84rem;color:var(--ink-soft);border-radius:8px;margin-bottom:4px;counter-increment:step;line-height:1.35;}
+  .checklist li::before{content:counter(step);position:absolute;left:8px;top:8px;width:22px;height:22px;border-radius:50%;background:#fff;
+    border:1.5px solid var(--line);display:grid;place-items:center;font-size:.74rem;font-weight:700;color:var(--ink-soft);}
+  .checklist li.active{background:#fff;color:var(--ink);font-weight:600;}
+  .checklist li.active::before{border-color:var(--ocean-bright);color:var(--ocean-mid);}
+  .checklist li.done{color:var(--success);}
+  .checklist li.done::before{content:"✓";background:var(--success);border-color:var(--success);color:#fff;}
+
+  /* ===== Urkunde ===== */
+  .urkunde{background:#fff;border:3px double var(--ocean-mid);border-radius:14px;padding:34px 30px;text-align:center;max-width:640px;margin:0 auto;}
+  .urkunde .seal{font-size:3rem;}
+  .urkunde h1{font-family:Georgia,"Times New Roman",serif;color:var(--ocean-deep);font-size:2rem;margin:6px 0 2px;letter-spacing:1px;}
+  .urkunde .sub{color:var(--ink-soft);font-size:.95rem;margin-bottom:18px;}
+  .urkunde .nameline{margin:18px auto;max-width:380px;}
+  .urkunde .nameline input{width:100%;text-align:center;font-size:1.4rem;font-family:Georgia,serif;color:var(--ocean-deep);
+    border:none;border-bottom:2px solid var(--ocean-bright);padding:6px 4px;background:transparent;}
+  .urkunde .nameline input:focus{outline:none;border-color:var(--ocean-mid);}
+  .urkunde .nameline .cap{font-size:.74rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
+  .urkunde .nameline .privacy-note{font-size:.7rem;color:var(--ink-soft);margin-top:6px;opacity:.85;}
+  .urkunde .badges{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:18px 0;}
+  .urkunde .badge{background:var(--success-soft);color:var(--success);border-radius:20px;padding:5px 11px;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:6px;}
+  .urkunde .badge.ach{background:#fbf0e2;color:#8a5616;border:1px solid #f0d9b8;}
+  .urkunde .foot{display:flex;justify-content:space-between;margin-top:22px;font-size:.82rem;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;}
+
+  .infobox{background:var(--hint-soft);border:1px solid #f0d9b8;border-radius:10px;padding:11px 13px;font-size:.84rem;color:#8a5616;line-height:1.45;}
+
+  .overlay{position:fixed;inset:0;background:rgba(10,40,53,.45);z-index:80;display:none;align-items:center;justify-content:center;padding:18px;}
+  .panel{background:#fff;border-radius:16px;width:min(440px,100%);box-shadow:0 24px 60px rgba(0,0,0,.3);overflow:hidden;}
+  .panel header{background:var(--ocean-mid);color:#fff;padding:14px 20px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+  .panel header button{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;}
+  .panel .body{padding:18px 20px;}
+  .setrow{margin-bottom:18px;}
+  .setrow label{font-weight:600;color:var(--ocean-deep);display:block;margin-bottom:4px;font-size:.95rem;}
+  .setrow .help{font-size:.8rem;color:var(--ink-soft);margin-bottom:8px;line-height:1.4;}
+  .switch{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.95rem;color:var(--ink);}
+  .switch input{width:20px;height:20px;accent-color:var(--ocean-mid);}
+
+  @media (max-width:680px){
+    .brand small{display:none;}
+    .instruct{flex-wrap:wrap;}
+    .counter{order:3;}
+    .hud .xpbar{width:70px;}
+    .hud .coins{display:none;}
+    .key{min-width:30px;height:38px;font-size:.8rem;padding:0 3px;}
+    .krow{gap:4px;}
+    .typetarget{font-size:1.4rem;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .key.hot{animation:none!important;}
+    .xpfloat,.bot.bot-happy,.bot.bot-cheer,.bot.bot-think,.bigkey.go,.urkunde .seal{animation:none!important;}
+  }
+  @media print{
+    header.app,.footbar,.instruct,.gear,.overlay,.toast,.xpfloat{display:none!important;}
+    body,main,.card{background:#fff!important;box-shadow:none!important;}
+    main{padding:0;} .play{padding:0;}
+    .urkunde{border-color:#000;max-width:100%;}
+    .urkunde .nameline input{border-bottom:1px solid #000;}
+    .urkunde .nameline .privacy-note{display:none!important;}
+  }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="brand"><span class="glyph">⌨️</span><span>Tastatur-Führerschein<small>Tippen Schritt für Schritt üben</small></span></div>
+  <nav class="progress" id="progress" aria-label="Stationen"></nav>
+  <div class="hud" id="hud" aria-label="Punktestand">
+    <span class="lvl" id="hudLvl">Lv 1</span>
+    <div class="xpbar"><div class="xpfill" id="hudXp"></div><span class="xptxt" id="hudXpTxt"></span></div>
+    <span class="coins" id="hudCoins">🪙 0</span>
+  </div>
+  <button class="gear" id="gearBtn" title="Einstellungen" aria-label="Einstellungen">⚙</button>
+</header>
+
+<main>
+  <div class="card">
+    <div class="instruct" id="instruct">
+      <div class="bot" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none">
+          <rect x="9" y="13" width="22" height="18" rx="5" fill="#13b8d4"/>
+          <rect x="13" y="18" width="14" height="8" rx="3" fill="#fff"/>
+          <circle cx="17" cy="22" r="2" fill="#0a4d68"/><circle cx="23" cy="22" r="2" fill="#0a4d68"/>
+          <rect x="18.5" y="6" width="3" height="6" rx="1.5" fill="#088395"/><circle cx="20" cy="5" r="2.5" fill="#d98324"/>
+          <rect x="6" y="19" width="3" height="7" rx="1.5" fill="#088395"/><rect x="31" y="19" width="3" height="7" rx="1.5" fill="#088395"/>
+        </svg>
+      </div>
+      <div class="txt"><h2 id="iTitle">Willkommen</h2><p id="iText">Schön, dass du da bist!</p></div>
+      <div class="counter" id="counter" style="display:none;"><b id="cNum">0</b><span id="cLab">Aufgabe</span></div>
+    </div>
+
+    <div class="play stage" id="stage"></div>
+
+    <div class="footbar">
+      <div class="hint" id="hint"><span class="ic">💬</span><span id="hintText">Klicke auf „Los geht’s“, um zu starten.</span></div>
+      <button class="btn btn-ghost btn-small" id="skipBtn" style="display:none;">Überspringen</button>
+      <button class="btn btn-ghost" id="replayBtn" style="display:none;">Nochmal üben</button>
+      <button class="btn btn-primary" id="nextBtn" style="display:none;">Weiter</button>
+    </div>
+  </div>
+</main>
+
+<footer class="sitefooter">
+  <p>© 2026 Wolfgang Schneider</p>
+  <p>Dieses Werk ist lizenziert unter
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>
+    (Namensnennung – Nicht kommerziell – Weitergabe unter gleichen Bedingungen).</p>
+</footer>
+
+<div class="overlay" id="overlay">
+  <div class="panel" role="dialog" aria-modal="true" aria-label="Einstellungen">
+    <header>Einstellungen <button id="closeSet" aria-label="Schließen">×</button></header>
+    <div class="body">
+      <div class="setrow">
+        <label for="diffSel">Schwierigkeit</label>
+        <div class="help">Leicht = kürzere Wörter, mehr Zeit, langsamerer Wortregen. Schwer = längere Wörter, schneller.</div>
+        <select id="diffSel" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);font-family:inherit;font-size:.95rem;">
+          <option value="leicht">Leicht</option>
+          <option value="mittel" selected>Mittel</option>
+          <option value="schwer">Schwer</option>
+        </select>
+      </div>
+      <div class="setrow"><label class="switch"><input type="checkbox" id="fingerChk"> Fingerfarben auf der Tastatur zeigen</label>
+        <div class="help">Färbt jede Taste in der Farbe des Fingers ein, der sie drücken soll.</div></div>
+      <div class="setrow"><label class="switch"><input type="checkbox" id="soundChk" checked> Töne abspielen</label></div>
+      <div class="setrow"><div class="infobox">💡 <b>Tipp:</b> Lege deine Finger locker auf die Grundreihe
+        (links <b>a&nbsp;s&nbsp;d&nbsp;f</b>, rechts <b>j&nbsp;k&nbsp;l&nbsp;ö</b>). Auf <b>F</b> und <b>J</b> spürst du kleine Erhebungen –
+        so findest du die Reihe auch ohne hinzusehen.</div></div>
+      <div class="setrow" style="margin-bottom:0;text-align:center;"><button class="btn btn-ghost" id="resetBtn">Fortschritt zurücksetzen</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const $ = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
+const mk = (cls,html)=>{const d=document.createElement("div");if(cls)d.className=cls;if(html!=null)d.innerHTML=html;return d;};
+const shuffle = a=>{for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+/* ============================================================
+   Stationen
+   ============================================================ */
+const STATIONS = [
+  {id:"start",     short:"Start",        icon:"⌨️"},
+  {id:"kfind",     short:"Tasten",       icon:"🔎", title:"Tasten finden",    desc:"Die leuchtende Taste drücken"},
+  {id:"kspecial",  short:"Sondertasten", icon:"↵",  title:"Sondertasten",     desc:"Leertaste, Enter & Co."},
+  {id:"kshift",    short:"Groß",         icon:"⬆️", title:"Großbuchstaben",   desc:"Mit Umschalt groß tippen"},
+  {id:"khome",     short:"Grundreihe",   icon:"🖐️", title:"Grundreihe",       desc:"a s d f · j k l ö"},
+  {id:"kfingers",  short:"Finger",       icon:"✋", title:"Finger-Training",  desc:"Den richtigen Finger nehmen"},
+  {id:"kwords",    short:"Wörter",       icon:"📝", title:"Wörter tippen",    desc:"Ganze Wörter abtippen"},
+  {id:"ksentence", short:"Sätze",        icon:"📚", title:"Sätze tippen",     desc:"Tempo & Genauigkeit"},
+  {id:"kraindrop", short:"Wortregen",    icon:"🌧️", title:"Wortregen",        desc:"Fallende Wörter abtippen"},
+  {id:"kreflex",   short:"Blitz",        icon:"⚡", title:"Blitz-Taste",      desc:"So schnell wie möglich"},
+  {id:"krace",     short:"Rennen",       icon:"🏁", title:"Tipp-Rennen",      desc:"Wörter im Wettlauf"},
+  {id:"exam",      short:"Prüfung",      icon:"🏆", title:"Prüfung",          desc:"Alles zusammen!"}
+];
+const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam").findIndex(s=>s.id===id)+1;
+
+/* Spielstufen: skalieren Anzahl, Zeitfenster und Wortregen-Tempo */
+const DIFF = {
+  leicht: {label:"Leicht", count:0.7, timeWin:1.6, rainSpeed:0.45, rainSpawn:2800, hard:false},
+  mittel: {label:"Mittel", count:1.0, timeWin:1.0, rainSpeed:0.75, rainSpawn:2100, hard:false},
+  schwer: {label:"Schwer", count:1.3, timeWin:0.7, rainSpeed:1.15, rainSpawn:1500, hard:true }
+};
+const diff = () => DIFF[state.difficulty] || DIFF.mittel;
+const dCount = (base,min=2) => Math.max(min, Math.round(base*diff().count));
+
+/* ============================================================
+   Wort- und Satz-Vorrat (kindgerecht, deutsch)
+   ============================================================ */
+const WORDS_EASY = ["und","der","die","das","ist","auf","ufo","oma","opa","ball","haus","maus","baum","fisch","hund","katze","sonne","blume","apfel","gelb","rot","tor","see","eis"];
+const WORDS = ["schule","freude","spielen","lesen","tippen","computer","tastatur","banane","fahrrad","wolke","garten","kuchen","musik","tiger","sommer","winter","fenster","blume","drache","raupe"];
+const SENTENCES = ["Die Katze schlaeft.","Der Hund bellt laut.","Wir lernen tippen.","Die Sonne scheint hell.","Mein Ball ist rot.","Ich mag den Sommer.","Das Auto faehrt schnell."];
+
+/* ============================================================
+   Bildschirm-Tastatur (QWERTZ)
+   ============================================================ */
+const FINGERS = {
+  lp:{c:"#e76f51", n:"linker kleiner Finger"},
+  lr:{c:"#e89c3f", n:"linker Ringfinger"},
+  lm:{c:"#d9bb2f", n:"linker Mittelfinger"},
+  li:{c:"#5bb98c", n:"linker Zeigefinger"},
+  ri:{c:"#13b8d4", n:"rechter Zeigefinger"},
+  rm:{c:"#4c8be9", n:"rechter Mittelfinger"},
+  rr:{c:"#8b6fe9", n:"rechter Ringfinger"},
+  rp:{c:"#e76fb0", n:"rechter kleiner Finger"},
+  th:{c:"#9bb4bd", n:"Daumen"}
+};
+const KEY_ROWS = [
+  [{k:"^",f:"lp"},{k:"1",f:"lp"},{k:"2",f:"lr"},{k:"3",f:"lm"},{k:"4",f:"li"},{k:"5",f:"li"},{k:"6",f:"ri"},{k:"7",f:"ri"},{k:"8",f:"rm"},{k:"9",f:"rr"},{k:"0",f:"rp"},{k:"ß",f:"rp"},{k:"´",f:"rp"},{k:"Backspace",lbl:"⌫",w:2,f:"rp",special:true}],
+  [{k:"Tab",lbl:"⇥",w:1.5,f:"lp",special:true},{k:"q",f:"lp"},{k:"w",f:"lr"},{k:"e",f:"lm"},{k:"r",f:"li"},{k:"t",f:"li"},{k:"z",f:"ri"},{k:"u",f:"ri"},{k:"i",f:"rm"},{k:"o",f:"rr"},{k:"p",f:"rp"},{k:"ü",f:"rp"},{k:"+",f:"rp"}],
+  [{k:"CapsLock",lbl:"⇪",w:1.8,f:"lp",special:true},{k:"a",f:"lp",home:true},{k:"s",f:"lr",home:true},{k:"d",f:"lm",home:true},{k:"f",f:"li",home:true,bump:true},{k:"g",f:"li"},{k:"h",f:"ri"},{k:"j",f:"ri",home:true,bump:true},{k:"k",f:"rm",home:true},{k:"l",f:"rr",home:true},{k:"ö",f:"rp",home:true},{k:"ä",f:"rp",home:true},{k:"#",f:"rp"},{k:"Enter",lbl:"⏎",w:1.7,f:"rp",special:true}],
+  [{k:"Shift",lbl:"⇧",w:2,f:"lp",special:true},{k:"<",f:"lp"},{k:"y",f:"lp"},{k:"x",f:"lr"},{k:"c",f:"lm"},{k:"v",f:"li"},{k:"b",f:"li"},{k:"n",f:"ri"},{k:"m",f:"ri"},{k:",",f:"rm"},{k:".",f:"rr"},{k:"-",f:"rp"},{k:"Shift",lbl:"⇧",w:2.4,f:"rp",special:true}],
+  [{k:"Space",lbl:"Leertaste",w:9,f:"th",special:true}]
+];
+const isLetter = c => /^[a-zäöü]$/i.test(c);
+function findKeyDef(ch){ const t=(ch||"").toLowerCase(); for(const row of KEY_ROWS)for(const k of row){ if(!k.special && k.k.toLowerCase()===t) return k; } return null; }
+function fingerName(ch){ const k=findKeyDef(ch); return k?FINGERS[k.f].n:""; }
+function fingerColor(ch){ const k=findKeyDef(ch); return k?FINGERS[k.f].c:"var(--ocean-mid)"; }
+
+function buildKeyboard(opts={}){
+  const showF = opts.fingers!==undefined ? opts.fingers : state.fingers;
+  const el = mk("keyboard"+(showF?" fingers":""));
+  const map = {};
+  KEY_ROWS.forEach(row=>{
+    const r = mk("krow");
+    row.forEach(k=>{
+      const b = mk("key"+(k.special?" special":"")+(k.bump?" bump":""));
+      if(k.w){ b.style.flex="0 0 auto"; b.style.minWidth=(k.w*42)+"px"; }
+      const f = FINGERS[k.f]; if(f) b.style.setProperty("--fc", f.c);
+      const lbl = k.lbl || (isLetter(k.k)?k.k.toUpperCase():k.k);
+      b.innerHTML = (showF && !k.special?'<span class="fb"></span>':'') + `<span class="kl">${lbl}</span>`;
+      const token = k.special ? k.k : k.k.toLowerCase();
+      if(!map[token]) map[token] = b;
+      r.appendChild(b);
+    });
+    el.appendChild(r);
+  });
+  const find = ch => map[ch] || map[(ch||"").toLowerCase()];
+  return {
+    el, map,
+    flash(ch,ok){ const b=find(ch); if(!b)return; b.classList.remove("ok","bad"); void b.offsetWidth; b.classList.add(ok?"ok":"bad"); setTimeout(()=>b.classList.remove("ok","bad"),360); },
+    press(ch){ const b=find(ch); if(!b)return; b.classList.add("press"); setTimeout(()=>b.classList.remove("press"),110); },
+    highlight(chars){ (chars||[]).forEach(c=>{const b=find(c); if(b)b.classList.add("hot");}); },
+    clearHighlight(){ Object.values(map).forEach(b=>b.classList.remove("hot")); }
+  };
+}
+function fingerLegend(){
+  const order=["lp","lr","lm","li","ri","rm","rr","rp"];
+  return `<div class="fingerlegend">`+order.map(f=>`<span class="fl"><span class="sw" style="background:${FINGERS[f].c}"></span>${FINGERS[f].n}</span>`).join("")+`</div>`;
+}
+
+/* ============================================================
+   Tipp-Engine: zeigt ein Ziel und prüft Tasteneingaben
+   ============================================================ */
+function buildTyper(host, text, o={}){
+  const line = mk("typetarget");
+  const spans = [...text].map(c=>{
+    const s=document.createElement("span");
+    s.className="ch"+(c===" "?" space":"");
+    s.textContent = c===" " ? "␣" : c;
+    line.appendChild(s); return s;
+  });
+  host.appendChild(line);
+  let idx=0, errors=0, started=0;
+  function refresh(){
+    spans.forEach((s,i)=>s.classList.toggle("cur", i===idx));
+    if(o.kb){ o.kb.clearHighlight(); if(idx<text.length) o.kb.highlight([text[idx]]); }
+  }
+  function feed(e){
+    if(e.key==="Backspace"){ if(idx>0){ idx--; spans[idx].classList.remove("ok","bad"); refresh(); } return; }
+    const ch=getChar(e); if(ch==null) return;
+    if(started===0) started=performance.now();
+    if(ch===text[idx]){
+      spans[idx].classList.add("ok"); spans[idx].classList.remove("bad"); idx++;
+      sfx.step(); if(o.kb) o.kb.flash(ch,true);
+      o.onChar && o.onChar(idx,errors);
+      if(idx>=text.length){ o.onDone && o.onDone({secs:(performance.now()-started)/1000, errors, len:text.length}); return; }
+      refresh();
+    } else {
+      errors++; spans[idx].classList.add("bad"); if(o.kb) o.kb.flash(ch,false); sfx.soft();
+      o.onChar && o.onChar(idx,errors);
+    }
+  }
+  refresh();
+  return {feed};
+}
+
+/* ============================================================
+   Spielzustand & Hilfen
+   ============================================================ */
+function defaultGamify(){
+  return { xp:0, level:1, coins:0, badges:{}, stats:{ attempts:0, fails:0, streak:0, bestStreak:0, perfectStations:{} } };
+}
+const state = Object.assign({
+  current:"start", done:{}, sound:true, difficulty:"mittel", fingers:false,
+  mascotName:"Codi",
+  reduced: matchMedia("(prefers-reduced-motion:reduce)").matches
+}, defaultGamify());
+
+let _raf=null, _timers=[];
+function stopLoop(){ if(_raf){cancelAnimationFrame(_raf);_raf=null;} _timers.forEach(clearTimeout);_timers.forEach(clearInterval);_timers=[]; }
+function later(fn,ms){ const t=setTimeout(fn,ms);_timers.push(t);return t; }
+
+/* zentrale Tastatur-Eingabe: eine Station meldet ihren Handler an */
+let _keyHandler=null;
+function setKeyHandler(fn){ _keyHandler=fn; }
+function getChar(e){ return (e.key && e.key.length===1) ? e.key : null; }
+function specialToken(e){ return e.key==="Enter"?"Enter":e.key==="Backspace"?"Backspace":e.key==="Shift"?"Shift":e.key===" "?"Space":null; }
+document.addEventListener("keydown",e=>{
+  if(!_keyHandler) return;
+  if([" ","Backspace","Tab","Enter","'","/"].includes(e.key)) e.preventDefault();
+  if(audioCtx && audioCtx.resume) audioCtx.resume();
+  _keyHandler(e);
+});
+
+/* ---- Töne ---- */
+let audioCtx=null;
+function tone(freq,dur=0.12,type="sine",vol=0.18){
+  if(!state.sound) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+dur);
+    o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+const sfx={ good(){tone(660,.1,"sine",.16);later(()=>tone(880,.14,"sine",.16),90);},
+  step(){tone(560,.07,"triangle",.11);}, win(){[523,659,784,1046].forEach((f,i)=>later(()=>tone(f,.16,"sine",.17),i*120));},
+  soft(){tone(300,.1,"sine",.10);} };
+
+/* ============================================================
+   Gamification: XP, Level, Münzen, Abzeichen, Maskottchen
+   ============================================================ */
+const LEVELS = [
+  {min:0,   title:"Tipp-Lehrling"},
+  {min:60,  title:"Tipp-Schüler"},
+  {min:150, title:"Tipp-Kenner"},
+  {min:300, title:"Tipp-Profi"},
+  {min:500, title:"Tipp-Meister"}
+];
+function levelForXp(xp){ let lv=1,t=LEVELS[0].title; LEVELS.forEach((l,i)=>{ if(xp>=l.min){lv=i+1;t=l.title;} }); return {lv,title:t}; }
+
+const BADGES = {
+  first_key:     {icon:"👆", title:"Erste Taste"},
+  special_pro:   {icon:"↵", title:"Tasten-Kenner"},
+  shift_pro:     {icon:"⬆️", title:"Groß & Klein"},
+  home_row:      {icon:"🖐️", title:"Grundreihen-Held"},
+  word_wizard:   {icon:"📝", title:"Wort-Zauberer"},
+  sentence_star: {icon:"📚", title:"Satz-Star"},
+  rain_hero:     {icon:"🌧️", title:"Regen-Held"},
+  speed_typer:   {icon:"⚡", title:"Blitzfinger"},
+  racer:         {icon:"🏁", title:"Tipp-Renner"},
+  flawless:      {icon:"💎", title:"Fehlerfrei"},
+  streak5:       {icon:"🔥", title:"5er-Serie"},
+  halfway:       {icon:"🌟", title:"Halbzeit-Star"},
+  champion:      {icon:"🏆", title:"Tastatur-Champion"}
+};
+
+function toast(html,mood){
+  const t=mk("toast"+(mood?" "+mood:""),html);
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add("show"));
+  setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),350);},2600);
+}
+function floatXP(n){
+  const hud=$("#hud");if(!hud)return;const r=hud.getBoundingClientRect();
+  const f=mk("xpfloat");f.textContent="+"+n+" XP";
+  f.style.left=(r.left+r.width/2)+"px";f.style.top=(r.bottom+4)+"px";
+  document.body.appendChild(f);setTimeout(()=>f.remove(),1100);
+}
+function mascotReact(mood){
+  const bot=$(".bot");if(!bot)return;
+  const cls = mood==="level"?"bot-cheer":mood==="warn"?"bot-think":"bot-happy";
+  bot.classList.remove("bot-cheer","bot-happy","bot-think");
+  void bot.offsetWidth; bot.classList.add(cls);
+  setTimeout(()=>bot.classList.remove(cls),900);
+}
+function refreshHUD(){
+  const hud=$("#hud");if(!hud)return;
+  const {lv,title}=levelForXp(state.xp);state.level=lv;
+  $("#hudLvl").textContent="Lv "+lv;$("#hudLvl").title=title;
+  const cur=LEVELS[lv-1].min, next=LEVELS[lv]?LEVELS[lv].min:cur, span=Math.max(1,next-cur);
+  const pct = LEVELS[lv]? Math.min(100,Math.round((state.xp-cur)/span*100)) : 100;
+  $("#hudXp").style.width=pct+"%";
+  $("#hudXpTxt").textContent = LEVELS[lv]? (state.xp+" / "+next) : (state.xp+" XP");
+  $("#hudCoins").textContent="🪙 "+state.coins;
+}
+function awardXP(n,reason){
+  const before=state.level;
+  state.xp+=n;state.coins+=n;
+  const {lv,title}=levelForXp(state.xp);state.level=lv;
+  refreshHUD();floatXP(n);
+  if(lv>before){ sfx.win();mascotReact("level");
+    toast(`🎉 <b>Level ${lv}!</b><br>${state.mascotName}: „Stark – du bist jetzt <b>${title}</b>!"`,"good"); }
+  return lv>before;
+}
+function unlock(id){
+  if(state.badges[id]||!BADGES[id])return false;
+  state.badges[id]=true;const b=BADGES[id];
+  sfx.good();toast(`Abzeichen freigeschaltet:<br><b>${b.icon} ${b.title}</b>`,"good");
+  state.xp+=15;state.coins+=15;refreshHUD();
+  return true;
+}
+/* Zeit-Bonus ohne Bestrafung: nur bei Erfolg Extra-XP. */
+function timeBonus(t0, baseMs){
+  const target=baseMs*diff().timeWin, elapsed=performance.now()-t0;
+  if(elapsed<=target){ awardXP(10,"speed"); toast("⏱️ <b>Schnell-Bonus!</b> +10 XP","good"); return true; }
+  return false;
+}
+function registerAttempt(ok){
+  const s=state.stats;s.attempts++;
+  if(ok){ s.streak++; if(s.streak>s.bestStreak)s.bestStreak=s.streak; if(s.bestStreak>=5)unlock("streak5"); }
+  else { s.fails++; s.streak=0; }
+}
+function checkStationBadges(id){
+  unlock("first_key");
+  if(id==="kspecial")unlock("special_pro");
+  if(id==="kshift")unlock("shift_pro");
+  if(id==="khome")unlock("home_row");
+  if(id==="kwords")unlock("word_wizard");
+  if(id==="ksentence")unlock("sentence_star");
+  if(id==="kraindrop")unlock("rain_hero");
+  if(id==="kreflex")unlock("speed_typer");
+  if(id==="krace")unlock("racer");
+  if(id==="exam")unlock("champion");
+  if(Object.keys(state.done).length>=6)unlock("halfway");
+}
+
+/* ---- Anzeige ---- */
+function setInstruction(title,text){ $("#iTitle").textContent=title; $("#iText").innerHTML=text; }
+function setHint(html,mood){
+  const h=$("#hint"); h.className="hint"+(mood?" "+mood:"");
+  h.querySelector(".ic").textContent = mood==="good"?"✅":mood==="warn"?"💡":"💬";
+  $("#hintText").innerHTML=html;
+}
+function setCounter(num,label){ const c=$("#counter"); if(num==null){c.style.display="none";return;} c.style.display="";$("#cNum").textContent=num;$("#cLab").textContent=label||"Aufgabe"; }
+function showNext(show,label="Weiter"){ const b=$("#nextBtn"); b.style.display=show?"":"none"; b.textContent=label; }
+function showReplay(show){ $("#replayBtn").style.display=show?"":"none"; }
+function showSkip(show,fn){ const b=$("#skipBtn"); b.style.display=show?"":"none"; b.onclick=fn||null; }
+
+/* ---- Fortschritt ---- */
+function buildProgress(){
+  const nav=$("#progress");nav.innerHTML="";
+  STATIONS.forEach(st=>{ if(st.id==="start")return;
+    const b=document.createElement("button");b.className="stamp";b.dataset.id=st.id;
+    b.innerHTML=`<span class="dot">${st.icon}</span>${st.short}`;
+    b.addEventListener("click",()=>go(st.id));nav.appendChild(b);
+  });
+}
+function refreshProgress(){
+  $$(".stamp").forEach(b=>{const id=b.dataset.id;
+    b.classList.toggle("done",!!state.done[id]);b.classList.toggle("active",state.current===id);
+    b.querySelector(".dot").textContent=state.done[id]?"✓":STATIONS.find(s=>s.id===id).icon;});
+}
+function markDone(id){ state.done[id]=true; refreshProgress(); }
+
+/* ---- Router ---- */
+function go(id){
+  stopLoop(); _keyHandler=null;
+  state.current=id;
+  document.body.dataset.screen=id;
+  const stage=$("#stage");stage.innerHTML="";
+  setHint("","");showNext(false);showReplay(false);showSkip(false);setCounter(null);
+  refreshProgress();refreshHUD();
+  if(id!=="start" && id!=="exam_done" && id!=="exam"){ showSkip(true,()=>go(nextStationId())); }
+  (SCREENS[id]||SCREENS.start)(stage);
+  $("main").scrollTop=0;
+}
+function nextStationId(){ const i=STATIONS.findIndex(s=>s.id===state.current); return STATIONS[Math.min(i+1,STATIONS.length-1)].id; }
+function completeStation(id,msg,opts){
+  const isNew=!state.done[id];
+  markDone(id);setHint(msg||"Super gemacht! 🎉","good");sfx.win();showSkip(false);
+  if(isNew){
+    awardXP(id==="exam"?50:20,"station");
+    registerAttempt(true);
+    if(opts&&opts.perfect){ state.stats.perfectStations[id]=true; unlock("flawless"); }
+    checkStationBadges(id);
+  }
+  const next=nextStationId();showReplay(true);
+  if(id==="exam"){ showNext(true,"Urkunde anzeigen 🏆"); $("#nextBtn").onclick=()=>go("exam_done"); }
+  else{ showNext(true,"Weiter zu „"+STATIONS.find(s=>s.id===next).short+"“ ›"); $("#nextBtn").onclick=()=>go(next); }
+}
+$("#replayBtn").addEventListener("click",()=>go(state.current));
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+const SCREENS={};
+
+/* ---------- Start ---------- */
+SCREENS.start=(stage)=>{
+  setInstruction(`Hallo, ich bin ${state.mascotName}! 🤖`,
+    `Hier lernst du die <b>Tastatur</b> kennen – Schritt für Schritt und mit lustigen Tipp-Spielen. Schau dir zuerst an, wie du deine Finger richtig hinlegst.`);
+  setHint("Schau dir die Tastatur an und klicke dann auf „Los geht’s“.","");
+  const wrap=mk("start");
+  wrap.innerHTML=`<div class="big">⌨️</div>
+    <h1>Das ist deine Tastatur</h1>
+    <p class="lead">Mit der Tastatur schreibst du Buchstaben, Wörter und Sätze. Jeder Finger hat seinen eigenen Platz.
+    Die <b>Grundreihe</b> in der Mitte ist dein Zuhause – von dort erreichst du alle Tasten.</p>
+    <div class="hand-guide">
+      <h2>🖐️ So legst du die Finger richtig</h2>
+      <ol>
+        <li>Lege die <b>linken</b> vier Finger auf <b>a&nbsp;s&nbsp;d&nbsp;f</b> und die <b>rechten</b> vier Finger auf <b>j&nbsp;k&nbsp;l&nbsp;ö</b>.</li>
+        <li>Auf <b>F</b> und <b>J</b> spürst du kleine Erhebungen. So findest du die Grundreihe, ohne hinzusehen.</li>
+        <li>Die beiden <b>Daumen</b> liegen locker auf der <b>Leertaste</b>.</li>
+        <li>Jeder Finger drückt nur seine eigenen Tasten und kehrt danach in die Grundreihe zurück.</li>
+        <li>Bleib <b>locker</b> und schau lieber auf den Bildschirm als auf die Tasten.</li>
+      </ol>
+    </div>`;
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:true});
+  kb.highlight(["a","s","d","f","j","k","l","ö"]); kbHost.appendChild(kb.el);
+  wrap.appendChild(kbHost);
+  const btn=document.createElement("button");btn.className="btn btn-primary";btn.id="goStart";
+  btn.style.cssText="font-size:1.1rem;padding:13px 34px;margin-top:18px;";btn.textContent="Los geht’s ›";
+  wrap.appendChild(btn);
+  stage.appendChild(wrap);
+  btn.addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go("kfind"); });
+};
+
+/* ---------- Tasten finden ---------- */
+SCREENS.kfind=(stage)=>{
+  const N=stationNumber("kfind");
+  setInstruction(`Station ${N} · Tasten finden 🔎`,
+    "Eine Taste leuchtet <b>orange</b> auf. Finde sie auf deiner echten Tastatur und drücke sie!");
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard();
+  kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+  const POOL=["a","s","d","f","j","k","l","ö","e","r","u","i","o","n","m","t","w","g","h","b"];
+  const TOTAL=dCount(7,5); let done=0,target=null,fault=false;
+  setCounter(`0/${TOTAL}`,"gefunden");
+  function pick(){
+    kb.clearHighlight();
+    target=POOL[(Math.random()*POOL.length)|0];
+    kb.highlight([target]);
+    setHint(`Drücke die Taste <b>${target.toUpperCase()}</b>.`,"");
+  }
+  setKeyHandler(e=>{
+    const ch=getChar(e); if(ch==null) return;
+    kb.press(ch);
+    if(ch.toLowerCase()===target){
+      kb.flash(target,true);sfx.good();done++;registerAttempt(true);
+      setCounter(`${done}/${TOTAL}`,"gefunden");
+      if(done>=TOTAL){ kb.clearHighlight(); completeStation("kfind","Klasse! Du findest die Tasten super! 🎉",{perfect:!fault}); }
+      else { setHint("Richtig! 👍","good"); later(pick,450); }
+    } else {
+      kb.flash(ch,false);sfx.soft();registerAttempt(false);fault=true;
+      setHint(`Das war <b>${ch.toUpperCase()}</b>. Suche die orange Taste <b>${target.toUpperCase()}</b>.`,"warn");
+    }
+  });
+  pick();
+};
+
+/* ---------- Sondertasten ---------- */
+SCREENS.kspecial=(stage)=>{
+  const N=stationNumber("kspecial");
+  setInstruction(`Station ${N} · Sondertasten ↵`,"Nicht alle Tasten machen Buchstaben. Diese hier sind besonders wichtig:");
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard();
+  kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+  const TASKS=[
+    {tok:"Space",   lbl:"Leertaste", text:"Mit der <b>Leertaste</b> machst du den Abstand zwischen Wörtern."},
+    {tok:"Enter",   lbl:"Enter",     text:"Mit <b>Enter ⏎</b> beginnst du eine neue Zeile oder bestätigst etwas."},
+    {tok:"Backspace",lbl:"Rücktaste",text:"Mit der <b>Rücktaste ⌫</b> löschst du das letzte Zeichen wieder."},
+    {tok:"Shift",   lbl:"Umschalt",  text:"Mit <b>Umschalt ⇧</b> (gibt es links und rechts) machst du große Buchstaben."}
+  ];
+  let i=0,fault=false;
+  setCounter(`0/${TASKS.length}`,"gelernt");
+  function ask(){
+    kb.clearHighlight();
+    const t=TASKS[i]; kb.highlight([t.tok]);
+    setInstruction(`Station ${N} · Sondertasten ↵`, t.text);
+    setHint(`Drücke die <b>${t.lbl}</b>.`,"");
+  }
+  setKeyHandler(e=>{
+    const tok=specialToken(e); const t=TASKS[i];
+    if(tok===t.tok){
+      kb.flash(t.tok,true);sfx.good();i++;registerAttempt(true);
+      setCounter(`${i}/${TASKS.length}`,"gelernt");
+      if(i>=TASKS.length){ kb.clearHighlight(); completeStation("kspecial","Super! Du kennst jetzt die wichtigen Sondertasten. 🎉",{perfect:!fault}); }
+      else { setHint("Richtig! 👍","good"); later(ask,500); }
+    } else if(tok){ kb.flash(tok,false);sfx.soft();fault=true; setHint(`Das war eine andere Taste. Gesucht: <b>${t.lbl}</b>.`,"warn"); }
+    else { fault=true; setHint(`Drücke die <b>${t.lbl}</b> (keine Buchstaben-Taste).`,"warn"); }
+  });
+  ask();
+};
+
+/* ---------- Großbuchstaben ---------- */
+SCREENS.kshift=(stage)=>{
+  const N=stationNumber("kshift");
+  setInstruction(`Station ${N} · Großbuchstaben ⬆️`,
+    "Halte <b>Umschalt ⇧</b> gedrückt und tippe dann den Buchstaben – so wird er <b>GROSS</b>.");
+  const box=mk("typebox"); stage.appendChild(box);
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard(); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+  const POOL=shuffle(["a","s","d","f","j","k","l","e","r","m","n","t","o","b","g"]);
+  const TOTAL=dCount(6,5); let done=0,target=null,fault=false;
+  setCounter(`0/${TOTAL}`,"geschafft");
+  function pick(){
+    kb.clearHighlight();
+    target=POOL[done%POOL.length];
+    kb.highlight([target,"Shift"]);
+    box.innerHTML=`<div class="bigchar">${target.toUpperCase()}</div><div class="statbar">Tippe ein großes <b>${target.toUpperCase()}</b></div>`;
+    setHint("Umschalt ⇧ halten und dann die Taste drücken.","");
+  }
+  setKeyHandler(e=>{
+    if(e.key==="Shift") return;
+    const ch=getChar(e); if(ch==null) return;
+    kb.press(ch);
+    if(ch===target.toUpperCase()){
+      kb.flash(target,true);sfx.good();done++;registerAttempt(true);
+      setCounter(`${done}/${TOTAL}`,"geschafft");
+      if(done>=TOTAL){ kb.clearHighlight(); completeStation("kshift","Groß und klein – du beherrschst beides! 🎉",{perfect:!fault}); }
+      else { setHint("Richtig groß! 👍","good"); later(pick,450); }
+    } else if(ch.toLowerCase()===target){
+      kb.flash(ch,false);sfx.soft();fault=true;
+      setHint("Fast! Du musst dabei <b>Umschalt ⇧</b> gedrückt halten.","warn");
+    } else {
+      kb.flash(ch,false);sfx.soft();fault=true;
+      setHint(`Gesucht ist ein großes <b>${target.toUpperCase()}</b>.`,"warn");
+    }
+  });
+  pick();
+};
+
+/* ---------- Grundreihe ---------- */
+SCREENS.khome=(stage)=>{
+  const N=stationNumber("khome");
+  setInstruction(`Station ${N} · Grundreihe 🖐️`,
+    "Das ist deine Heimat-Reihe. Drücke die Tasten der Reihe nach – jede Farbe zeigt den passenden Finger.");
+  const legend=mk(null,fingerLegend()); stage.appendChild(legend);
+  const info=mk("infobox",`Lege die Finger locker auf <b>a s d f</b> (links) und <b>j k l ö</b> (rechts). Auf <b>F</b> und <b>J</b> sind die kleinen Erhebungen.`);
+  info.style.maxWidth="640px";info.style.margin="0 auto 6px";stage.appendChild(info);
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:true}); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+  const SEQ=["a","s","d","f","j","k","l","ö"]; let idx=0,fault=false;
+  setCounter(`0/${SEQ.length}`,"Tasten");
+  function ask(){
+    kb.clearHighlight();
+    const t=SEQ[idx]; kb.highlight([t]);
+    setHint(`Drücke <b>${t.toUpperCase()}</b> mit dem <b style="color:${fingerColor(t)}">${fingerName(t)}</b>.`,"");
+  }
+  setKeyHandler(e=>{
+    const ch=getChar(e); if(ch==null) return;
+    kb.press(ch);
+    const t=SEQ[idx];
+    if(ch.toLowerCase()===t){
+      kb.flash(t,true);sfx.good();idx++;registerAttempt(true);
+      setCounter(`${idx}/${SEQ.length}`,"Tasten");
+      if(idx>=SEQ.length){ kb.clearHighlight(); completeStation("khome","Die ganze Grundreihe – stark gemacht! 🖐️🎉",{perfect:!fault}); }
+      else { setHint("Richtig! 👍","good"); later(ask,350); }
+    } else { kb.flash(ch,false);sfx.soft();fault=true; setHint(`Nimm die Taste <b>${t.toUpperCase()}</b>.`,"warn"); }
+  });
+  ask();
+};
+
+/* ---------- Finger-Training ---------- */
+SCREENS.kfingers=(stage)=>{
+  const N=stationNumber("kfingers");
+  setInstruction(`Station ${N} · Finger-Training ✋`,
+    "Jetzt aus allen Reihen! Schau, welcher <b>Finger</b> dran ist, und drücke die passende Taste.");
+  const legend=mk(null,fingerLegend()); stage.appendChild(legend);
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:true}); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+  const POOL=shuffle(["q","w","e","r","t","z","u","i","o","p","a","s","d","f","g","h","j","k","l","y","x","c","v","b","n","m"]);
+  const TOTAL=dCount(9,6); let done=0,target=null,fault=false;
+  setCounter(`0/${TOTAL}`,"geschafft");
+  function pick(){
+    kb.clearHighlight();
+    target=POOL[done%POOL.length];
+    kb.highlight([target]);
+    setHint(`<b>${target.toUpperCase()}</b> – mit dem <b style="color:${fingerColor(target)}">${fingerName(target)}</b>.`,"");
+  }
+  setKeyHandler(e=>{
+    const ch=getChar(e); if(ch==null) return;
+    kb.press(ch);
+    if(ch.toLowerCase()===target){
+      kb.flash(target,true);sfx.good();done++;registerAttempt(true);
+      setCounter(`${done}/${TOTAL}`,"geschafft");
+      if(done>=TOTAL){ kb.clearHighlight(); completeStation("kfingers","Jeder Finger sitzt – klasse! ✋🎉",{perfect:!fault}); }
+      else { setHint("Richtig! 👍","good"); later(pick,350); }
+    } else { kb.flash(ch,false);sfx.soft();fault=true; setHint(`Gesucht: <b>${target.toUpperCase()}</b> (${fingerName(target)}).`,"warn"); }
+  });
+  pick();
+};
+
+/* ---------- Wörter tippen ---------- */
+SCREENS.kwords=(stage)=>{
+  const N=stationNumber("kwords");
+  setInstruction(`Station ${N} · Wörter tippen 📝`,"Tippe das Wort Buchstabe für Buchstabe. Die nächste Taste leuchtet auf.");
+  const box=mk("typebox"); stage.appendChild(box);
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard(); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+  const POOL=shuffle((state.difficulty==="schwer"?WORDS:WORDS_EASY.concat(WORDS.slice(0,6))).slice());
+  const TOTAL=dCount(5,4); let i=0,fault=false;
+  setCounter(`0/${TOTAL}`,"Wörter");
+  function nextWord(){
+    box.innerHTML=""; const word=POOL[i%POOL.length];
+    const typer=buildTyper(box,word,{kb,
+      onChar:(idx,err)=>{ if(err)fault=true; },
+      onDone:()=>{ i++; sfx.good(); kb.clearHighlight();
+        setCounter(`${i}/${TOTAL}`,"Wörter");
+        if(i>=TOTAL) completeStation("kwords","Du tippst schon ganze Wörter – super! 📝🎉",{perfect:!fault});
+        else { setHint("Super! Nächstes Wort …","good"); later(nextWord,500); } }
+    });
+    setHint("Tippe das Wort ab.","");
+    setKeyHandler(e=>typer.feed(e));
+  }
+  nextWord();
+};
+
+/* ---------- Sätze tippen ---------- */
+SCREENS.ksentence=(stage)=>{
+  const N=stationNumber("ksentence");
+  setInstruction(`Station ${N} · Sätze tippen 📚`,"Jetzt ganze Sätze – mit <b>Leertaste</b> und Punkt. Wie schnell und genau schaffst du es?");
+  const box=mk("typebox"); stage.appendChild(box);
+  const stat=mk("statbar"); stat.style.marginTop="6px"; box.appendChild(stat);
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard(); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+  const POOL=shuffle(SENTENCES.slice());
+  const TOTAL=dCount(3,2); let i=0,fault=false;
+  setCounter(`0/${TOTAL}`,"Sätze");
+  function nextSentence(){
+    const text=POOL[i%POOL.length];
+    box.innerHTML=""; box.appendChild(stat); stat.innerHTML="";
+    const typer=buildTyper(box,text,{kb,
+      onChar:(idx,err)=>{ if(err)fault=true; },
+      onDone:({secs,errors,len})=>{
+        i++; sfx.good(); kb.clearHighlight();
+        const wpm=Math.max(1,Math.round((len/5)/(secs/60)));
+        const acc=Math.round(len/(len+errors)*100);
+        stat.innerHTML=`<span>Tempo: <b>${wpm}</b> WPM</span><span>Genauigkeit: <b>${acc}%</b></span>`;
+        setCounter(`${i}/${TOTAL}`,"Sätze");
+        if(i>=TOTAL) later(()=>completeStation("ksentence","Ganze Sätze geschafft – toll gemacht! 📚🎉",{perfect:!fault}),900);
+        else { setHint(`Stark! ${wpm} WPM. Nächster Satz …`,"good"); later(nextSentence,1200); }
+      }
+    });
+    setHint("Tippe den Satz ab (Großbuchstabe mit Umschalt ⇧).","");
+    setKeyHandler(e=>typer.feed(e));
+  }
+  nextSentence();
+};
+
+/* ---------- Wortregen ---------- */
+SCREENS.kraindrop=(stage)=>{
+  const N=stationNumber("kraindrop");
+  setInstruction(`Station ${N} · Wortregen 🌧️`,
+    "Wörter fallen herab! Tippe ein Wort, bevor es unten ankommt. Fang einfach mit dem <b>ersten Buchstaben</b> an.");
+  const field=mk("rainfield");
+  const bottom=mk("rainbottom",`<span>Du tippst:</span> <span class="raininput" id="rainBuf">…</span>`);
+  field.appendChild(bottom); stage.appendChild(field);
+  const D=diff();
+  const POOL=(state.difficulty==="schwer"?WORDS:WORDS_EASY).slice();
+  const TOTAL=dCount(7,5);
+  let drops=[],cleared=0,spawned=0,locked=null,last=0,spawnAcc=1e9;
+  setCounter(`0/${TOTAL}`,"geschafft");
+  const W=()=>field.clientWidth, FLOOR=()=>field.clientHeight-52;
+  function renderDrop(d){
+    d.el.querySelector(".typed").textContent=d.word.slice(0,d.typed);
+    d.el.querySelector(".rest").textContent=d.word.slice(d.typed);
+    d.el.classList.toggle("active",locked===d);
+  }
+  function spawn(){
+    spawned++;
+    const word=POOL[(Math.random()*POOL.length)|0];
+    const el=mk("raindrop",`<span class="typed"></span><span class="rest">${word}</span>`);
+    field.appendChild(el);
+    const x=40+Math.random()*Math.max(40,(W()-80));
+    const d={el,word,x,y:-10,typed:0};
+    el.style.left=x+"px"; el.style.top="-10px"; drops.push(d);
+  }
+  function setBuf(){ $("#rainBuf").textContent = locked ? locked.word.slice(0,locked.typed)+"…" : "…"; }
+  setKeyHandler(e=>{
+    const ch=getChar(e); if(ch==null) return;
+    if(!locked){
+      let best=null;
+      drops.forEach(d=>{ if(d.word[0]===ch && (!best||d.y>best.y)) best=d; });
+      if(best){ locked=best;best.typed=1;renderDrop(best);sfx.step(); } else { sfx.soft(); }
+    } else {
+      if(locked.word[locked.typed]===ch){
+        locked.typed++; sfx.step();
+        if(locked.typed>=locked.word.length){
+          locked.el.remove(); drops=drops.filter(x=>x!==locked); cleared++;
+          setCounter(`${cleared}/${TOTAL}`,"geschafft"); awardXP(4,"rain"); sfx.good(); locked=null;
+          if(cleared>=TOTAL){ stopLoop(); setBuf(); completeStation("kraindrop","Wortregen gemeistert! 🌧️🎉"); return; }
+        } else renderDrop(locked);
+      } else { sfx.soft(); locked.typed=0; renderDrop(locked); locked=null; }
+    }
+    setBuf();
+  });
+  last=performance.now();
+  (function loop(t){
+    const dt=Math.min(60,t-last); last=t; spawnAcc+=dt;
+    // Nachschub, solange noch nicht genug Wörter gefallen sind und höchstens 3 gleichzeitig fliegen.
+    if(spawnAcc>=D.rainSpawn && spawned<TOTAL && drops.length<3){ spawn(); spawnAcc=0; }
+    const speed=0.045*D.rainSpeed;
+    for(const d of [...drops]){
+      d.y+=speed*dt; d.el.style.top=d.y+"px";
+      if(d.y>=FLOOR()){
+        d.el.remove(); drops=drops.filter(x=>x!==d);
+        if(locked===d){ locked=null; setBuf(); }
+        spawned--; mascotReact("warn");
+      }
+    }
+    _raf=requestAnimationFrame(loop);
+  })(last);
+};
+
+/* ---------- Blitz-Taste ---------- */
+SCREENS.kreflex=(stage)=>{
+  const N=stationNumber("kreflex");
+  setInstruction(`Station ${N} · Blitz-Taste ⚡`,"Eine Taste blitzt auf. Drücke sie so <b>schnell</b> wie du kannst – aber erst, wenn sie leuchtet!");
+  const wrap=mk("reflexbig"); const big=mk("bigkey"); big.textContent="…"; wrap.appendChild(big); stage.appendChild(wrap);
+  const POOL=["a","s","d","f","j","k","l","e","r","u","i","o","n","m"];
+  const TOTAL=dCount(5,4); let done=0,target=null,t0=0,fault=false;
+  setCounter(`0/${TOTAL}`,"Runden");
+  function arm(){
+    big.classList.remove("go"); big.textContent="…"; target=null;
+    setHint("Achtung … gleich geht’s los!","");
+    later(()=>{ target=POOL[(Math.random()*POOL.length)|0]; big.textContent=target.toUpperCase(); big.classList.add("go"); t0=performance.now(); sfx.step(); setHint("Jetzt drücken! ⚡",""); }, 700+Math.random()*1600);
+  }
+  setKeyHandler(e=>{
+    const ch=getChar(e); if(ch==null) return;
+    if(!target){ setHint("Noch nicht! Warte, bis die Taste leuchtet.","warn"); fault=true; return; }
+    if(ch.toLowerCase()===target){
+      const ms=performance.now()-t0; big.classList.remove("go"); sfx.good(); done++; registerAttempt(true);
+      setCounter(`${done}/${TOTAL}`,"Runden"); timeBonus(t0,900);
+      if(ms<420) toast("⚡ <b>Blitzschnell!</b>","good");
+      target=null;
+      if(done>=TOTAL) completeStation("kreflex","Blitzschnelle Finger! ⚡🎉",{perfect:!fault});
+      else later(arm,650);
+    } else { sfx.soft(); fault=true; setHint(`Das war <b>${ch.toUpperCase()}</b>. Gesucht: <b>${target.toUpperCase()}</b>.`,"warn"); }
+  });
+  arm();
+};
+
+/* ---------- Tipp-Rennen ---------- */
+SCREENS.krace=(stage)=>{
+  const N=stationNumber("krace");
+  setInstruction(`Station ${N} · Tipp-Rennen 🏁`,"Tippe die Wörter. Mit jedem fertigen Wort läuft dein Läufer weiter Richtung Ziel!");
+  const wrap=mk("racewrap");
+  const track=mk("racetrack",`<span class="racerunner" id="runner">🏃</span><span class="racefinish">🏁</span>`);
+  const box=mk("typebox"); wrap.appendChild(track); wrap.appendChild(box); stage.appendChild(wrap);
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard(); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+  const POOL=shuffle((state.difficulty==="schwer"?WORDS:WORDS_EASY).slice());
+  const TOTAL=dCount(6,5); let i=0,fault=false;
+  setCounter(`0/${TOTAL}`,"Wörter");
+  function place(){ $("#runner").style.left=(4+(i/TOTAL)*88)+"%"; }
+  function nextWord(){
+    box.innerHTML=""; const word=POOL[i%POOL.length];
+    const typer=buildTyper(box,word,{kb,
+      onChar:(idx,err)=>{ if(err)fault=true; },
+      onDone:()=>{ i++; sfx.good(); kb.clearHighlight(); place(); setCounter(`${i}/${TOTAL}`,"Wörter");
+        if(i>=TOTAL){ $("#runner").textContent="🎉"; completeStation("krace","Als Erster im Ziel! 🏁🎉",{perfect:!fault}); }
+        else { setHint("Lauf weiter! 🏃","good"); later(nextWord,350); } }
+    });
+    setHint("Tippe das Wort, um zu laufen.","");
+    setKeyHandler(e=>typer.feed(e));
+  }
+  place(); nextWord();
+};
+
+/* ---------- Prüfung ---------- */
+SCREENS.exam=(stage)=>{
+  setInstruction("Prüfung 🏆","Zeig, was du kannst: eine Taste finden, ein Wort tippen und einen Satz schreiben!");
+  showSkip(false);
+  const wrap=mk("examwrap");
+  const desk=mk("examdesk");
+  const list=mk("checklist",`<h3>Deine Aufgaben</h3><ol>
+    <li id="ex1">Eine leuchtende Taste drücken</li>
+    <li id="ex2">Ein Wort fehlerfrei tippen</li>
+    <li id="ex3">Einen Satz tippen</li></ol>`);
+  wrap.appendChild(desk); wrap.appendChild(list); stage.appendChild(wrap);
+  let step=1, fault=false;
+  function activate(n){ for(let i=1;i<=3;i++){ const li=$("#ex"+i); li.classList.toggle("active",i===n); li.classList.toggle("done",i<n); } step=n; }
+
+  function stepKey(){
+    desk.innerHTML="";
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
+    const target=["a","s","d","f","j","k","l","e","r","u"][ (Math.random()*10)|0 ];
+    kb.highlight([target]);
+    setHint(`Schritt 1: Drücke die leuchtende Taste <b>${target.toUpperCase()}</b>.`,"");
+    setKeyHandler(e=>{ const ch=getChar(e); if(ch==null)return; kb.press(ch);
+      if(ch.toLowerCase()===target){ kb.flash(target,true);sfx.good();activate(2);stepWord(); }
+      else { kb.flash(ch,false);sfx.soft();fault=true; setHint(`Gesucht: <b>${target.toUpperCase()}</b>.`,"warn"); } });
+  }
+  function stepWord(){
+    desk.innerHTML="";
+    const box=mk("typebox"); desk.appendChild(box);
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
+    const word=WORDS[(Math.random()*WORDS.length)|0];
+    const typer=buildTyper(box,word,{kb,onChar:(idx,err)=>{if(err)fault=true;},
+      onDone:()=>{ sfx.good();kb.clearHighlight();activate(3);stepSentence(); }});
+    setHint("Schritt 2: Tippe das Wort ab.","");
+    setKeyHandler(e=>typer.feed(e));
+  }
+  function stepSentence(){
+    desk.innerHTML="";
+    const box=mk("typebox"); desk.appendChild(box);
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
+    const text=SENTENCES[(Math.random()*SENTENCES.length)|0];
+    const typer=buildTyper(box,text,{kb,onChar:(idx,err)=>{if(err)fault=true;},
+      onDone:()=>{ kb.clearHighlight(); $("#ex3").classList.add("done"); $("#ex3").classList.remove("active");
+        completeStation("exam","Prüfung mit Bravour bestanden! 🏆",{perfect:!fault}); }});
+    setHint("Schritt 3: Tippe den ganzen Satz.","");
+    setKeyHandler(e=>typer.feed(e));
+  }
+  activate(1); stepKey();
+};
+
+/* ---------- Urkunde ---------- */
+SCREENS.exam_done=(stage)=>{
+  setInstruction("Geschafft! 🎉",`${state.mascotName}: „Riesenklasse! Du hast alle Stationen gemeistert. Trage deinen Namen ein und drucke deine Urkunde aus."`);
+  setHint("Trage deinen Namen ein und klicke auf „Drucken“.","good");
+  const today=new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"long",year:"numeric"});
+  const skills=STATIONS.filter(s=>s.id!=="start").map(s=>[s.icon,s.short]);
+  const skillBadges=skills.map(s=>`<span class="badge">${s[0]} ${s[1]}</span>`).join("");
+  const earned=Object.keys(state.badges).filter(id=>BADGES[id]);
+  const achBadges=earned.length
+    ? earned.map(id=>`<span class="badge ach">${BADGES[id].icon} ${BADGES[id].title}</span>`).join("")
+    : `<span class="badge">Noch keine – beim nächsten Mal! 😊</span>`;
+  const {title}=levelForXp(state.xp);
+  stage.innerHTML=`<div class="urkunde" id="urkunde"><div class="seal">🏅</div>
+    <h1>Tastatur-Führerschein</h1>
+    <div class="sub">Diese Urkunde bestätigt, dass die Tastatur sicher bedient werden kann.</div>
+    <div class="nameline"><input id="nameInput" type="text" placeholder="Dein Name" aria-label="Name"><div class="cap">Name</div>
+      <div class="privacy-note">Wird nur für die Urkunde verwendet – nicht gespeichert oder gesendet.</div></div>
+    <div class="badges">${skillBadges}</div>
+    <div style="font-size:.8rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin:14px 0 6px;">Gesammelte Abzeichen</div>
+    <div class="badges">${achBadges}</div>
+    <div class="foot"><span>Ausgestellt am ${today}</span><span>${title} · ${state.xp} XP · 🪙 ${state.coins}</span></div></div>`;
+  showReplay(false);showSkip(false);showNext(true,"🖨️ Drucken");$("#nextBtn").onclick=()=>window.print();
+};
+
+/* ---------- Einstellungen ---------- */
+$("#gearBtn").addEventListener("click",()=>{$("#overlay").style.display="flex";});
+$("#closeSet").addEventListener("click",()=>{$("#overlay").style.display="none";});
+$("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay")$("#overlay").style.display="none";});
+$("#soundChk").addEventListener("change",e=>{state.sound=e.target.checked;if(state.sound){if(audioCtx)audioCtx.resume&&audioCtx.resume();sfx.step();}});
+$("#fingerChk").addEventListener("change",e=>{ state.fingers=e.target.checked; go(state.current); });
+$("#diffSel").addEventListener("change",e=>{ state.difficulty=e.target.value; $("#overlay").style.display="none"; go(state.current); });
+$("#resetBtn").addEventListener("click",()=>{
+  state.done={};Object.assign(state,defaultGamify());
+  refreshProgress();refreshHUD();$("#overlay").style.display="none";go("start");
+});
+
+buildProgress();refreshHUD();
+go("start");
+</script>
+</body>
+</html>
