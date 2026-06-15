@@ -2348,15 +2348,15 @@ function arkanoidGame(stage,opts){
   opts=opts||{};
   const isStation=!!opts.station;
   if(isStation){
-    setHint("Zeiger auf das Paddel setzen und ruhig nach links/rechts schieben – kein Klicken nötig.","");
+    setHint("Linke Maustaste auf dem Paddel gedrückt halten und nach links/rechts ziehen.","");
   }else{
     unlock("bonus_fan");bonusBackBar();
     setInstruction("Bonus-Spiel 🎁 · Ball & Paddel",
-      "Fahre mit dem <b>Mauszeiger auf das Paddel</b> und bewege dann die Maus nach "+
-      "<b>links und rechts</b>, um es zu steuern. So bleiben Zeiger und Paddel zusammen. "+
+      "Drücke mit dem Zeiger auf das <b>Paddel</b> und <b>halte die linke Maustaste gedrückt</b>. "+
+      "Ziehe die Maus dann nach <b>links und rechts</b>, um das Paddel zu steuern. "+
       "Der Ball prallt von oben zurück und zerlegt die Steine – jeder gibt <b>+2 XP</b>. "+
       "Du hast <b>45 Sekunden</b>!");
-    setHint("Zeiger auf das Paddel setzen und ruhig nach links/rechts schieben – kein Klicken nötig.","");
+    setHint("Linke Maustaste auf dem Paddel gedrückt halten und nach links/rechts ziehen.","");
   }
   const field=document.createElement("div");field.className="meadow";
   field.style.position="relative";field.style.overflow="hidden";stage.appendChild(field);
@@ -2427,7 +2427,7 @@ function arkanoidGame(stage,opts){
     if(isStation){
       setInstruction(`Station ${opts.N} · Arkanoid (Runde ${round+1}/${TOTAL_ROUNDS})`,
         round===0
-          ? "Fahre mit dem <b>Mauszeiger auf das Paddel</b> und bewege die Maus nach <b>links und rechts</b>. "+
+          ? "Drücke mit dem Zeiger auf das <b>Paddel</b>, <b>halte die linke Maustaste gedrückt</b> und ziehe nach <b>links und rechts</b>. "+
             "Der Ball prallt vom Paddel zurück und zerlegt die Steine. Räume das ganze Feld leer, um eine Runde weiterzukommen!"
           : "Nächste Runde – jetzt mit <b>mehr Steinen</b> und einem <b>schnelleren Ball</b>. Räume das Feld wieder leer!");
       setCounter(`${round+1}/${TOTAL_ROUNDS}`,"Runde");
@@ -2439,9 +2439,11 @@ function arkanoidGame(stage,opts){
   // field ist bereits im DOM, Maße stehen → erste Runde aufbauen.
   startRound();
 
-  // Das Paddel ist nur steuerbar, wenn der Zeiger wirklich auf dem Paddel liegt.
-  // Beim "Greifen" merken wir uns den Abstand Zeiger↔Paddel-Kante, damit Zeiger
-  // und Paddel synchron bleiben (der Zeiger bleibt an derselben Stelle des Paddels).
+  // Das Paddel wird mit gehaltener linker Maustaste "gegriffen" und gezogen.
+  // Beim Drücken merken wir uns den Abstand Zeiger↔Paddel-Kante, damit Zeiger
+  // und Paddel beim Ziehen synchron bleiben. Solange die Taste gehalten wird,
+  // folgt das Paddel der Maus – auch wenn der Zeiger es kurz verlässt. So
+  // rutscht nichts mehr ab. Loslassen (oder Verlassen des Felds) gibt es frei.
   let grabbed=false, grabDX=0;
   const TOL=8; // kleine Grosszuegigkeit beim Treffen des Paddels
   function setGrabbed(on){
@@ -2451,20 +2453,24 @@ function arkanoidGame(stage,opts){
     pad.style.outlineColor=on?"rgba(255,255,255,.85)":"rgba(255,255,255,0)";
     pad.style.transform=on?"translateY(-1px)":"none";
   }
-  field.addEventListener("mousemove",e=>{
-    if(over)return;
+  function onPad(mx,my){
+    const padTop=H()-14-padH;
+    return my>=padTop-TOL && my<=padTop+padH+TOL &&
+           mx>=padX-TOL && mx<=padX+padW+TOL;
+  }
+  field.addEventListener("mousedown",e=>{
+    if(over||e.button!==0)return;
     const rect=field.getBoundingClientRect();
     const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-    const padTop=H()-14-padH;
-    const onPad = my>=padTop-TOL && my<=padTop+padH+TOL &&
-                  mx>=padX-TOL && mx<=padX+padW+TOL;
-    if(onPad){
-      if(!grabbed){grabDX=mx-padX;setGrabbed(true);}
-      padX=Math.max(0,Math.min(W()-padW, mx-grabDX));
-    }else{
-      setGrabbed(false);
-    }
+    if(onPad(mx,my)){ grabDX=mx-padX; setGrabbed(true); e.preventDefault(); }
   });
+  field.addEventListener("mousemove",e=>{
+    if(over||!grabbed)return;
+    const rect=field.getBoundingClientRect();
+    const mx=e.clientX-rect.left;
+    padX=Math.max(0,Math.min(W()-padW, mx-grabDX));
+  });
+  field.addEventListener("mouseup",()=>setGrabbed(false));
   field.addEventListener("mouseleave",()=>setGrabbed(false));
 
   function intersects(x,y,w,h,cx,cy,r){
