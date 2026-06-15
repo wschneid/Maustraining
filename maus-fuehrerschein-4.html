@@ -400,7 +400,7 @@
   .menubar .mb{padding:7px 14px;border-radius:7px;cursor:pointer;font-size:.9rem;color:var(--ink);}
   .menubar .mb:hover,.menubar .mb.open{background:var(--ocean-mid);color:#fff;}
   .docarea{flex:1;padding:20px;color:var(--ink-soft);line-height:1.6;}
-  /* S18 + Bonus Memory */
+  /* Bonus Memory */
   .memgrid{display:grid;gap:10px;align-content:center;justify-content:center;flex:1;}
   .memcard{width:74px;height:74px;border-radius:12px;background:var(--ocean-mid);display:grid;place-items:center;font-size:2rem;cursor:pointer;
     color:transparent;box-shadow:0 4px 12px rgba(10,77,104,.18);transition:transform .15s,background .15s;user-select:none;}
@@ -567,7 +567,7 @@ const STATIONS = [
   {id:"s16",   short:"PopUps",      icon:"💬",  title:"PopUps & Dialoge",  desc:"Schließen & bestätigen"},
   {id:"s17",   short:"Menü",        icon:"📜",  title:"Menüleiste",        desc:"Datei & Bearbeiten"},
   {id:"sforms",short:"Formular",    icon:"☑️",  title:"Formular",          desc:"Kästchen, Auswahl & Schalter"},
-  {id:"s18",   short:"Memory",      icon:"🧠",  title:"Memory",            desc:"Paare finden"},
+  {id:"sarkanoid",short:"Arkanoid", icon:"🧱",  title:"Arkanoid",          desc:"Ball & Paddel · Steine zerlegen"},
   {id:"sfiles",short:"Dateien",     icon:"🗂️", title:"Dateien verschieben",desc:"Ziehen zwischen Ordnern"},
   {id:"exam",  short:"Prüfung",     icon:"🏆",  title:"Prüfung",           desc:"Alles zusammen!"}
 ];
@@ -705,7 +705,7 @@ function registerAttempt(ok){
   if(ok){ s.streak++; if(s.streak>s.bestStreak)s.bestStreak=s.streak; if(s.bestStreak>=5)unlock("streak5"); }
   else { s.fails++; s.streak=0; }
 }
-const NEW_STATIONS=["s14","s15","s16","s17","s18"];
+const NEW_STATIONS=["s14","s15","s16","s17","sarkanoid"];
 function checkStationBadges(id){
   unlock("first_step");
   if(id==="s2")unlock("dbl_master");
@@ -2217,10 +2217,8 @@ SCREENS.sforms=(stage)=>{
   setActive();
 };
 
-/* ---------- S18: Memory ---------- */
-SCREENS.s18=(stage)=>{ memoryGame(stage,{id:"s18",N:stationNumber("s18"),onDone:()=>completeStation("s18","Tolles Gedächtnis – alle Paare gefunden! 🧠")}); };
-
-/* gemeinsame Memory-Mechanik (Station + Bonus) */
+/* ---------- Memory (nur Bonus) ---------- */
+/* gemeinsame Memory-Mechanik (jetzt nur noch Bonus) */
 function memoryGame(stage,opts){
   const POOL=["🐶","🐱","⭐","🍎","🌳","🚗","🎈","🏠","🐝","🦋"];
   const pairs=Math.min(POOL.length, opts.pairs || dCount(6,4));
@@ -2341,41 +2339,56 @@ SCREENS.bonus_reflex=(stage)=>reflexGame(stage);
 
 // Ball & Paddel (Arkanoid-Stil): das Paddel folgt der horizontalen Maus,
 // der Ball prallt von Wänden, Paddel und Steinen ab. Trainiert ruhige Mausführung.
-function arkanoidGame(stage){
-  unlock("bonus_fan");bonusBackBar();
-  setInstruction("Bonus-Spiel 🎁 · Ball & Paddel",
-    "Fahre mit dem <b>Mauszeiger auf das Paddel</b> und bewege dann die Maus nach "+
-    "<b>links und rechts</b>, um es zu steuern. So bleiben Zeiger und Paddel zusammen. "+
-    "Der Ball prallt von oben zurück und zerlegt die Steine – jeder gibt <b>+2 XP</b>. "+
-    "Du hast <b>45 Sekunden</b>!");
-  setHint("Zeiger auf das Paddel setzen und ruhig nach links/rechts schieben – kein Klicken nötig.","");
+// Arkanoid – läuft in zwei Modi:
+//  • Bonus  (opts leer): ein Feld, 45-Sekunden-Lauf, jeder Stein gibt Bonus-XP.
+//  • Station (opts.station): mehrere Spielrunden – jede Runde mehr Steine und ein
+//    schnellerer Ball. Wer ein Feld komplett leerräumt, kommt eine Runde weiter;
+//    nach der letzten Runde ist die Station geschafft.
+function arkanoidGame(stage,opts){
+  opts=opts||{};
+  const isStation=!!opts.station;
+  if(isStation){
+    setHint("Zeiger auf das Paddel setzen und ruhig nach links/rechts schieben – kein Klicken nötig.","");
+  }else{
+    unlock("bonus_fan");bonusBackBar();
+    setInstruction("Bonus-Spiel 🎁 · Ball & Paddel",
+      "Fahre mit dem <b>Mauszeiger auf das Paddel</b> und bewege dann die Maus nach "+
+      "<b>links und rechts</b>, um es zu steuern. So bleiben Zeiger und Paddel zusammen. "+
+      "Der Ball prallt von oben zurück und zerlegt die Steine – jeder gibt <b>+2 XP</b>. "+
+      "Du hast <b>45 Sekunden</b>!");
+    setHint("Zeiger auf das Paddel setzen und ruhig nach links/rechts schieben – kein Klicken nötig.","");
+  }
   const field=document.createElement("div");field.className="meadow";
   field.style.position="relative";field.style.overflow="hidden";stage.appendChild(field);
   const W=()=>field.clientWidth, H=()=>field.clientHeight;
 
   const d=diff();
-  const ROWS=dCount(5,3);
   const COLS=8;
   const padW=Math.round(110/d.size), padH=14;
   const ballR=8;
-  const baseSpeed=(state.reduced?2.2:3.6)*d.speed;
   const colors=["#ff6b6b","#ffa94d","#ffd43b","#51cf66","#22b8cf","#845ef7"];
 
-  // Steine bauen
-  const bricks=[];
-  function buildBricks(){
-    const padX=10, gap=4;
-    const bw=Math.floor((W()-padX*2-gap*(COLS-1))/COLS);
+  const TOTAL_ROUNDS=isStation?3:1;
+  let round=0;              // 0-basiert
+  let baseSpeed=0;          // wird je Runde gesetzt
+  let bricks=[];
+
+  // Steine bauen (rows je nach Runde)
+  function buildBricks(rows){
+    bricks.forEach(b=>{ if(b.el)b.el.remove(); });
+    bricks=[];
+    const padX0=10, gap=4;
+    const bw=Math.floor((W()-padX0*2-gap*(COLS-1))/COLS);
     const bh=18;
     const top=14;
-    for(let r=0;r<ROWS;r++){
+    for(let r=0;r<rows;r++){
       for(let c=0;c<COLS;c++){
         const b=document.createElement("div");
         b.style.cssText=`position:absolute;width:${bw}px;height:${bh}px;border-radius:4px;`+
-          `left:${padX+c*(bw+gap)}px;top:${top+r*(bh+gap)}px;`+
+          `left:${padX0+c*(bw+gap)}px;top:${top+r*(bh+gap)}px;`+
           `background:${colors[r%colors.length]};box-shadow:0 2px 0 rgba(0,0,0,.12);`;
         field.appendChild(b);
-        bricks.push({el:b,x:padX+c*(bw+gap),y:top+r*(bh+gap),w:bw,h:bh,alive:true});
+        bricks.push({el:b,x:padX0+c*(bw+gap),y:top+r*(bh+gap),w:bw,h:bh,alive:true});
       }
     }
   }
@@ -2394,7 +2407,6 @@ function arkanoidGame(stage){
 
   let padX=0, padY=0, bx=0, by=0, vx=0, vy=0;
   let score=0,timeLeft=45,over=false;
-  setCounter(`${timeLeft}s`,"Zeit");
 
   function resetBall(){
     padX=Math.max(0,Math.min(W()-padW,(W()-padW)/2));
@@ -2404,8 +2416,28 @@ function arkanoidGame(stage){
     const ang=(-Math.PI/2)+(Math.random()*0.6-0.3); // nach oben mit etwas Streuung
     vx=Math.cos(ang)*baseSpeed; vy=Math.sin(ang)*baseSpeed;
   }
-  // Steine sofort bauen – field ist bereits im DOM, Maße stehen.
-  buildBricks(); resetBall();
+  const bricksLeft=()=>bricks.filter(b=>b.alive).length;
+  // Eine Runde vorbereiten: Tempo & Steinanzahl je nach Runde.
+  function startRound(){
+    const rows=isStation ? dCount(3,2)+round : dCount(5,3);
+    const speedMul=isStation ? 1+round*0.18 : 1;
+    baseSpeed=(state.reduced?2.2:3.6)*d.speed*speedMul;
+    buildBricks(rows);
+    resetBall();
+    if(isStation){
+      setInstruction(`Station ${opts.N} · Arkanoid (Runde ${round+1}/${TOTAL_ROUNDS})`,
+        round===0
+          ? "Fahre mit dem <b>Mauszeiger auf das Paddel</b> und bewege die Maus nach <b>links und rechts</b>. "+
+            "Der Ball prallt vom Paddel zurück und zerlegt die Steine. Räume das ganze Feld leer, um eine Runde weiterzukommen!"
+          : "Nächste Runde – jetzt mit <b>mehr Steinen</b> und einem <b>schnelleren Ball</b>. Räume das Feld wieder leer!");
+      setCounter(`${round+1}/${TOTAL_ROUNDS}`,"Runde");
+      setHint(`Noch ${bricksLeft()} Steine in dieser Runde.`,"");
+    }else{
+      setCounter(`${timeLeft}s`,"Zeit");
+    }
+  }
+  // field ist bereits im DOM, Maße stehen → erste Runde aufbauen.
+  startRound();
 
   // Das Paddel ist nur steuerbar, wenn der Zeiger wirklich auf dem Paddel liegt.
   // Beim "Greifen" merken wir uns den Abstand Zeiger↔Paddel-Kante, damit Zeiger
@@ -2471,15 +2503,28 @@ function arkanoidGame(stage){
         const overlapX=Math.min(cx-b.x, b.x+b.w-cx);
         const overlapY=Math.min(cy-b.y, b.y+b.h-cy);
         if(overlapX<overlapY)vx=-vx; else vy=-vy;
-        score++;awardXP(2,"bonus");sfx.good();
-        setHint(`Steine: ${score} 💥`,"good");
+        score++;sfx.good();
+        if(isStation){ setHint(`Noch ${bricksLeft()} Steine in dieser Runde.`,bricksLeft()===0?"good":""); }
+        else{ awardXP(2,"bonus"); setHint(`Steine: ${score} 💥`,"good"); }
         break;
       }
     }
-    // unten heraus → Re-Spawn
+    // unten heraus → Re-Spawn (verzeihend – kein Leben verloren)
     if(by>H()){ resetBall(); sfx.soft(); }
     // Alle Steine weg?
     if(bricks.length>0 && bricks.every(b=>!b.alive) && !over){
+      if(isStation){
+        if(round+1<TOTAL_ROUNDS){
+          round++;sfx.win();
+          setHint(`Runde geschafft! 🎉 Noch ${TOTAL_ROUNDS-round} ${TOTAL_ROUNDS-round===1?"Runde":"Runden"}.`,"good");
+          startRound();
+          _raf=requestAnimationFrame(loop);
+          return;
+        }
+        over=true;stopLoop();field.style.pointerEvents="none";
+        opts.onDone();
+        return;
+      }
       over=true;stopLoop();field.style.pointerEvents="none";
       awardXP(10,"bonus"); // Clear-Bonus
       setInstruction("Alle Steine geschafft! 🎁",
@@ -2493,19 +2538,24 @@ function arkanoidGame(stage){
     _raf=requestAnimationFrame(loop);
   })();
 
-  later(function t(){
-    if(over)return;
-    timeLeft--;setCounter(`${Math.max(0,timeLeft)}s`,"Zeit");
-    if(timeLeft<=0){
-      over=true;stopLoop();field.style.pointerEvents="none";
-      setInstruction("Bonus geschafft! 🎁",
-        `Du hast <b>${score}</b> Steine zerlegt und <b>${score*2} XP</b> verdient!`);
-      setHint("Schöne Mausführung!","good");showSkip(false);
-      showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
-    }else later(t,1000);
-  },1000);
+  // Zeitlimit nur im Bonus-Modus – die Station endet über die Runden.
+  if(!isStation){
+    later(function t(){
+      if(over)return;
+      timeLeft--;setCounter(`${Math.max(0,timeLeft)}s`,"Zeit");
+      if(timeLeft<=0){
+        over=true;stopLoop();field.style.pointerEvents="none";
+        setInstruction("Bonus geschafft! 🎁",
+          `Du hast <b>${score}</b> Steine zerlegt und <b>${score*2} XP</b> verdient!`);
+        setHint("Schöne Mausführung!","good");showSkip(false);
+        showNext(true,"Weiter ›");$("#nextBtn").onclick=()=>go(_bonusReturn||nextStationId());
+      }else later(t,1000);
+    },1000);
+  }
 }
 SCREENS.bonus_arkanoid=(stage)=>arkanoidGame(stage);
+SCREENS.sarkanoid=(stage)=>arkanoidGame(stage,{station:true,id:"sarkanoid",N:stationNumber("sarkanoid"),
+  onDone:()=>completeStation("sarkanoid","Alle Runden geschafft – tolle Mausführung mit Ball und Paddel! 🧱")});
 
 SCREENS.bonus_memory=(stage)=>{
   unlock("bonus_fan");bonusBackBar();
