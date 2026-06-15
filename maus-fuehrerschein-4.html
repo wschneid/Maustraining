@@ -196,6 +196,34 @@
   .scrollthumb:hover{background:var(--ocean-bright);}
   .scrollthumb.grab{cursor:grabbing;background:var(--ocean-deep);}
 
+  .formpanel{flex:1;display:flex;flex-direction:column;gap:10px;max-width:520px;margin:0 auto;width:100%;padding:6px;}
+  .formrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 14px;border-radius:12px;
+    background:#fff;border:2px solid var(--line);}
+  .formrow .flabel{color:var(--ink);font-size:1rem;}
+  .formrow.goal{border-color:var(--ocean-bright);box-shadow:0 0 0 4px rgba(19,184,212,.16);}
+  .formrow.ok{border-color:var(--success);background:var(--success-soft);}
+  .fctrls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end;}
+  .fradio,.fcheck{display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--ink-soft);font-size:.95rem;user-select:none;}
+  .fradio .mark{width:22px;height:22px;border-radius:50%;border:2px solid var(--ocean-mid);display:grid;place-items:center;}
+  .fradio.sel .mark::after{content:"";width:11px;height:11px;border-radius:50%;background:var(--ocean-mid);}
+  .fcheck .mark{width:22px;height:22px;border-radius:6px;border:2px solid var(--ocean-mid);display:grid;place-items:center;color:#fff;font-size:.95rem;}
+  .fcheck.checked .mark{background:var(--ocean-mid);}
+  .fcheck.checked .mark::after{content:"✓";}
+  .fselect{position:relative;min-width:150px;}
+  .fseltrig{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:10px;
+    background:var(--ocean-pale);border:2px solid var(--ocean-mid);cursor:pointer;color:var(--ink);}
+  .fseltrig .arr{transition:transform .15s;}
+  .fselect.open .fseltrig .arr{transform:rotate(180deg);}
+  .foptions{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;
+    box-shadow:0 10px 24px rgba(10,77,104,.18);overflow:hidden;display:none;z-index:20;}
+  .fselect.open .foptions{display:block;}
+  .foption{padding:9px 12px;cursor:pointer;color:var(--ink);}
+  .foption:hover{background:var(--ocean-pale);}
+  .fswitch{width:58px;height:30px;border-radius:16px;background:#cdd9de;position:relative;cursor:pointer;transition:background .15s;}
+  .fswitch .knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.25);transition:left .15s;}
+  .fswitch.on{background:var(--success);}
+  .fswitch.on .knob{left:31px;}
+
   .filelist{flex:1;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;}
   .filelist .fhead{background:var(--ocean-pale);padding:8px 14px;font-size:.78rem;color:var(--ink-soft);border-bottom:1px solid var(--line);}
   .frow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;font-size:.92rem;}
@@ -538,6 +566,7 @@ const STATIONS = [
   {id:"s15",   short:"Tabs",        icon:"🗂️", title:"Tabs wechseln",     desc:"Reiter öffnen"},
   {id:"s16",   short:"PopUps",      icon:"💬",  title:"PopUps & Dialoge",  desc:"Schließen & bestätigen"},
   {id:"s17",   short:"Menü",        icon:"📜",  title:"Menüleiste",        desc:"Datei & Bearbeiten"},
+  {id:"sforms",short:"Formular",    icon:"☑️",  title:"Formular",          desc:"Kästchen, Auswahl & Schalter"},
   {id:"s18",   short:"Memory",      icon:"🧠",  title:"Memory",            desc:"Paare finden"},
   {id:"sfiles",short:"Dateien",     icon:"🗂️", title:"Dateien verschieben",desc:"Ziehen zwischen Ordnern"},
   {id:"exam",  short:"Prüfung",     icon:"🏆",  title:"Prüfung",           desc:"Alles zusammen!"}
@@ -2105,6 +2134,87 @@ SCREENS.s17=(stage)=>{
       `Klassische Programme haben oben eine Menüleiste. Öffne das Menü <b>„${want.menu}"</b> und wähle <b>„${want.lbl}"</b>.`);
     setHint(`Erst „${want.menu}" anklicken, dann „${want.lbl}".`,"");}
   ask();
+};
+
+/* ---------- sforms: Formular-Steuerelemente (Kästchen, Optionsfelder, Dropdown, Schalter) ---------- */
+SCREENS.sforms=(stage)=>{
+  const N=stationNumber("sforms");
+  const AGE="7",ANIMAL="Katze",H1="Malen",H2="Lesen";
+  let radio=null,select=null,ice=false;const checks={};
+
+  const el=(tag,cls)=>{const d=document.createElement(tag);if(cls)d.className=cls;return d;};
+  const panel=el("div","formpanel");stage.appendChild(panel);
+  const head=el("div","prompt");head.innerHTML="📝 <b>Mein Steckbrief</b> – fülle das Formular Schritt für Schritt aus.";panel.appendChild(head);
+  function mkRow(label){const row=el("div","formrow");const l=el("div","flabel");l.innerHTML=label;
+    const c=el("div","fctrls");row.appendChild(l);row.appendChild(c);row._c=c;panel.appendChild(row);return row;}
+
+  // Optionsfelder (Alter)
+  const rowAge=mkRow("Wie alt bist du?");
+  ["6","7","8"].forEach(v=>{const o=el("div","fradio");o.innerHTML=`<span class="mark"></span>${v}`;
+    o.addEventListener("click",()=>{radio=v;$$(".fradio",rowAge).forEach(x=>x.classList.toggle("sel",x===o));tryStep();});
+    rowAge._c.appendChild(o);});
+
+  // Aufklappmenü (Lieblingstier)
+  const rowAnimal=mkRow("Lieblingstier");
+  const sel=el("div","fselect");const trig=el("div","fseltrig");
+  trig.innerHTML=`<span class="selval">Bitte wählen</span><span class="arr">▾</span>`;
+  const opts=el("div","foptions");
+  ["Katze","Hund","Pferd","Hase"].forEach(v=>{const op=el("div","foption");op.textContent=v;
+    op.addEventListener("click",e=>{e.stopPropagation();select=v;sel.querySelector(".selval").textContent=v;sel.classList.remove("open");tryStep();});
+    opts.appendChild(op);});
+  trig.addEventListener("click",e=>{e.stopPropagation();sel.classList.toggle("open");});
+  sel.appendChild(trig);sel.appendChild(opts);rowAnimal._c.appendChild(sel);
+
+  // Kontrollkästchen (Hobbys)
+  const rowHobby=mkRow("Das mag ich");
+  ["Malen","Lesen","Fußball","Musik"].forEach(v=>{checks[v]=false;const c=el("div","fcheck");c.innerHTML=`<span class="mark"></span>${v}`;
+    c.addEventListener("click",()=>{checks[v]=!checks[v];c.classList.toggle("checked",checks[v]);tryStep();});
+    rowHobby._c.appendChild(c);});
+
+  // Schalter (Eis)
+  const rowIce=mkRow("Ich mag Eis");
+  const sw=el("div","fswitch");sw.innerHTML=`<span class="knob"></span>`;
+  sw.addEventListener("click",()=>{ice=!ice;sw.classList.toggle("on",ice);tryStep();});
+  rowIce._c.appendChild(sw);
+
+  const rows=[rowAge,rowAnimal,rowHobby,rowIce];
+  const tasks=[
+    {row:rowAge,test:()=>radio===AGE,
+     instr:`In einem Formular wählst du Antworten aus. <b>Optionsfelder</b> (runde Knöpfe) lassen <b>genau eine</b> Wahl zu. Klick bei „Wie alt bist du?" auf <b>${AGE}</b>.`,
+     hint:"Klick auf den runden Knopf neben der Zahl.",retry:`Noch nicht passend – klick auf den Knopf neben „${AGE}".`},
+    {row:rowAnimal,test:()=>select===ANIMAL,
+     instr:`Ein <b>Aufklappmenü</b> klappt beim Klick auf. Öffne „Lieblingstier" und wähle <b>${ANIMAL}</b>.`,
+     hint:"Erst auf das Feld klicken, dann auf den Eintrag.",retry:`Wähle „${ANIMAL}" aus dem aufgeklappten Menü.`},
+    {row:rowHobby,test:()=>checks[H1],
+     instr:`<b>Kontrollkästchen</b> kann man einzeln an- und abhaken. Setz ein Häkchen bei <b>${H1}</b>.`,
+     hint:"Klick auf das eckige Kästchen.",retry:`Setz das Häkchen bei „${H1}".`},
+    {row:rowHobby,test:()=>checks[H2],
+     instr:`Setz auch ein Häkchen bei <b>${H2}</b>.`,
+     hint:"Noch ein Kästchen anklicken.",retry:`Setz das Häkchen bei „${H2}".`},
+    {row:rowIce,test:()=>ice===true,
+     instr:`Ein <b>Schalter</b> kippt zwischen an und aus. Schalte „Ich mag Eis" <b>an</b>.`,
+     hint:"Klick auf den Schalter, bis er grün ist.",retry:`Klick den Schalter, damit er auf „an" (grün) steht.`}
+  ];
+  let idx=0;
+  function setActive(){
+    rows.forEach(r=>r.classList.remove("goal"));
+    const t=tasks[idx];t.row.classList.add("goal");
+    setCounter(`${idx+1}/${tasks.length}`,"erledigt");
+    setInstruction(`Station ${N} · Formular (${idx+1}/${tasks.length})`,t.instr);
+    setHint(t.hint,"");
+  }
+  function tryStep(){
+    const t=tasks[idx];
+    if(t.test()){
+      sfx.step();
+      const next=tasks[idx+1];
+      if(!next||next.row!==t.row){t.row.classList.remove("goal");t.row.classList.add("ok");}
+      idx++;
+      if(idx>=tasks.length)completeStation("sforms","Formular ausgefüllt – Kästchen, Auswahl und Schalter sitzen! ☑️");
+      else setActive();
+    }else{registerAttempt(false);sfx.soft();setHint(t.retry,"warn");}
+  }
+  setActive();
 };
 
 /* ---------- S18: Memory ---------- */
