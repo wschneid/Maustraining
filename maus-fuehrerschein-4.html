@@ -2440,12 +2440,13 @@ function arkanoidGame(stage,opts){
   startRound();
 
   // Das Paddel wird mit gehaltener linker Maustaste "gegriffen" und gezogen.
-  // Beim Drücken merken wir uns den Abstand Zeiger↔Paddel-Kante, damit Zeiger
-  // und Paddel beim Ziehen synchron bleiben. Solange die Taste gehalten wird,
-  // folgt das Paddel der Maus – auch wenn der Zeiger es kurz verlässt. So
-  // rutscht nichts mehr ab. Loslassen (oder Verlassen des Felds) gibt es frei.
-  let grabbed=false, grabDX=0;
+  // Beim Drücken fangen wir den Zeiger mit setPointerCapture am Feld ein – so
+  // liefert der Browser weiter pointermove-Events, auch wenn der Cursor das Feld
+  // verlässt. Dadurch folgt das Paddel der Maus lückenlos und kann nicht mehr
+  // abrutschen; erst Loslassen (pointerup/-cancel) gibt den Griff wieder frei.
+  let grabbed=false, grabDX=0, pointerId=null;
   const TOL=8; // kleine Grosszuegigkeit beim Treffen des Paddels
+  field.style.touchAction="none"; // erlaubt Ziehen auch per Finger, ohne Scrollen
   function setGrabbed(on){
     if(grabbed===on)return;
     grabbed=on;
@@ -2458,20 +2459,28 @@ function arkanoidGame(stage,opts){
     return my>=padTop-TOL && my<=padTop+padH+TOL &&
            mx>=padX-TOL && mx<=padX+padW+TOL;
   }
-  field.addEventListener("mousedown",e=>{
+  field.addEventListener("pointerdown",e=>{
     if(over||e.button!==0)return;
     const rect=field.getBoundingClientRect();
     const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-    if(onPad(mx,my)){ grabDX=mx-padX; setGrabbed(true); e.preventDefault(); }
+    if(onPad(mx,my)){
+      grabDX=mx-padX; setGrabbed(true); pointerId=e.pointerId;
+      field.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    }
   });
-  field.addEventListener("mousemove",e=>{
-    if(over||!grabbed)return;
+  field.addEventListener("pointermove",e=>{
+    if(over||!grabbed||e.pointerId!==pointerId)return;
     const rect=field.getBoundingClientRect();
     const mx=e.clientX-rect.left;
     padX=Math.max(0,Math.min(W()-padW, mx-grabDX));
   });
-  field.addEventListener("mouseup",()=>setGrabbed(false));
-  field.addEventListener("mouseleave",()=>setGrabbed(false));
+  function releasePaddle(){
+    if(pointerId!==null){ try{ field.releasePointerCapture(pointerId); }catch(_){} pointerId=null; }
+    setGrabbed(false);
+  }
+  field.addEventListener("pointerup",releasePaddle);
+  field.addEventListener("pointercancel",releasePaddle);
 
   function intersects(x,y,w,h,cx,cy,r){
     const nx=Math.max(x,Math.min(cx,x+w));
