@@ -1961,10 +1961,11 @@ SCREENS.bonus_reflex=(stage)=>reflexGame(stage);
 function arkanoidGame(stage){
   unlock("bonus_fan");bonusBackBar();
   setInstruction("Bonus-Spiel 🎁 · Ball & Paddel",
-    "Bewege die Maus nach <b>links und rechts</b>, um das Paddel zu steuern. "+
+    "Fahre mit dem <b>Mauszeiger auf das Paddel</b> und bewege dann die Maus nach "+
+    "<b>links und rechts</b>, um es zu steuern. So bleiben Zeiger und Paddel zusammen. "+
     "Der Ball prallt von oben zurück und zerlegt die Steine – jeder gibt <b>+2 XP</b>. "+
     "Du hast <b>45 Sekunden</b>!");
-  setHint("Maus ruhig nach links/rechts bewegen – kein Klicken nötig.","");
+  setHint("Zeiger auf das Paddel setzen und ruhig nach links/rechts schieben – kein Klicken nötig.","");
   const field=document.createElement("div");field.className="meadow";
   field.style.position="relative";field.style.overflow="hidden";stage.appendChild(field);
   const W=()=>field.clientWidth, H=()=>field.clientHeight;
@@ -1999,7 +2000,8 @@ function arkanoidGame(stage){
   const pad=document.createElement("div");
   pad.style.cssText=`position:absolute;height:${padH}px;border-radius:8px;`+
     `background:linear-gradient(180deg,var(--ocean-bright),var(--ocean-mid));`+
-    `box-shadow:0 3px 0 var(--ocean-deep);bottom:14px;`;
+    `box-shadow:0 3px 0 var(--ocean-deep);bottom:14px;cursor:grab;transition:outline-color .1s,transform .1s;`+
+    `outline:3px solid rgba(255,255,255,0);`;
   field.appendChild(pad);
   // Ball
   const ball=document.createElement("div");
@@ -2022,11 +2024,33 @@ function arkanoidGame(stage){
   // Steine sofort bauen – field ist bereits im DOM, Maße stehen.
   buildBricks(); resetBall();
 
+  // Das Paddel ist nur steuerbar, wenn der Zeiger wirklich auf dem Paddel liegt.
+  // Beim "Greifen" merken wir uns den Abstand Zeiger↔Paddel-Kante, damit Zeiger
+  // und Paddel synchron bleiben (der Zeiger bleibt an derselben Stelle des Paddels).
+  let grabbed=false, grabDX=0;
+  const TOL=8; // kleine Grosszuegigkeit beim Treffen des Paddels
+  function setGrabbed(on){
+    if(grabbed===on)return;
+    grabbed=on;
+    pad.style.cursor=on?"grabbing":"grab";
+    pad.style.outlineColor=on?"rgba(255,255,255,.85)":"rgba(255,255,255,0)";
+    pad.style.transform=on?"translateY(-1px)":"none";
+  }
   field.addEventListener("mousemove",e=>{
     if(over)return;
     const rect=field.getBoundingClientRect();
-    padX=Math.max(0,Math.min(W()-padW, e.clientX-rect.left-padW/2));
+    const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+    const padTop=H()-14-padH;
+    const onPad = my>=padTop-TOL && my<=padTop+padH+TOL &&
+                  mx>=padX-TOL && mx<=padX+padW+TOL;
+    if(onPad){
+      if(!grabbed){grabDX=mx-padX;setGrabbed(true);}
+      padX=Math.max(0,Math.min(W()-padW, mx-grabDX));
+    }else{
+      setGrabbed(false);
+    }
   });
+  field.addEventListener("mouseleave",()=>setGrabbed(false));
 
   function intersects(x,y,w,h,cx,cy,r){
     const nx=Math.max(x,Math.min(cx,x+w));
