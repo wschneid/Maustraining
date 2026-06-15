@@ -183,6 +183,19 @@
   .jigpiece.locked{cursor:default;filter:drop-shadow(0 1px 1px rgba(10,77,104,.22));}
   .jigfloat{position:fixed;z-index:70;pointer-events:none;background-repeat:no-repeat;filter:drop-shadow(0 8px 7px rgba(10,77,104,.4));}
 
+  .scrollwrap{flex:1;display:flex;gap:10px;align-items:flex-start;justify-content:center;padding:8px;}
+  .scrollview{position:relative;width:360px;height:300px;overflow:hidden;border:2px solid var(--line);border-radius:12px;background:#fff;}
+  .scrollcontent{position:absolute;left:0;top:0;width:100%;will-change:transform;}
+  .scrollcard{display:flex;align-items:center;gap:12px;margin:10px;padding:14px 16px;border-radius:12px;
+    background:var(--ocean-pale);border:2px solid transparent;font-size:1.1rem;color:var(--ink);}
+  .scrollcard .em{font-size:2rem;line-height:1;}
+  .scrollcard.goal{border-color:var(--ocean-bright);box-shadow:0 0 0 3px rgba(19,184,212,.16);}
+  .scrollcard.found{border-color:var(--success);background:var(--success-soft);font-weight:700;}
+  .scrolltrack{position:relative;width:18px;height:300px;border-radius:10px;background:var(--ocean-pale);border:1px solid var(--line);flex:none;}
+  .scrollthumb{position:absolute;left:2px;width:12px;top:0;border-radius:8px;background:var(--ocean-mid);cursor:grab;box-shadow:0 2px 6px rgba(10,77,104,.3);}
+  .scrollthumb:hover{background:var(--ocean-bright);}
+  .scrollthumb.grab{cursor:grabbing;background:var(--ocean-deep);}
+
   .filelist{flex:1;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;}
   .filelist .fhead{background:var(--ocean-pale);padding:8px 14px;font-size:.78rem;color:var(--ink-soft);border-bottom:1px solid var(--line);}
   .frow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;font-size:.92rem;}
@@ -510,6 +523,7 @@ const STATIONS = [
   {id:"s2",    short:"Doppelklick", icon:"⚡",  title:"Doppelklick",       desc:"Öffnen"},
   {id:"s3",    short:"Rechtsklick", icon:"📋",  title:"Rechtsklick",       desc:"Menü & Untermenü"},
   {id:"s4",    short:"Scrollen",    icon:"🎡",  title:"Scrollen",          desc:"Rad & Mausradklick"},
+  {id:"sscroll",short:"Leiste",     icon:"↕️",  title:"Scrollleiste",      desc:"Schieber ziehen"},
   {id:"s5",    short:"Markieren",   icon:"▭",   title:"Markieren",         desc:"Rahmen & Strg-Klick"},
   {id:"s6",    short:"Sortieren",   icon:"✋",  title:"Sortieren",         desc:"Ziehen & Ablegen"},
   {id:"spuzzle",short:"Puzzle",     icon:"🧩",  title:"Puzzle",            desc:"Teile einrasten lassen"},
@@ -1250,6 +1264,66 @@ SCREENS.s4=(stage)=>{
     function ok(){if(solved)return;solved=true;link.classList.add("done");link.innerHTML=`✅ <span>Geöffnet – mit dem Mausrad!</span>`;
       completeStation("s4","Sogar die mittlere Taste sitzt – super! 🎡");}
   }
+};
+
+/* ---------- sscroll: Scrollleiste – den Schieber (Thumb) ziehen ---------- */
+SCREENS.sscroll=(stage)=>{
+  const N=stationNumber("sscroll");
+  const ANIMALS=[["🦊","Fuchs"],["🐢","Schildkröte"],["🦉","Eule"],["🐬","Delfin"],["🦒","Giraffe"],
+    ["🐧","Pinguin"],["🦋","Schmetterling"],["🐝","Biene"],["🦓","Zebra"],["🐙","Krake"]];
+  const orderBase=[9,0,6,2,8,4];
+  const order=orderBase.slice(0,dRounds(orderBase.length,5,4));
+  const viewH=300;
+
+  const wrap=document.createElement("div");wrap.className="scrollwrap";
+  const view=document.createElement("div");view.className="scrollview";
+  const content=document.createElement("div");content.className="scrollcontent";
+  const track=document.createElement("div");track.className="scrolltrack";
+  const thumb=document.createElement("div");thumb.className="scrollthumb";
+  view.appendChild(content);track.appendChild(thumb);
+  wrap.appendChild(view);wrap.appendChild(track);stage.appendChild(wrap);
+
+  const cards=ANIMALS.map(a=>{const el=document.createElement("div");el.className="scrollcard";
+    el.innerHTML=`<span class="em">${a[0]}</span> ${a[1]}`;content.appendChild(el);return el;});
+
+  const contentH=content.scrollHeight;
+  const maxScroll=Math.max(1,contentH-viewH);
+  const thumbH=Math.max(40,Math.round(viewH*viewH/contentH));
+  thumb.style.height=thumbH+"px";
+  const range=viewH-thumbH;
+  let scrollTop=0,r=0,busy=false,targetCard=null;
+
+  function apply(ty){
+    ty=Math.max(0,Math.min(range,ty));thumb.style.top=ty+"px";
+    scrollTop=range>0?(ty/range)*maxScroll:0;
+    content.style.transform=`translateY(${-scrollTop}px)`;
+    checkGoal();
+  }
+  function checkGoal(){
+    if(busy||!targetCard)return;
+    const c=targetCard.offsetTop+targetCard.offsetHeight/2;
+    if(c>=scrollTop+24 && c<=scrollTop+viewH-24){
+      busy=true;targetCard.classList.remove("goal");targetCard.classList.add("found");sfx.step();r++;
+      if(r>=order.length){later(()=>completeStation("sscroll","Klasse – du steuerst die Scrollleiste sicher! ↕️"),300);}
+      else{setHint("Gefunden! Such das nächste Tier.","good");later(()=>{busy=false;targetCard.classList.remove("found");ask();},650);}
+    }
+  }
+  function ask(){
+    const a=ANIMALS[order[r]];targetCard=cards[order[r]];
+    cards.forEach(c=>c.classList.remove("goal"));targetCard.classList.add("goal");
+    setCounter(`${r+1}/${order.length}`,"gefunden");
+    setInstruction(`Station ${N} · Scrollleiste (${r+1}/${order.length})`,
+      `Rechts liegt eine <b>Scrollleiste</b>. Fass den hellen <b>Schieber</b> an, <b>halte die Taste gedrückt</b> und zieh ihn nach oben oder unten, bis du <b>${a[0]} ${a[1]}</b> siehst.`);
+    setHint("Den Schieber rechts greifen und ziehen – nicht das Mausrad benutzen.","");
+  }
+
+  thumb.addEventListener("mousedown",e=>{
+    e.preventDefault();thumb.classList.add("grab");
+    const startY=e.clientY,startTop=parseFloat(thumb.style.top)||0;
+    dragMove(e,ev=>apply(startTop+(ev.clientY-startY)),()=>thumb.classList.remove("grab"));
+  });
+
+  ask();
 };
 
 /* ---------- S5: Markieren (Rahmen + Strg-Klick) ---------- */
