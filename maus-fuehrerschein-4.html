@@ -173,6 +173,19 @@
   .hovertip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--ink);}
   .hovertile.revealed .hovertip{opacity:1;animation:pop .4s;}
 
+  .puzzlewrap{flex:1;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;padding:8px;}
+  .puzzleboard{display:grid;gap:6px;background:var(--ocean-pale);border:2px dashed var(--line);border-radius:14px;padding:10px;}
+  .pslot{width:84px;height:84px;border-radius:12px;display:grid;place-items:center;font-size:2.6rem;background:#fff;border:2px solid var(--line);}
+  .pslot .tgt{opacity:.16;line-height:1;}
+  .pslot.over{border-color:var(--ocean-bright);box-shadow:0 0 0 4px rgba(19,184,212,.18);}
+  .pslot.filled{border-color:var(--success);background:var(--success-soft);}
+  .pslot.filled .tgt{opacity:1;animation:pop .45s;}
+  .ptray{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px;background:#fbfdfe;border:1px dashed var(--line);border-radius:12px;min-height:96px;}
+  .ppiece{width:74px;height:74px;border-radius:12px;display:grid;place-items:center;font-size:2.3rem;cursor:grab;
+    background:#fff;border:2px solid var(--ocean-bright);box-shadow:0 4px 10px rgba(10,77,104,.15);}
+  .ppiece:active{cursor:grabbing;}
+  .ppiece.dragging{opacity:.4;}
+
   .filelist{flex:1;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;}
   .filelist .fhead{background:var(--ocean-pale);padding:8px 14px;font-size:.78rem;color:var(--ink-soft);border-bottom:1px solid var(--line);}
   .frow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;font-size:.92rem;}
@@ -502,6 +515,7 @@ const STATIONS = [
   {id:"s4",    short:"Scrollen",    icon:"🎡",  title:"Scrollen",          desc:"Rad & Mausradklick"},
   {id:"s5",    short:"Markieren",   icon:"▭",   title:"Markieren",         desc:"Rahmen & Strg-Klick"},
   {id:"s6",    short:"Sortieren",   icon:"✋",  title:"Sortieren",         desc:"Ziehen & Ablegen"},
+  {id:"spuzzle",short:"Puzzle",     icon:"🧩",  title:"Puzzle",            desc:"Teile einrasten lassen"},
   {id:"s7",    short:"Fenster",     icon:"🪟",  title:"Fenster",           desc:"Bewegen & Größe"},
   {id:"s8",    short:"Regler",      icon:"🎚️", title:"Regler",            desc:"Schieben & ziehen"},
   {id:"s9",    short:"Malen",       icon:"🎨",  title:"Malen",             desc:"Wischen mit der Maus"},
@@ -1377,6 +1391,56 @@ SCREENS.s6=(stage)=>{
       tray.appendChild(el);});
   }
   roundSort();
+};
+
+/* ---------- spuzzle: Puzzle / Einrasten (Teile per Ziehen an ihren Platz snappen) ---------- */
+SCREENS.spuzzle=(stage)=>{
+  const N=stationNumber("spuzzle");
+  const PIC1={cols:2,ems:["🌞","☁️","🌳","🏠"]};
+  const PIC2={cols:3,ems:["🐝","🌸","🦋","🌻","🌿","🐞"]};
+
+  function buildPuzzle(PIC,onDone){
+    stage.innerHTML="";
+    const TOTAL=PIC.ems.length;let placed=0;setCounter(`0/${TOTAL}`,"Teile");
+    const wrap=document.createElement("div");wrap.className="puzzlewrap";
+    const board=document.createElement("div");board.className="puzzleboard";
+    board.style.gridTemplateColumns=`repeat(${PIC.cols},84px)`;
+    const tray=document.createElement("div");tray.className="ptray";
+    wrap.appendChild(board);wrap.appendChild(tray);stage.appendChild(wrap);
+
+    PIC.ems.forEach((em,i)=>{const s=document.createElement("div");s.className="pslot";s.dataset.id=i;
+      s.innerHTML=`<span class="tgt">${em}</span>`;board.appendChild(s);});
+
+    const shuffled=PIC.ems.map((em,i)=>({em,id:i})).sort(()=>Math.random()-0.5);
+    shuffled.forEach(p=>{const el=document.createElement("div");el.className="ppiece";el.dataset.id=p.id;el.textContent=p.em;
+      el.addEventListener("mousedown",e=>{if(el.classList.contains("locked"))return;el.classList.add("dragging");
+        ghostDrag(e,`<span class="em">${p.em}</span>`,{
+          onOver:(t)=>{$$(".pslot",board).forEach(x=>x.classList.remove("over"));const sl=t&&t.closest(".pslot");
+            if(sl&&!sl.classList.contains("filled"))sl.classList.add("over");},
+          onDrop:(t)=>{el.classList.remove("dragging");$$(".pslot",board).forEach(x=>x.classList.remove("over"));
+            const sl=t&&t.closest(".pslot");
+            if(sl&&+sl.dataset.id===p.id){sl.classList.add("filled");el.remove();
+              placed++;sfx.step();setCounter(`${placed}/${TOTAL}`,"Teile");
+              if(placed===TOTAL)onDone();else setHint(`Eingerastet! Noch ${TOTAL-placed}.`,"good");
+            }else if(sl&&sl.classList.contains("filled")){registerAttempt(false);sfx.soft();setHint("Dieser Platz ist schon belegt – such eine freie Stelle.","warn");}
+            else if(sl){registerAttempt(false);sfx.soft();setHint("Fast! Jedes Teil passt nur an seine eigene Stelle – schau auf das blasse Bild.","warn");}
+            else setHint("Lass das Teil direkt über dem Puzzlebrett los.","warn");}});});
+      tray.appendChild(el);});
+  }
+
+  function round1(){
+    setInstruction(`Station ${N} · Puzzle (1/2)`,
+      "Ziehe jedes Puzzleteil auf das passende blasse Feld im Brett und lass es dort los – es <b>rastet ein</b>. Halte beim Ziehen die linke Taste gedrückt.");
+    setHint("Halten – ziehen – über dem richtigen Feld loslassen.","");
+    buildPuzzle(PIC1,round2);
+  }
+  function round2(){
+    setInstruction(`Station ${N} · Großes Puzzle (2/2)`,
+      "Jetzt ein größeres Bild mit sechs Teilen. Bring jedes Teil an seinen Platz – das blasse Bild im Feld zeigt, wohin es gehört.");
+    setHint("Achte auf das blasse Vorbild im Feld.","");
+    buildPuzzle(PIC2,()=>completeStation("spuzzle","Toll zusammengesetzt – Ziehen mit Zielgenauigkeit sitzt! 🧩"));
+  }
+  round1();
 };
 
 /* ---------- S7: Fenster bewegen & Größe ---------- */
