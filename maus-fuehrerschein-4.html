@@ -173,18 +173,15 @@
   .hovertip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--ink);}
   .hovertile.revealed .hovertip{opacity:1;animation:pop .4s;}
 
-  .puzzlewrap{flex:1;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;padding:8px;}
-  .puzzleboard{display:grid;gap:6px;background:var(--ocean-pale);border:2px dashed var(--line);border-radius:14px;padding:10px;}
-  .pslot{width:84px;height:84px;border-radius:12px;display:grid;place-items:center;font-size:2.6rem;background:#fff;border:2px solid var(--line);}
-  .pslot .tgt{opacity:.16;line-height:1;}
-  .pslot.over{border-color:var(--ocean-bright);box-shadow:0 0 0 4px rgba(19,184,212,.18);}
-  .pslot.filled{border-color:var(--success);background:var(--success-soft);}
-  .pslot.filled .tgt{opacity:1;animation:pop .45s;}
-  .ptray{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:10px;background:#fbfdfe;border:1px dashed var(--line);border-radius:12px;min-height:96px;}
-  .ppiece{width:74px;height:74px;border-radius:12px;display:grid;place-items:center;font-size:2.3rem;cursor:grab;
-    background:#fff;border:2px solid var(--ocean-bright);box-shadow:0 4px 10px rgba(10,77,104,.15);}
-  .ppiece:active{cursor:grabbing;}
-  .ppiece.dragging{opacity:.4;}
+  .jigwrap{flex:1;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:flex-start;padding:6px;}
+  .jigboard{position:relative;border-radius:12px;border:2px solid var(--line);background-repeat:no-repeat;box-shadow:var(--shadow);}
+  .jigtray{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:10px;min-height:110px;max-width:620px;
+    background:#fbfdfe;border:1px dashed var(--line);border-radius:12px;}
+  .jigpiece{background-repeat:no-repeat;cursor:grab;filter:drop-shadow(0 3px 2px rgba(10,77,104,.35));}
+  .jigpiece:active{cursor:grabbing;}
+  .jigpiece.placed{position:absolute;}
+  .jigpiece.locked{cursor:default;filter:drop-shadow(0 1px 1px rgba(10,77,104,.22));}
+  .jigfloat{position:fixed;z-index:70;pointer-events:none;background-repeat:no-repeat;filter:drop-shadow(0 8px 7px rgba(10,77,104,.4));}
 
   .filelist{flex:1;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;}
   .filelist .fhead{background:var(--ocean-pale);padding:8px 14px;font-size:.78rem;color:var(--ink-soft);border-bottom:1px solid var(--line);}
@@ -1393,54 +1390,126 @@ SCREENS.s6=(stage)=>{
   roundSort();
 };
 
-/* ---------- spuzzle: Puzzle / Einrasten (Teile per Ziehen an ihren Platz snappen) ---------- */
+/* ---------- spuzzle: Echtes Puzzle – verzahnte Teile aus einer SVG-Szene ---------- */
+function puzzleSceneSVG(){
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='320' height='240' viewBox='0 0 320 240'>`+
+    `<defs><linearGradient id='s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#7ec8f0'/><stop offset='1' stop-color='#d6f0fb'/></linearGradient>`+
+    `<linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#86d05a'/><stop offset='1' stop-color='#5fae3c'/></linearGradient></defs>`+
+    `<rect width='320' height='240' fill='url(#s)'/>`+
+    `<g stroke='#ffd23f' stroke-width='5' stroke-linecap='round'>`+
+    `<line x1='262' y1='8' x2='262' y2='20'/><line x1='262' y1='84' x2='262' y2='96'/>`+
+    `<line x1='218' y1='52' x2='230' y2='52'/><line x1='294' y1='52' x2='306' y2='52'/>`+
+    `<line x1='230' y1='20' x2='238' y2='28'/><line x1='286' y1='76' x2='294' y2='84'/>`+
+    `<line x1='230' y1='84' x2='238' y2='76'/><line x1='286' y1='28' x2='294' y2='20'/></g>`+
+    `<circle cx='262' cy='52' r='28' fill='#ffd23f'/>`+
+    `<g fill='#ffffff'><ellipse cx='70' cy='50' rx='30' ry='16'/><ellipse cx='98' cy='58' rx='24' ry='13'/><ellipse cx='44' cy='58' rx='20' ry='11'/></g>`+
+    `<path d='M0 168 Q160 128 320 168 L320 240 L0 240 Z' fill='url(#g)'/>`+
+    `<rect x='44' y='150' width='12' height='42' fill='#7b4a2d'/>`+
+    `<circle cx='50' cy='138' r='26' fill='#3f9d33'/><circle cx='33' cy='150' r='18' fill='#46a83a'/><circle cx='67' cy='150' r='18' fill='#46a83a'/>`+
+    `<rect x='150' y='150' width='84' height='62' fill='#f2b04c'/>`+
+    `<path d='M142 152 L192 110 L242 152 Z' fill='#cf4b34'/>`+
+    `<rect x='180' y='182' width='24' height='30' fill='#7b4a2d'/><circle cx='199' cy='197' r='2.4' fill='#ffd23f'/>`+
+    `<rect x='156' y='162' width='18' height='18' fill='#bfe6ff' stroke='#fff' stroke-width='3'/>`+
+    `<rect x='210' y='162' width='18' height='18' fill='#bfe6ff' stroke='#fff' stroke-width='3'/>`+
+    `</svg>`;
+  return "data:image/svg+xml,"+encodeURIComponent(svg);
+}
 SCREENS.spuzzle=(stage)=>{
   const N=stationNumber("spuzzle");
-  const PIC1={cols:2,ems:["🌞","☁️","🌳","🏠"]};
-  const PIC2={cols:3,ems:["🐝","🌸","🦋","🌻","🌿","🐞"]};
+  const SCENE=puzzleSceneSVG();
+  const BW=320,BH=240;
 
-  function buildPuzzle(PIC,onDone){
+  // Eine Kante (gerade oder verzahnt) als Pfad-Befehle von A nach B; s: 0 flach, ±1 Nase/Bucht
+  function edgeStr(A,B,s){
+    if(s===0)return `L ${B.x.toFixed(1)} ${B.y.toFixed(1)}`;
+    const dx=B.x-A.x,dy=B.y-A.y,L=Math.hypot(dx,dy);
+    const ux=dx/L,uy=dy/L,nx=uy,ny=-ux;          // Außen-Normale (im Uhrzeigersinn umlaufen)
+    const a=0.32*L,H=0.16*L;
+    const p=(l,w)=>{const x=A.x+ux*l+nx*w*s,y=A.y+uy*l+ny*w*s;return `${x.toFixed(1)} ${y.toFixed(1)}`;};
+    return `L ${p(a,0)} `+
+      `C ${p(0.22*L,0.30*H)} ${p(0.32*L,H)} ${p(0.50*L,H)} `+
+      `C ${p(0.68*L,H)} ${p(0.78*L,0.30*H)} ${p(L-a,0)} `+
+      `L ${p(L,0)}`;
+  }
+  function clipPath(bw,bh,ext,e){
+    const cw=bw-2*ext,ch=bh-2*ext,f=n=>n.toFixed(1);
+    const TL={x:ext,y:ext},TR={x:ext+cw,y:ext},BR={x:ext+cw,y:ext+ch},BL={x:ext,y:ext+ch};
+    return `path('M ${f(TL.x)} ${f(TL.y)} ${edgeStr(TL,TR,e.t)} ${edgeStr(TR,BR,e.r)} ${edgeStr(BR,BL,e.b)} ${edgeStr(BL,TL,e.l)} Z')`;
+  }
+
+  function attachDrag(el,board,onPlaced){
+    el.addEventListener("mousedown",e=>{
+      if(el.classList.contains("locked"))return;
+      const {bw,bh}=el._home;
+      const ghost=el.cloneNode(true);ghost.className="jigfloat";
+      ghost.style.width=bw+"px";ghost.style.height=bh+"px";document.body.appendChild(ghost);
+      el.style.opacity=".25";
+      const moveTo=ev=>{ghost.style.left=(ev.clientX-bw/2)+"px";ghost.style.top=(ev.clientY-bh/2)+"px";};
+      moveTo(e);
+      dragMove(e,moveTo,ev=>{
+        ghost.remove();el.style.opacity="";
+        const br=board.getBoundingClientRect();const {r,c,cw,ch,ext}=el._home;
+        const px=ev.clientX-br.left,py=ev.clientY-br.top;
+        const hx=c*cw+cw/2,hy=r*ch+ch/2,tol=Math.min(cw,ch)*0.55;
+        if(Math.hypot(px-hx,py-hy)<=tol){
+          el.classList.add("placed","locked");
+          el.style.left=(c*cw-ext)+"px";el.style.top=(r*ch-ext)+"px";
+          board.appendChild(el);sfx.step();onPlaced();
+        }else{registerAttempt(false);sfx.soft();setHint("Fast! Zieh das Teil näher an seinen Platz im Bild.","warn");}
+      });
+    });
+  }
+
+  function buildRound(R,C,onDone){
     stage.innerHTML="";
-    const TOTAL=PIC.ems.length;let placed=0;setCounter(`0/${TOTAL}`,"Teile");
-    const wrap=document.createElement("div");wrap.className="puzzlewrap";
-    const board=document.createElement("div");board.className="puzzleboard";
-    board.style.gridTemplateColumns=`repeat(${PIC.cols},84px)`;
-    const tray=document.createElement("div");tray.className="ptray";
+    const cw=BW/C,ch=BH/R,ext=Math.round(0.26*Math.min(cw,ch));
+    const TOTAL=R*C;let placed=0;setCounter(`0/${TOTAL}`,"Teile");
+    const wrap=document.createElement("div");wrap.className="jigwrap";
+    const board=document.createElement("div");board.className="jigboard";
+    board.style.width=BW+"px";board.style.height=BH+"px";
+    board.style.backgroundImage=`linear-gradient(rgba(255,255,255,.82),rgba(255,255,255,.82)),url("${SCENE}")`;
+    board.style.backgroundSize=`${BW}px ${BH}px, ${BW}px ${BH}px`;
+    const tray=document.createElement("div");tray.className="jigtray";
     wrap.appendChild(board);wrap.appendChild(tray);stage.appendChild(wrap);
 
-    PIC.ems.forEach((em,i)=>{const s=document.createElement("div");s.className="pslot";s.dataset.id=i;
-      s.innerHTML=`<span class="tgt">${em}</span>`;board.appendChild(s);});
+    const vEdge=[],hEdge=[];
+    for(let r=0;r<R;r++){vEdge[r]=[];for(let c=0;c<C-1;c++)vEdge[r][c]=Math.random()<0.5?-1:1;}
+    for(let r=0;r<R-1;r++){hEdge[r]=[];for(let c=0;c<C;c++)hEdge[r][c]=Math.random()<0.5?-1:1;}
+    const edgesFor=(r,c)=>({t:r===0?0:-hEdge[r-1][c],b:r===R-1?0:hEdge[r][c],
+      l:c===0?0:-vEdge[r][c-1],r:c===C-1?0:vEdge[r][c]});
 
-    const shuffled=PIC.ems.map((em,i)=>({em,id:i})).sort(()=>Math.random()-0.5);
-    shuffled.forEach(p=>{const el=document.createElement("div");el.className="ppiece";el.dataset.id=p.id;el.textContent=p.em;
-      el.addEventListener("mousedown",e=>{if(el.classList.contains("locked"))return;el.classList.add("dragging");
-        ghostDrag(e,`<span class="em">${p.em}</span>`,{
-          onOver:(t)=>{$$(".pslot",board).forEach(x=>x.classList.remove("over"));const sl=t&&t.closest(".pslot");
-            if(sl&&!sl.classList.contains("filled"))sl.classList.add("over");},
-          onDrop:(t)=>{el.classList.remove("dragging");$$(".pslot",board).forEach(x=>x.classList.remove("over"));
-            const sl=t&&t.closest(".pslot");
-            if(sl&&+sl.dataset.id===p.id){sl.classList.add("filled");el.remove();
-              placed++;sfx.step();setCounter(`${placed}/${TOTAL}`,"Teile");
-              if(placed===TOTAL)onDone();else setHint(`Eingerastet! Noch ${TOTAL-placed}.`,"good");
-            }else if(sl&&sl.classList.contains("filled")){registerAttempt(false);sfx.soft();setHint("Dieser Platz ist schon belegt – such eine freie Stelle.","warn");}
-            else if(sl){registerAttempt(false);sfx.soft();setHint("Fast! Jedes Teil passt nur an seine eigene Stelle – schau auf das blasse Bild.","warn");}
-            else setHint("Lass das Teil direkt über dem Puzzlebrett los.","warn");}});});
-      tray.appendChild(el);});
+    const pieces=[];
+    for(let r=0;r<R;r++)for(let c=0;c<C;c++){
+      const e=edgesFor(r,c),bw=cw+2*ext,bh=ch+2*ext;
+      const el=document.createElement("div");el.className="jigpiece";
+      el.style.width=bw+"px";el.style.height=bh+"px";
+      el.style.backgroundImage=`url("${SCENE}")`;
+      el.style.backgroundSize=`${BW}px ${BH}px`;
+      el.style.backgroundPosition=`${-(c*cw-ext)}px ${-(r*ch-ext)}px`;
+      el.style.clipPath=clipPath(bw,bh,ext,e);
+      el._home={r,c,cw,ch,ext,bw,bh};
+      attachDrag(el,board,()=>{placed++;setCounter(`${placed}/${TOTAL}`,"Teile");
+        if(placed===TOTAL)onDone();else setHint(`Eingerastet! Noch ${TOTAL-placed}.`,"good");});
+      pieces.push(el);
+    }
+    pieces.sort(()=>Math.random()-0.5).forEach(el=>tray.appendChild(el));
   }
 
-  function round1(){
+  function start(){
     setInstruction(`Station ${N} · Puzzle (1/2)`,
-      "Ziehe jedes Puzzleteil auf das passende blasse Feld im Brett und lass es dort los – es <b>rastet ein</b>. Halte beim Ziehen die linke Taste gedrückt.");
-    setHint("Halten – ziehen – über dem richtigen Feld loslassen.","");
-    buildPuzzle(PIC1,round2);
+      "Das Bild ist in verzahnte Puzzleteile zerschnitten. Ziehe jedes Teil aus der Ablage an seinen Platz – dort, wo es ins <b>blasse Bild</b> passt – und lass los. Es <b>rastet ein</b>.");
+    setHint("Halten – ziehen – nahe am richtigen Platz loslassen.","");
+    buildRound(2,2,round2);
   }
   function round2(){
+    const d=state.difficulty;
+    const grid=d==="leicht"?[2,2]:d==="schwer"?[3,3]:[2,3];   // [Zeilen, Spalten]
     setInstruction(`Station ${N} · Großes Puzzle (2/2)`,
-      "Jetzt ein größeres Bild mit sechs Teilen. Bring jedes Teil an seinen Platz – das blasse Bild im Feld zeigt, wohin es gehört.");
-    setHint("Achte auf das blasse Vorbild im Feld.","");
-    buildPuzzle(PIC2,()=>completeStation("spuzzle","Toll zusammengesetzt – Ziehen mit Zielgenauigkeit sitzt! 🧩"));
+      "Jetzt mit mehr Teilen. Setze das ganze Bild wieder zusammen – das blasse Vorbild zeigt, wohin alles gehört.");
+    setHint("Schau aufs blasse Vorbild und setze Teil für Teil ein.","");
+    buildRound(grid[0],grid[1],()=>completeStation("spuzzle","Bild komplett – echtes Puzzle gemeistert! 🧩"));
   }
-  round1();
+  start();
 };
 
 /* ---------- S7: Fenster bewegen & Größe ---------- */
