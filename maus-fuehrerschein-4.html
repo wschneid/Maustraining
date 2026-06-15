@@ -159,6 +159,20 @@
   .chest.open{border-color:var(--success);background:var(--success-soft);color:var(--success);font-weight:700;cursor:default;}
   .chest.open .em{animation:pop .5s;}
 
+  .hovergrid{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:18px;align-content:center;padding:18px 10px;}
+  .hovertile{position:relative;background:var(--ocean-pale);border:2px solid var(--line);border-radius:14px;height:130px;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:.84rem;color:var(--ink-soft);transition:.15s;}
+  .hovertile .em{font-size:3rem;line-height:1;transition:transform .2s;}
+  .hovertile.armed{border-color:var(--ocean-bright);background:#fff;box-shadow:0 0 0 4px rgba(19,184,212,.18);}
+  .hovertile.armed .em{transform:scale(1.12) rotate(-3deg);}
+  .hovertile.done{border-color:var(--success);background:var(--success-soft);color:var(--success);font-weight:700;}
+  .hovertile.done .em{animation:pop .5s;}
+  .hovertip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;
+    padding:7px 12px;border-radius:10px;font-size:.85rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;
+    z-index:5;box-shadow:0 6px 14px rgba(10,77,104,.28);}
+  .hovertip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--ink);}
+  .hovertile.revealed .hovertip{opacity:1;animation:pop .4s;}
+
   .filelist{flex:1;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;}
   .filelist .fhead{background:var(--ocean-pale);padding:8px 14px;font-size:.78rem;color:var(--ink-soft);border-bottom:1px solid var(--line);}
   .frow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;font-size:.92rem;}
@@ -479,6 +493,7 @@ const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
 const STATIONS = [
   {id:"start", short:"Start",       icon:"🏁"},
   {id:"s0",    short:"Zeigen",      icon:"🎯",  title:"Zeigen & Stoppen",  desc:"Genau bewegen, ruhig halten"},
+  {id:"shover",short:"Schweben",    icon:"👀",  title:"Zeigen & Schweben", desc:"Ohne Klick darüber zeigen"},
   {id:"s1",    short:"Klick",       icon:"👆",  title:"Linksklick",        desc:"Auswählen & treffen"},
   {id:"shold", short:"Halten",      icon:"😀",  title:"Halten & Steuern",  desc:"Linke Taste halten, Smiley lenken"},
   {id:"smaze", short:"Labyrinth",   icon:"🌀",  title:"Labyrinth",         desc:"Zeiger durch die Gänge führen"},
@@ -878,6 +893,56 @@ SCREENS.s0=(stage)=>{
     spawn();
   }
   roundCatch();
+};
+
+/* ---------- shover: Zeigen & Schweben (über etwas zeigen, ohne zu klicken) ---------- */
+SCREENS.shover=(stage)=>{
+  const N=stationNumber("shover");
+  const POOL=[
+    {em:"💾",tip:"Speichern"},{em:"🖨️",tip:"Drucken"},{em:"✂️",tip:"Ausschneiden"},
+    {em:"🔍",tip:"Suchen"},{em:"🗑️",tip:"Papierkorb"},{em:"📁",tip:"Ordner"},
+    {em:"🔊",tip:"Lautstärke"},{em:"🏠",tip:"Startseite"}
+  ];
+  const order=[3,0,5,6,2,4,1,7];
+  const rounds=order.slice(0,dRounds(POOL.length,5,4));let r=0;
+  const grid=document.createElement("div");grid.className="hovergrid";stage.appendChild(grid);
+  const dur=(state.reduced?500:750)/diff().timeWin;
+
+  const tiles=POOL.map((it,i)=>{
+    const t=document.createElement("div");t.className="hovertile";t.dataset.i=i;
+    t.innerHTML=`<div class="hovertip">${it.tip}</div><div class="em">${it.em}</div>`;
+    t.addEventListener("click",()=>{ if(t.classList.contains("done"))return;
+      registerAttempt(false);sfx.soft();
+      setHint("Nur <b>zeigen</b>, nicht klicken – halte den Zeiger ruhig darüber.","warn"); });
+    grid.appendChild(t);return t;
+  });
+
+  let held=0,lastT=null,raf=null,curEnter=null,curLeave=null,tile=null;
+
+  function ask(){
+    const idx=rounds[r];tile=tiles[idx];const it=POOL[idx];
+    tiles.forEach(x=>x.classList.remove("armed"));tile.classList.add("armed");
+    setCounter(`${r+1}/${rounds.length}`,"Symbol");
+    setInstruction(`Station ${N} · Zeigen & Schweben (${r+1}/${rounds.length})`,
+      `Fahre mit dem Zeiger auf das hervorgehobene Feld <b>${it.em}</b> und <b>halte ihn ruhig darüber – ohne zu klicken</b>. `+
+      `Nach einem Moment erscheint eine Sprechblase und verrät, was das Symbol bedeutet.`);
+    setHint("Zeiger auf das hervorgehobene Feld – und ruhig halten.","");
+    held=0;lastT=null;
+    function loop(t){ if(lastT==null)lastT=t; held=Math.min(dur,held+(t-lastT));lastT=t;
+      if(held>=dur){finish();return;} raf=requestAnimationFrame(loop);_raf=raf; }
+    function finish(){ if(raf)cancelAnimationFrame(raf);raf=null;
+      tile.removeEventListener("mouseenter",curEnter);tile.removeEventListener("mouseleave",curLeave);
+      curEnter=curLeave=null;tile.classList.remove("armed");tile.classList.add("revealed","done");
+      sfx.step();r++;
+      if(r>=rounds.length)completeStation("shover","Klasse – du kannst zeigen ohne zu klicken! 👀");
+      else{setHint(`Sehr ruhig gezeigt! Noch ${rounds.length-r}.`,"good");later(ask,650);} }
+    curEnter=()=>{ setHint("Genau – jetzt ruhig halten, bis die Sprechblase kommt.","");
+      lastT=null;if(raf==null){raf=requestAnimationFrame(loop);_raf=raf;} };
+    curLeave=()=>{ if(raf)cancelAnimationFrame(raf);raf=null;
+      if(held>0&&held<dur)setHint("Kurz verrutscht – fahr einfach wieder auf das Feld.","warn"); };
+    tile.addEventListener("mouseenter",curEnter);tile.addEventListener("mouseleave",curLeave);
+  }
+  ask();
 };
 
 /* ---------- S1: Linksklick ---------- */
