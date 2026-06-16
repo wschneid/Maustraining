@@ -119,6 +119,25 @@
   .key.press{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.2);}
   @keyframes keypulse{0%,100%{box-shadow:0 0 0 3px rgba(217,131,36,.5),0 3px 0 rgba(0,0,0,.2);}50%{box-shadow:0 0 0 8px rgba(217,131,36,.12),0 3px 0 rgba(0,0,0,.2);}}
 
+  /* ===== Tasten-Lehrblock & Quiz ===== */
+  .lehrcard{display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;max-width:600px;margin:0 auto 8px;
+    background:#fff;border:2px solid var(--line);border-radius:14px;padding:16px 20px;}
+  .lehrcard .lsym{min-width:64px;height:64px;padding:0 10px;border-radius:14px;background:var(--ocean-pale);border:2px solid var(--ocean-bright);
+    display:grid;place-items:center;font-size:1.9rem;font-weight:800;color:var(--ocean-deep);}
+  .lehrcard .lname{font-size:1.3rem;font-weight:800;color:var(--ocean-deep);}
+  .lehrcard .lwhat{font-size:1rem;color:var(--ink);line-height:1.5;}
+  .lehrcard .lwhat b{color:var(--ocean-deep);}
+  .lehrcard .lex{font-size:.86rem;color:var(--ink-soft);background:var(--ocean-pale);border-radius:10px;padding:8px 12px;}
+  .lehrcard .lbtn{margin-top:4px;}
+  .quizq{font-size:1.15rem;color:var(--ocean-deep);font-weight:700;text-align:center;max-width:600px;margin:0 auto 4px;line-height:1.45;}
+  .quizopts{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px;max-width:520px;margin:8px auto;width:100%;}
+  .quizopt{background:#fff;border:2px solid var(--ocean-mid);color:var(--ocean-deep);border-radius:12px;padding:14px 12px;
+    font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.14s;}
+  .quizopt:hover{background:var(--ocean-pale);}
+  .quizopt.ok{background:var(--success-soft);border-color:var(--success);color:var(--success);}
+  .quizopt.bad{background:#fde7e7;border-color:#e25555;color:#c23b3b;}
+  .quizopt:disabled{cursor:default;opacity:.85;}
+
   .fingerlegend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;}
   .fingerlegend .fl{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:20px;padding:3px 9px;}
   .fingerlegend .sw{width:12px;height:12px;border-radius:50%;}
@@ -311,8 +330,9 @@ const shuffle = a=>{for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|
    ============================================================ */
 const STATIONS = [
   {id:"start",     short:"Start",        icon:"⌨️"},
+  {id:"klesson",   short:"Tasten-Schule",icon:"🔑", title:"Die wichtigen Tasten", desc:"Funktionstasten kennenlernen"},
+  {id:"kquiz",     short:"Tasten-Quiz",  icon:"❓", title:"Tasten-Quiz",      desc:"Benennen & Funktion erklären"},
   {id:"kfind",     short:"Tasten",       icon:"🔎", title:"Tasten finden",    desc:"Die leuchtende Taste drücken"},
-  {id:"kspecial",  short:"Sondertasten", icon:"↵",  title:"Sondertasten",     desc:"Leertaste, Enter & Co."},
   {id:"kshift",    short:"Groß",         icon:"⬆️", title:"Großbuchstaben",   desc:"Mit Umschalt groß tippen"},
   {id:"khome",     short:"Grundreihe",   icon:"🖐️", title:"Grundreihe",       desc:"a s d f · j k l ö"},
   {id:"kfingers",  short:"Finger",       icon:"✋", title:"Finger-Training",  desc:"Den richtigen Finger nehmen"},
@@ -342,6 +362,49 @@ const WORDS = ["schule","freude","spielen","lesen","tippen","computer","tastatur
 const SENTENCES = ["Die Katze schlaeft.","Der Hund bellt laut.","Wir lernen tippen.","Die Sonne scheint hell.","Mein Ball ist rot.","Ich mag den Sommer.","Das Auto faehrt schnell."];
 
 /* ============================================================
+   Wesentliche Funktions- & Steuertasten (für Lehr-Tour + Quiz)
+   tok = Token (siehe specialToken), press = drückbar im Browser?
+   ============================================================ */
+const FUNC_KEYS = [
+  {tok:"Space",     name:"Leertaste",          sym:"␣",    press:true,
+    what:"Macht den Abstand zwischen zwei Wörtern.",
+    ex:"Aus „gutentag“ wird „guten tag“."},
+  {tok:"Enter",     name:"Enter (Eingabetaste)",sym:"⏎",   press:true,
+    what:"Beginnt eine neue Zeile oder bestätigt etwas.",
+    ex:"Drückst du Enter, geht es in der nächsten Zeile weiter."},
+  {tok:"Backspace", name:"Rücktaste",           sym:"⌫",   press:true,
+    what:"Löscht das Zeichen <b>links</b> – also das, was du zuletzt getippt hast.",
+    ex:"Vertippt? Einmal Rücktaste, und der letzte Buchstabe ist weg."},
+  {tok:"Delete",    name:"Entf-Taste",          sym:"Entf", press:true,
+    what:"Löscht das Zeichen <b>rechts</b> vom Cursor.",
+    ex:"„Entf“ ist die Kurzform von „entfernen“."},
+  {tok:"Shift",     name:"Umschalttaste",       sym:"⇧",   press:true,
+    what:"Hältst du sie gedrückt, kommen <b>GROSSE</b> Buchstaben. Es gibt sie links und rechts.",
+    ex:"Umschalt + a ergibt ein großes A."},
+  {tok:"CapsLock",  name:"Feststelltaste",      sym:"⇪",   press:true,
+    what:"Schaltet <b>dauerhaft</b> auf Großbuchstaben. Nochmal drücken = wieder klein.",
+    ex:"Praktisch für ein ganzes Wort in GROSS."},
+  {tok:"Tab",       name:"Tabulator",           sym:"⇥",   press:true,
+    what:"Springt ein großes Stück weiter oder zum nächsten Feld.",
+    ex:"In Formularen hüpfst du damit von Feld zu Feld."},
+  {tok:"Escape",    name:"Esc-Taste",           sym:"Esc",  press:true,
+    what:"Bricht etwas ab oder schließt ein Fenster.",
+    ex:"„Esc“ steht für „Escape“ – also Flucht."},
+  {tok:"Control",   name:"Strg-Taste",          sym:"Strg", press:true,
+    what:"Eine <b>Kombi-Taste</b>: zusammen mit anderen Tasten gibt sie Befehle.",
+    ex:"Strg + C kopiert, Strg + V fügt wieder ein."},
+  {tok:"Alt",       name:"Alt-Taste",           sym:"Alt",  press:true,
+    what:"Auch eine Kombi-Taste für Sonderbefehle.",
+    ex:"Sie wird zusammen mit anderen Tasten gedrückt."},
+  {tok:"Meta",      name:"Windows-Taste",       sym:"⊞",   press:false,
+    what:"Öffnet das Startmenü von Windows.",
+    ex:"Auf manchen Tastaturen steht dort ein anderes Zeichen."},
+  {tok:"Arrow",     name:"Pfeiltasten",         sym:"▲▼◀▶", press:true, hi:["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"],
+    what:"Bewegen den Cursor nach oben, unten, links und rechts.",
+    ex:"Damit gehst du Schritt für Schritt durch den Text."}
+];
+
+/* ============================================================
    Bildschirm-Tastatur (QWERTZ)
    ============================================================ */
 const FINGERS = {
@@ -356,11 +419,13 @@ const FINGERS = {
   th:{c:"#9bb4bd", n:"Daumen"}
 };
 const KEY_ROWS = [
-  [{k:"^",f:"lp"},{k:"1",f:"lp"},{k:"2",f:"lr"},{k:"3",f:"lm"},{k:"4",f:"li"},{k:"5",f:"li"},{k:"6",f:"ri"},{k:"7",f:"ri"},{k:"8",f:"rm"},{k:"9",f:"rr"},{k:"0",f:"rp"},{k:"ß",f:"rp"},{k:"´",f:"rp"},{k:"Backspace",lbl:"⌫",w:2,f:"rp",special:true}],
+  [{k:"Escape",lbl:"Esc",w:1.3,f:"lp",special:true},{k:"^",f:"lp"},{k:"1",f:"lp"},{k:"2",f:"lr"},{k:"3",f:"lm"},{k:"4",f:"li"},{k:"5",f:"li"},{k:"6",f:"ri"},{k:"7",f:"ri"},{k:"8",f:"rm"},{k:"9",f:"rr"},{k:"0",f:"rp"},{k:"ß",f:"rp"},{k:"´",f:"rp"},{k:"Backspace",lbl:"⌫",w:2,f:"rp",special:true},{k:"Delete",lbl:"Entf",w:1.3,f:"rp",special:true}],
   [{k:"Tab",lbl:"⇥",w:1.5,f:"lp",special:true},{k:"q",f:"lp"},{k:"w",f:"lr"},{k:"e",f:"lm"},{k:"r",f:"li"},{k:"t",f:"li"},{k:"z",f:"ri"},{k:"u",f:"ri"},{k:"i",f:"rm"},{k:"o",f:"rr"},{k:"p",f:"rp"},{k:"ü",f:"rp"},{k:"+",f:"rp"}],
   [{k:"CapsLock",lbl:"⇪",w:1.8,f:"lp",special:true},{k:"a",f:"lp",home:true},{k:"s",f:"lr",home:true},{k:"d",f:"lm",home:true},{k:"f",f:"li",home:true,bump:true},{k:"g",f:"li"},{k:"h",f:"ri"},{k:"j",f:"ri",home:true,bump:true},{k:"k",f:"rm",home:true},{k:"l",f:"rr",home:true},{k:"ö",f:"rp",home:true},{k:"ä",f:"rp",home:true},{k:"#",f:"rp"},{k:"Enter",lbl:"⏎",w:1.7,f:"rp",special:true}],
   [{k:"Shift",lbl:"⇧",w:2,f:"lp",special:true},{k:"<",f:"lp"},{k:"y",f:"lp"},{k:"x",f:"lr"},{k:"c",f:"lm"},{k:"v",f:"li"},{k:"b",f:"li"},{k:"n",f:"ri"},{k:"m",f:"ri"},{k:",",f:"rm"},{k:".",f:"rr"},{k:"-",f:"rp"},{k:"Shift",lbl:"⇧",w:2.4,f:"rp",special:true}],
-  [{k:"Space",lbl:"Leertaste",w:9,f:"th",special:true}]
+  [{k:"Control",lbl:"Strg",w:1.6,f:"lp",special:true},{k:"Meta",lbl:"⊞",w:1.3,f:"lp",special:true},{k:"Alt",lbl:"Alt",w:1.3,f:"th",special:true},{k:"Space",lbl:"Leertaste",w:6,f:"th",special:true},{k:"AltGraph",lbl:"Alt Gr",w:1.4,f:"th",special:true},{k:"Control",lbl:"Strg",w:1.6,f:"rp",special:true}],
+  [{k:"ArrowUp",lbl:"▲",w:1.3,f:"ri",special:true}],
+  [{k:"ArrowLeft",lbl:"◀",w:1.3,f:"ri",special:true},{k:"ArrowDown",lbl:"▼",w:1.3,f:"ri",special:true},{k:"ArrowRight",lbl:"▶",w:1.3,f:"ri",special:true}]
 ];
 const isLetter = c => /^[a-zäöü]$/i.test(c);
 function findKeyDef(ch){ const t=(ch||"").toLowerCase(); for(const row of KEY_ROWS)for(const k of row){ if(!k.special && k.k.toLowerCase()===t) return k; } return null; }
@@ -455,10 +520,26 @@ function later(fn,ms){ const t=setTimeout(fn,ms);_timers.push(t);return t; }
 let _keyHandler=null;
 function setKeyHandler(fn){ _keyHandler=fn; }
 function getChar(e){ return (e.key && e.key.length===1) ? e.key : null; }
-function specialToken(e){ return e.key==="Enter"?"Enter":e.key==="Backspace"?"Backspace":e.key==="Shift"?"Shift":e.key===" "?"Space":null; }
+function specialToken(e){
+  const k=e.key;
+  if(k==="Enter")return "Enter";
+  if(k==="Backspace")return "Backspace";
+  if(k==="Shift")return "Shift";
+  if(k===" ")return "Space";
+  if(k==="Escape")return "Escape";
+  if(k==="Tab")return "Tab";
+  if(k==="CapsLock")return "CapsLock";
+  if(k==="Control")return "Control";
+  if(k==="Alt")return "Alt";
+  if(k==="AltGraph")return "AltGraph";
+  if(k==="Meta"||k==="OS")return "Meta";
+  if(k==="Delete")return "Delete";
+  if(k&&k.indexOf("Arrow")===0)return "Arrow"; /* Pfeiltasten als Gruppe */
+  return null;
+}
 document.addEventListener("keydown",e=>{
   if(!_keyHandler) return;
-  if([" ","Backspace","Tab","Enter","'","/"].includes(e.key)) e.preventDefault();
+  if([" ","Backspace","Tab","Enter","'","/","Escape","Alt"].includes(e.key) || (e.key&&e.key.indexOf("Arrow")===0)) e.preventDefault();
   if(audioCtx && audioCtx.resume) audioCtx.resume();
   _keyHandler(e);
 });
@@ -494,7 +575,7 @@ function levelForXp(xp){ let lv=1,t=LEVELS[0].title; LEVELS.forEach((l,i)=>{ if(
 
 const BADGES = {
   first_key:     {icon:"👆", title:"Erste Taste"},
-  special_pro:   {icon:"↵", title:"Tasten-Kenner"},
+  key_master:    {icon:"🔑", title:"Tasten-Kenner"},
   shift_pro:     {icon:"⬆️", title:"Groß & Klein"},
   home_row:      {icon:"🖐️", title:"Grundreihen-Held"},
   word_wizard:   {icon:"📝", title:"Wort-Zauberer"},
@@ -566,7 +647,7 @@ function registerAttempt(ok){
 }
 function checkStationBadges(id){
   unlock("first_key");
-  if(id==="kspecial")unlock("special_pro");
+  if(id==="kquiz")unlock("key_master");
   if(id==="kshift")unlock("shift_pro");
   if(id==="khome")unlock("home_row");
   if(id==="kwords")unlock("word_wizard");
@@ -647,8 +728,9 @@ SCREENS.start=(stage)=>{
   const wrap=mk("start");
   wrap.innerHTML=`<div class="big">⌨️</div>
     <h1>Das ist deine Tastatur</h1>
-    <p class="lead">Mit der Tastatur schreibst du Buchstaben, Wörter und Sätze. Jeder Finger hat seinen eigenen Platz.
-    Die <b>Grundreihe</b> in der Mitte ist dein Zuhause – von dort erreichst du alle Tasten.</p>
+    <p class="lead">Mit der Tastatur schreibst du Buchstaben, Wörter und Sätze. <b>Zuerst</b> lernst du die wichtigsten Tasten
+    und ihre Aufgaben kennen, danach üben wir das Tippen. Jeder Finger hat dabei seinen eigenen Platz – die
+    <b>Grundreihe</b> in der Mitte ist dein Zuhause.</p>
     <div class="hand-guide">
       <h2>🖐️ So legst du die Finger richtig</h2>
       <ol>
@@ -666,7 +748,7 @@ SCREENS.start=(stage)=>{
   btn.style.cssText="font-size:1.1rem;padding:13px 34px;margin-top:18px;";btn.textContent="Los geht’s ›";
   wrap.appendChild(btn);
   stage.appendChild(wrap);
-  btn.addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go("kfind"); });
+  btn.addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go("klesson"); });
 };
 
 /* ---------- Tasten finden ---------- */
@@ -701,37 +783,95 @@ SCREENS.kfind=(stage)=>{
   pick();
 };
 
-/* ---------- Sondertasten ---------- */
-SCREENS.kspecial=(stage)=>{
-  const N=stationNumber("kspecial");
-  setInstruction(`Station ${N} · Sondertasten ↵`,"Nicht alle Tasten machen Buchstaben. Diese hier sind besonders wichtig:");
+/* ---------- Die wichtigen Tasten (Lehr-Tour) ---------- */
+SCREENS.klesson=(stage)=>{
+  const N=stationNumber("klesson");
+  const card=mk("lehrcard");
   const kbHost=mk("kbwrap"); const kb=buildKeyboard();
-  kbHost.appendChild(kb.el); stage.appendChild(kbHost);
-  const TASKS=[
-    {tok:"Space",   lbl:"Leertaste", text:"Mit der <b>Leertaste</b> machst du den Abstand zwischen Wörtern."},
-    {tok:"Enter",   lbl:"Enter",     text:"Mit <b>Enter ⏎</b> beginnst du eine neue Zeile oder bestätigst etwas."},
-    {tok:"Backspace",lbl:"Rücktaste",text:"Mit der <b>Rücktaste ⌫</b> löschst du das letzte Zeichen wieder."},
-    {tok:"Shift",   lbl:"Umschalt",  text:"Mit <b>Umschalt ⇧</b> (gibt es links und rechts) machst du große Buchstaben."}
-  ];
+  stage.appendChild(card); stage.appendChild(kbHost); kbHost.appendChild(kb.el);
   let i=0,fault=false;
-  setCounter(`0/${TASKS.length}`,"gelernt");
-  function ask(){
-    kb.clearHighlight();
-    const t=TASKS[i]; kb.highlight([t.tok]);
-    setInstruction(`Station ${N} · Sondertasten ↵`, t.text);
-    setHint(`Drücke die <b>${t.lbl}</b>.`,"");
+  function show(){
+    const k=FUNC_KEYS[i];
+    kb.clearHighlight(); kb.highlight(k.hi||[k.tok]);
+    setInstruction(`Station ${N} · Die wichtigen Tasten 🔑`, `Das ist die <b>${k.name}</b>. Schau, wo sie auf der Tastatur leuchtet.`);
+    setCounter(`${i+1}/${FUNC_KEYS.length}`,"Tasten");
+    card.innerHTML=`<div class="lsym">${k.sym}</div><div class="lname">${k.name}</div>
+      <div class="lwhat"><b>Das macht sie:</b> ${k.what}</div>
+      <div class="lex">💡 ${k.ex}</div>`;
+    const btn=document.createElement("button");btn.className="btn btn-primary btn-small lbtn";
+    if(k.press){
+      btn.textContent="Weiter ›";btn.disabled=true;
+      setHint(`Probier es: Drücke die <b>${k.name}</b> auf deiner Tastatur.`,"");
+      setKeyHandler(e=>{
+        const tok=specialToken(e);
+        if(tok===k.tok){ kb.flash(k.hi?e.key:k.tok,true);sfx.good();btn.disabled=false;setHint("Genau! Klick auf „Weiter ›“.","good"); }
+        else if(tok){ kb.flash(e.key,false);sfx.soft();fault=true;setHint(`Das war eine andere Taste. Gesucht: <b>${k.name}</b>.`,"warn"); }
+        else { fault=true;setHint(`Drücke die <b>${k.name}</b> (keine Buchstaben-Taste).`,"warn"); }
+      });
+    } else {
+      btn.textContent="Verstanden ›";
+      setHint("Diese Taste schauen wir uns nur an – du musst sie nicht drücken.","");
+      setKeyHandler(null);
+    }
+    btn.onclick=advance;
+    card.appendChild(btn);
   }
-  setKeyHandler(e=>{
-    const tok=specialToken(e); const t=TASKS[i];
-    if(tok===t.tok){
-      kb.flash(t.tok,true);sfx.good();i++;registerAttempt(true);
-      setCounter(`${i}/${TASKS.length}`,"gelernt");
-      if(i>=TASKS.length){ kb.clearHighlight(); completeStation("kspecial","Super! Du kennst jetzt die wichtigen Sondertasten. 🎉",{perfect:!fault}); }
-      else { setHint("Richtig! 👍","good"); later(ask,500); }
-    } else if(tok){ kb.flash(tok,false);sfx.soft();fault=true; setHint(`Das war eine andere Taste. Gesucht: <b>${t.lbl}</b>.`,"warn"); }
-    else { fault=true; setHint(`Drücke die <b>${t.lbl}</b> (keine Buchstaben-Taste).`,"warn"); }
-  });
-  ask();
+  function advance(){
+    i++;
+    if(i>=FUNC_KEYS.length){ kb.clearHighlight(); completeStation("klesson","Stark! Du kennst jetzt alle wichtigen Tasten. 🔑🎉",{perfect:!fault}); }
+    else show();
+  }
+  show();
+};
+
+/* ---------- Tasten-Quiz: benennen & Funktion erklären ---------- */
+SCREENS.kquiz=(stage)=>{
+  const N=stationNumber("kquiz");
+  setInstruction(`Station ${N} · Tasten-Quiz ❓`,"Jetzt zeigst du, was du kannst: Tasten <b>benennen</b> und ihre <b>Aufgabe</b> erkennen.");
+  const qHost=mk("typebox");
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard();
+  stage.appendChild(qHost); stage.appendChild(kbHost); kbHost.appendChild(kb.el);
+  const TOTAL=dCount(8,6); const pressable=FUNC_KEYS.filter(k=>k.press);
+  let done=0,fault=false,answered=false;
+  const rand=a=>a[(Math.random()*a.length)|0];
+  setCounter(`0/${TOTAL}`,"richtig");
+  function good(){
+    sfx.good();done++;registerAttempt(true);setCounter(`${done}/${TOTAL}`,"richtig");
+    if(done>=TOTAL){ kb.clearHighlight(); completeStation("kquiz","Super! Du kannst die Tasten benennen und erklären. ❓🎉",{perfect:!fault}); }
+    else { setHint("Richtig! 👍","good"); later(nextQ,800); }
+  }
+  function nextQ(){
+    answered=false; qHost.innerHTML=""; kb.clearHighlight(); setKeyHandler(null);
+    if(Math.random()<0.5){
+      /* Benennen: Taste leuchtet, Name auswählen */
+      const k=rand(FUNC_KEYS);
+      kb.highlight(k.hi||[k.tok]);
+      const opts=shuffle([k, ...shuffle(FUNC_KEYS.filter(x=>x!==k)).slice(0,3)]);
+      qHost.appendChild(mk("quizq","Welche Taste leuchtet gerade? Wie heißt sie?"));
+      const grid=mk("quizopts");
+      opts.forEach(o=>{ const b=document.createElement("button");b.className="quizopt";b.textContent=o.name;
+        b.onclick=()=>pick(b,o===k,grid); grid.appendChild(b); });
+      qHost.appendChild(grid);
+      setHint("Tippe auf den richtigen Namen.","");
+    } else {
+      /* Funktion → Taste drücken */
+      const k=rand(pressable);
+      qHost.appendChild(mk("quizq",`Welche Taste macht das?<br><span style="font-weight:600;color:var(--ink-soft);font-size:1rem;">„${k.what.replace(/<\/?b>/g,"")}“</span>`));
+      qHost.appendChild(mk("statbar","Drücke die passende Taste auf deiner Tastatur."));
+      setHint("Drücke die Taste, die das macht.","");
+      setKeyHandler(e=>{
+        if(answered)return; const tok=specialToken(e); if(!tok)return;
+        if(tok===k.tok){ answered=true; kb.highlight(k.hi||[k.tok]); kb.flash(k.hi?e.key:k.tok,true); good(); }
+        else { kb.flash(e.key,false);sfx.soft();fault=true; setHint(`Noch nicht. Gesucht ist die Taste für „${k.what.replace(/<\/?b>/g,"")}“.`,"warn"); }
+      });
+    }
+  }
+  function pick(btn,ok,grid){
+    if(answered)return;
+    if(ok){ answered=true; btn.classList.add("ok"); $$(".quizopt",grid).forEach(b=>b.disabled=true); good(); }
+    else { btn.classList.add("bad"); btn.disabled=true; sfx.soft(); fault=true; setHint("Das stimmt nicht – versuch eine andere.","warn"); }
+  }
+  nextQ();
 };
 
 /* ---------- Großbuchstaben ---------- */
