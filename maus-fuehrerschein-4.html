@@ -52,14 +52,32 @@
   #drawer .progress{flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;overflow-y:auto;gap:6px;padding:10px;flex:1;}
   #drawer .stamp{justify-content:flex-start;width:100%;font-size:.86rem;padding:9px 12px;}
   #drawer .stamp .dot{width:22px;height:22px;font-size:.8rem;}
-  /* Erklärseiten (Intro vor einer Station) */
-  .introcard{display:flex;flex-direction:column;align-items:center;gap:16px;padding:22px;max-width:620px;margin:0 auto;text-align:center;}
-  .intro-emoji{font-size:3.4rem;line-height:1;}
-  .intro-points{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;text-align:left;width:100%;max-width:520px;}
-  .intro-points li{display:flex;gap:12px;align-items:flex-start;background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
-  .intro-points .ic{font-size:1.5rem;flex:none;line-height:1.2;}
-  .intro-points li span:last-child{color:var(--ink-soft);line-height:1.5;font-size:.98rem;}
-  .intro-points b{color:var(--ocean-deep);}
+  /* Erklärseiten: ausführliche Funktions-Intro vor einer Station */
+  .explainer{max-width:730px;margin:6px auto 12px;background:linear-gradient(170deg,#fff,var(--ocean-pale));
+    border:2px solid var(--ocean-bright);border-radius:18px;box-shadow:0 8px 26px rgba(10,77,104,.14);overflow:hidden;}
+  .explainer-head{display:flex;align-items:center;gap:10px;padding:11px 18px;
+    background:linear-gradient(90deg,var(--ocean-deep),var(--ocean-mid));color:#fff;font-weight:700;font-size:1.05rem;}
+  .explainer-head .badge{font-size:1.3rem;line-height:1;}
+  .explainer-body{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;padding:20px 22px 6px;}
+  .explainer-pic{flex:none;display:flex;flex-direction:column;align-items:center;gap:9px;margin:0 auto;}
+  .explainer-cap{font-size:.85rem;font-weight:700;color:var(--ocean-deep);background:#fff;border:1px solid var(--line);
+    border-radius:999px;padding:4px 12px;text-align:center;max-width:170px;}
+  .explainer-text{flex:1;min-width:240px;}
+  .explainer-lead{margin:0 0 14px;color:var(--ink);font-size:1.02rem;line-height:1.55;}
+  .explainer-text .mouse-list{max-width:none;}
+  .explainer-steps{margin:4px 22px 20px;background:var(--ocean-pale);border:1px solid var(--line);border-radius:14px;padding:14px 18px;}
+  .explainer-steps h3{margin:0 0 9px;font-size:1.02rem;color:var(--ocean-deep);}
+  .explainer-steps ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:7px;}
+  .explainer-steps li{font-size:.95rem;color:var(--ink-soft);line-height:1.5;}
+  .explainer-steps b{color:var(--ocean-deep);}
+  /* Maus-Funktionsbild: aktive Taste hervorheben, übrige Teile blass */
+  .mfn .m-part{transition:.2s;opacity:.32;}
+  .mfn .m-part.mh-active{opacity:1;stroke:var(--ocean-bright);stroke-width:4;
+    filter:drop-shadow(0 0 6px rgba(19,184,212,.85));animation:mhPulse 1.5s ease-in-out infinite;}
+  .mfn .m-left.mh-active{fill:rgba(19,184,212,.5);}
+  .mfn .m-right.mh-active{fill:rgba(231,111,81,.5);}
+  .mfn .m-wheel.mh-active{fill:var(--ocean-bright);}
+  @keyframes mhPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(19,184,212,.55));}50%{filter:drop-shadow(0 0 11px rgba(19,184,212,1));}}
 
   .hud{display:flex;align-items:center;gap:9px;color:#fff;white-space:nowrap;}
   .hud .lvl{background:var(--ocean-bright);color:#06303f;font-weight:700;border-radius:999px;padding:4px 10px;font-size:.78rem;cursor:default;}
@@ -483,6 +501,7 @@
     .flutter,.findme,.icon,.chest .em,.mole{animation:none!important;transition:none!important;}
     .scrollarea{scroll-behavior:auto;}
     .xpfloat,.bot.bot-happy,.bot.bot-cheer,.bot.bot-think{animation:none!important;}
+    .mfn .m-part.mh-active{animation:none!important;}
   }
   @media print{
     header.app,.footbar,.instruct,.gear,.overlay,.toast,.xpfloat,.drawer,.drawer-backdrop{display:none!important;}
@@ -832,31 +851,64 @@ function nextStationId(){ const i=STATIONS.findIndex(s=>s.id===state.current); r
 
 /* ---- Erklärseiten: kurze Intro vor ausgewählten Stationen ---- */
 const INTROS={
-  s1:{icon:"👆",lead:"Die <b>linke Maustaste</b> ist deine wichtigste Taste. Ein kurzer Druck – ein <b>Klick</b> – wählt etwas aus oder drückt einen Knopf.",
-    points:[{ic:"👆",txt:"<b>Linke Taste</b> einmal kurz drücken = <b>ein Klick</b>."},
-      {ic:"🎯",txt:"Erst mit dem Zeiger genau auf das Ziel gehen, dann klicken."},
-      {ic:"✨",txt:"Ein Klick <b>wählt aus</b> oder <b>drückt einen Knopf</b>."}]},
-  s2:{icon:"⚡",lead:"Zum <b>Öffnen</b> brauchst du den <b>Doppelklick</b>: zweimal schnell hintereinander auf die linke Taste tippen – ohne die Maus zu bewegen.",
-    points:[{ic:"⚡",txt:"<b>Zweimal schnell</b> hintereinander klicken = <b>Doppelklick</b>."},
-      {ic:"🖐️",txt:"Die Maus dabei <b>ruhig halten</b> – nur die Taste tippt."},
-      {ic:"📂",txt:"Ein Doppelklick <b>öffnet</b> Dateien und Ordner."}]},
-  s3:{icon:"📋",lead:"Mit der <b>rechten Maustaste</b> öffnest du ein kleines Menü – das <b>Kontextmenü</b>. Darin stehen Befehle für genau das, worauf du geklickt hast.",
+  s1:{part:"left",head:"Der Linksklick",cap:"👆 Linke Taste – Klicken",
+    lead:"Die <b>linke Maustaste</b> ist deine wichtigste Taste – sie liegt unter dem Zeigefinger. Mit einem kurzen Druck, einem <b>Klick</b>, sagst du dem Computer „das hier meine ich“. So wählst du Dinge aus oder drückst auf Knöpfe.",
+    points:[{ic:"👆",txt:"<b>Einmal kurz</b> auf die linke Taste drücken = <b>ein Klick</b>."},
+      {ic:"🎯",txt:"Zuerst den Zeiger genau auf das Ziel bewegen, <b>dann</b> klicken."},
+      {ic:"🔵",txt:"Was du anklickst, wird <b>ausgewählt</b> (oft blau markiert)."},
+      {ic:"✨",txt:"Auch <b>Knöpfe</b> drückst du mit einem Linksklick."}],
+    steps:["Bewege den Zeiger auf das Bild oder den Knopf.","Drücke <b>einmal kurz</b> die linke Taste und lass wieder los.","Fertig – das Ding ist ausgewählt oder gedrückt."]},
+  s2:{part:"left",head:"Der Doppelklick",cap:"👆 Linke Taste – 2× tippen",
+    lead:"Zum <b>Öffnen</b> von Dateien und Ordnern brauchst du den <b>Doppelklick</b>: zweimal <b>schnell hintereinander</b> auf die linke Taste tippen. Wichtig ist, dass die Maus dabei ganz <b>ruhig liegen bleibt</b> – nur dein Finger bewegt sich.",
+    points:[{ic:"⚡",txt:"<b>Zweimal schnell</b> hintereinander = <b>Doppelklick</b>."},
+      {ic:"🖐️",txt:"Die Maus dabei <b>ruhig halten</b>, nicht verrutschen."},
+      {ic:"📂",txt:"Ein Doppelklick <b>öffnet</b> Ordner, Dateien und Programme."},
+      {ic:"🐭",txt:"Klappt es nicht? Tippe die beiden Klicks <b>noch schneller</b>."}],
+    steps:["Bewege den Zeiger auf das Symbol.","Tippe <b>zweimal ganz schnell</b> die linke Taste.","Das Symbol öffnet sich."]},
+  s3:{part:"right",head:"Der Rechtsklick",cap:"📋 Rechte Taste – Menü",
+    lead:"Mit der <b>rechten Maustaste</b> öffnest du ein kleines Klappmenü – das <b>Kontextmenü</b>. „Kontext“ heißt: Im Menü stehen genau die Befehle, die zu dem passen, worauf du geklickt hast (zum Beispiel Kopieren oder Umbenennen).",
     points:[{ic:"🖱️",txt:"<b>Rechte Taste</b> drücken = ein <b>Menü</b> klappt auf."},
-      {ic:"📋",txt:"Im <b>Kontextmenü</b> stehen passende Befehle (Kopieren, Umbenennen …)."},
-      {ic:"▸",txt:"Ein Pfeil <b>▸</b> heißt: Es gibt noch ein <b>Untermenü</b>."}]},
-  s4:{icon:"🎡",lead:"Viele Seiten sind länger als der Bildschirm. Mit dem <b>Rädchen</b> in der Mitte der Maus rollst du den Inhalt nach oben und unten.",
-    points:[{ic:"🎡",txt:"Das <b>Mausrad</b> in der Mitte <b>drehen</b> = scrollen."},
-      {ic:"⬇️",txt:"Rad <b>von dir weg</b> drehen → Seite geht <b>nach unten</b>."},
-      {ic:"⬆️",txt:"Rad <b>zu dir</b> drehen → Seite geht <b>nach oben</b>."}]},
-  s6:{icon:"✋",lead:"Beim <b>Ziehen &amp; Ablegen</b> hältst du die linke Taste gedrückt, schiebst etwas an eine neue Stelle und lässt dann los.",
-    points:[{ic:"👆",txt:"Auf das Ding gehen und die <b>linke Taste gedrückt halten</b>."},
-      {ic:"✋",txt:"Mit gedrückter Taste an die <b>neue Stelle ziehen</b>."},
-      {ic:"🅿️",txt:"Taste <b>loslassen</b> – fertig abgelegt!"}]},
-  s7:{icon:"🪟",lead:"Programme laufen in <b>Fenstern</b>. Du kannst sie verschieben, größer und kleiner machen, schließen und nach vorne holen.",
-    points:[{ic:"↔️",txt:"An der <b>Titelleiste</b> oben fasst du ein Fenster an und <b>verschiebst</b> es."},
-      {ic:"◢",txt:"Am <b>Eck-Ziehpunkt</b> ziehst du es <b>größer oder kleiner</b>."},
-      {ic:"✖️",txt:"Mit <b>×</b> schließt du ein Fenster."}]}
+      {ic:"📋",txt:"Im Menü stehen passende <b>Befehle</b> für das angeklickte Ding."},
+      {ic:"👆",txt:"Den Befehl im Menü wählst du dann mit einem <b>Linksklick</b>."},
+      {ic:"▸",txt:"Ein Pfeil <b>▸</b> heißt: Dahinter öffnet sich ein <b>Untermenü</b>."}],
+    steps:["Bewege den Zeiger genau auf das Ding.","Drücke <b>einmal die rechte</b> Taste – das Menü erscheint.","Klicke den gewünschten Befehl mit <b>links</b> an."]},
+  s4:{part:"wheel",head:"Das Scrollrad",cap:"🎡 Mausrad – Scrollen",
+    lead:"Viele Seiten sind <b>länger als der Bildschirm</b>. Mit dem <b>Rädchen</b> in der Mitte der Maus rollst du den Inhalt nach oben und unten, ganz ohne zu klicken. So kommst du bequem zum unteren Teil einer Seite.",
+    points:[{ic:"🎡",txt:"Das <b>Rad</b> in der Mitte mit dem Finger <b>drehen</b> = scrollen."},
+      {ic:"⬇️",txt:"Rad <b>von dir weg</b> drehen → die Seite geht <b>nach unten</b>."},
+      {ic:"⬆️",txt:"Rad <b>zu dir hin</b> drehen → die Seite geht <b>nach oben</b>."},
+      {ic:"🖱️",txt:"Man kann das Rad auch <b>drücken</b> (Mausradklick) – das kommt am Ende."}],
+    steps:["Lege den Finger auf das Rad in der Mitte.","Drehe es <b>langsam von dir weg</b>, um nach unten zu scrollen.","Such die 42 – dann zurückdrehen, um wieder hochzukommen."]},
+  s6:{part:"left",head:"Ziehen & Ablegen",cap:"👆 Linke Taste – gedrückt halten",
+    lead:"Beim <b>Ziehen &amp; Ablegen</b> nimmst du etwas mit der Maus „in die Hand“: Du drückst die linke Taste auf einem Ding, <b>hältst sie gedrückt</b>, schiebst die Maus an eine neue Stelle und lässt dort wieder los.",
+    points:[{ic:"👆",txt:"Auf dem Ding die <b>linke Taste drücken und gedrückt halten</b>."},
+      {ic:"✋",txt:"Mit weiter gedrückter Taste an die <b>neue Stelle ziehen</b>."},
+      {ic:"🅿️",txt:"An der richtigen Stelle die Taste <b>loslassen</b> – abgelegt!"},
+      {ic:"🧲",txt:"Loslassen nicht vergessen – sonst klebt das Ding am Zeiger."}],
+    steps:["Zeiger auf das Ding, linke Taste <b>drücken und halten</b>.","Maus mit gedrückter Taste zum Ziel bewegen.","Über dem Ziel die Taste <b>loslassen</b>."]},
+  s7:{part:"left",head:"Fenster bedienen",cap:"👆 Linke Taste – ziehen & klicken",
+    lead:"Programme laufen in <b>Fenstern</b>. Mit der linken Taste kannst du ein Fenster <b>verschieben</b>, <b>größer oder kleiner</b> machen, nach vorne holen oder <b>schließen</b> – fast alles geht durch Ziehen oder Klicken mit links.",
+    points:[{ic:"↔️",txt:"Oben an der <b>Titelleiste</b> anfassen und das Fenster <b>verschieben</b>."},
+      {ic:"◢",txt:"Am <b>Eck-Ziehpunkt</b> ziehen macht es <b>größer oder kleiner</b>."},
+      {ic:"🔼",txt:"Ein Klick auf ein Fenster holt es <b>nach vorne</b>."},
+      {ic:"✖️",txt:"Mit dem <b>×</b> oben rechts <b>schließt</b> du ein Fenster."}],
+    steps:["Fenster an der Titelleiste fassen und ziehen zum Verschieben.","Am Eck ziehen, um die Größe zu ändern.","Mit <b>×</b> schließen, wenn du fertig bist."]}
 };
+// Maus-Funktionsbild: dieselbe Skizze wie auf der Startseite, aber die zur
+// Technik passende Taste (links/rechts/Rad) wird hervorgehoben.
+function mouseFnSVG(part){
+  const a=p=>part===p?" mh-active":"";
+  return `<svg class="mfn" viewBox="0 0 160 240" width="150" height="225" role="img" aria-label="Maus mit hervorgehobener Taste">`+
+    `<rect x="20" y="10" width="120" height="220" rx="60" fill="#fbfdfe" stroke="#0a4d68" stroke-width="3"/>`+
+    `<path class="m-part m-left${a("left")}" d="M80 10 a60 60 0 0 0 -60 60 v25 h60 z" fill="rgba(19,184,212,.18)"/>`+
+    `<path class="m-part m-right${a("right")}" d="M80 10 a60 60 0 0 1 60 60 v25 h-60 z" fill="rgba(231,111,81,.18)"/>`+
+    `<line x1="80" y1="10" x2="80" y2="95" stroke="#0a4d68" stroke-width="2"/>`+
+    `<line x1="20" y1="95" x2="140" y2="95" stroke="#0a4d68" stroke-width="2"/>`+
+    `<rect class="m-part m-wheel${a("wheel")}" x="71" y="30" width="18" height="44" rx="9" fill="#13b8d4" stroke="#0a4d68" stroke-width="2"/>`+
+    `<text x="46" y="62" font-size="13" text-anchor="middle" fill="#0a4d68" font-weight="700">L</text>`+
+    `<text x="114" y="62" font-size="13" text-anchor="middle" fill="#0a4d68" font-weight="700">R</text>`+
+    `</svg>`;
+}
 let _introSkip=null; // Station-ID, deren Intro beim nächsten go() übersprungen wird
 // Zeigt vor der Station eine Erklärseite. Gibt true zurück, wenn die Station
 // noch warten soll (Intro sichtbar); dann bricht die Station-Funktion ab.
@@ -865,12 +917,21 @@ function stationIntro(id,stage){
   if(!info) return false;
   if(_introSkip===id){ _introSkip=null; return false; }
   const st=STATIONS.find(s=>s.id===id);
-  setInstruction(`Station ${stationNumber(id)} · ${st?st.title:""}`,info.lead);
-  setHint("Lies kurz mit – dann auf „Los geht’s“ klicken.","");
-  const card=document.createElement("div");card.className="introcard";
-  card.innerHTML=`<div class="intro-emoji">${info.icon}</div>`+
-    `<ul class="intro-points">${info.points.map(p=>`<li><span class="ic">${p.ic}</span><span>${p.txt}</span></li>`).join("")}</ul>`;
-  stage.appendChild(card);
+  setInstruction(`Station ${stationNumber(id)} · ${st?st.title:""}`,
+    "Bevor es losgeht, schauen wir uns kurz die neue Funktion an. Klicke danach auf „Los geht’s“.");
+  setHint("Lies die Erklärung – dann auf „Los geht’s“ klicken.","");
+  const ex=document.createElement("div");ex.className="explainer";
+  ex.innerHTML=`
+    <div class="explainer-head"><span class="badge">📖</span><span>Neu erklärt: ${info.head}</span></div>
+    <div class="explainer-body">
+      <div class="explainer-pic">${mouseFnSVG(info.part)}<div class="explainer-cap">${info.cap}</div></div>
+      <div class="explainer-text">
+        <p class="explainer-lead">${info.lead}</p>
+        <ul class="mouse-list">${info.points.map(p=>`<li><span class="me">${p.ic}</span><div>${p.txt}</div></li>`).join("")}</ul>
+      </div>
+    </div>
+    <div class="explainer-steps"><h3>👉 So geht’s</h3><ol>${info.steps.map(s=>`<li>${s}</li>`).join("")}</ol></div>`;
+  stage.appendChild(ex);
   const begin=()=>{ _introSkip=id; go(id); };
   showReplay(false);
   showNext(true,"Los geht’s ›");$("#nextBtn").onclick=begin;
