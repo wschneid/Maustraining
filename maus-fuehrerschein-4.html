@@ -121,6 +121,8 @@
   .icon.pop{animation:pop .4s;}
   @keyframes pop{0%{transform:scale(1);}40%{transform:scale(1.18);}100%{transform:scale(1);}}
   .icon.abs{position:absolute;margin:0;}
+  .icon.cutting{opacity:.4;}
+  .icon .cnt{font-size:.72rem;color:#7ef0c0;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.6);}
   .taskbar{position:absolute;left:0;right:0;bottom:0;height:34px;background:rgba(7,40,53,.85);backdrop-filter:blur(4px);
     display:flex;align-items:center;gap:10px;padding:0 12px;color:#dceef3;font-size:.78rem;z-index:2;}
   .taskbar .st-btn{background:rgba(255,255,255,.15);border-radius:6px;padding:3px 10px;font-weight:600;}
@@ -290,6 +292,15 @@
   .winmove .reshandle{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;
     background:linear-gradient(135deg,transparent 50%,var(--ocean-mid) 50%);}
   .winmove.fit{border-color:var(--success);box-shadow:0 0 0 3px rgba(42,157,143,.4),0 14px 34px rgba(10,77,104,.25);}
+  /* zusätzliche Resize-Anfasser an rechter & unterer Kante (Station „Fenstergröße“) */
+  .winmove .reshandle-r{position:absolute;right:-2px;top:14px;bottom:14px;width:8px;cursor:ew-resize;background:rgba(19,184,212,.45);border-radius:4px;}
+  .winmove .reshandle-b{position:absolute;left:14px;right:14px;bottom:-2px;height:8px;cursor:ns-resize;background:rgba(19,184,212,.45);border-radius:4px;}
+  /* Kaskadenmenü (Station „Kaskadenmenü“) */
+  .cascade{position:relative;display:flex;align-items:flex-start;gap:6px;padding:14px;}
+  .casc-col{background:#fbfdfe;border:1px solid #b9d4dd;border-radius:8px;min-width:172px;padding:5px;box-shadow:0 8px 22px rgba(10,77,104,.18);}
+  .casc-item{padding:8px 12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--ink);font-size:.92rem;}
+  .casc-item:hover,.casc-item.open{background:var(--ocean-mid);color:#fff;}
+  .casc-item .arr{margin-left:auto;font-size:.8rem;}
 
   .sliderstage{flex:1;display:flex;flex-direction:column;gap:22px;justify-content:center;padding:6px 4px;}
   .sliderrow{display:flex;align-items:center;gap:14px;}
@@ -556,6 +567,7 @@ const STATIONS = [
   {id:"s6",    short:"Sortieren",   icon:"✋",  title:"Sortieren",         desc:"Ziehen & Ablegen"},
   {id:"spuzzle",short:"Puzzle",     icon:"🧩",  title:"Puzzle",            desc:"Teile einrasten lassen"},
   {id:"s7",    short:"Fenster",     icon:"🪟",  title:"Fenster",           desc:"Bewegen & Größe"},
+  {id:"sresize",short:"Größe",      icon:"↔️",  title:"Fenstergröße",      desc:"Ziehpunkte an Ecken & Kanten"},
   {id:"s8",    short:"Regler",      icon:"🎚️", title:"Regler",            desc:"Schieben & ziehen"},
   {id:"s9",    short:"Malen",       icon:"🎨",  title:"Malen",             desc:"Wischen mit der Maus"},
   {id:"s10",   short:"Umschalt",    icon:"📑",  title:"Umschalt-Klick",    desc:"Bereich auswählen"},
@@ -566,6 +578,8 @@ const STATIONS = [
   {id:"s15",   short:"Tabs",        icon:"🗂️", title:"Tabs wechseln",     desc:"Reiter öffnen"},
   {id:"s16",   short:"PopUps",      icon:"💬",  title:"PopUps & Dialoge",  desc:"Schließen & bestätigen"},
   {id:"s17",   short:"Menü",        icon:"📜",  title:"Menüleiste",        desc:"Datei & Bearbeiten"},
+  {id:"scopy", short:"Kopieren",    icon:"📋",  title:"Kopieren & Einfügen",desc:"Rechtsklick · Zwischenablage"},
+  {id:"scascade",short:"Kaskade",   icon:"📂",  title:"Kaskadenmenü",      desc:"Hover durch Untermenüs"},
   {id:"sforms",short:"Formular",    icon:"☑️",  title:"Formular",          desc:"Kästchen, Auswahl & Schalter"},
   {id:"sarkanoid",short:"Arkanoid", icon:"🧱",  title:"Arkanoid",          desc:"Ball & Paddel · Steine zerlegen"},
   {id:"sfiles",short:"Dateien",     icon:"🗂️", title:"Dateien verschieben",desc:"Ziehen zwischen Ordnern"},
@@ -1731,6 +1745,47 @@ SCREENS.s7=(stage)=>{
   roundMove();
 };
 
+/* ---------- sresize: Fenstergröße per Ziehpunkten (Ecke & Kante) ---------- */
+SCREENS.sresize=(stage)=>{
+  const N=stationNumber("sresize");
+  const ws=document.createElement("div");ws.className="winstage";stage.appendChild(ws);
+  const TOL=Math.round(24*diff().size); // leicht großzügiger, schwer enger
+  // Eine Resize-Runde. mode: "corner" (Breite+Höhe), "right" (nur Breite), "bottom" (nur Höhe)
+  function resizeRound(o){
+    ws.innerHTML="";setCounter(o.label,"Aufgabe");
+    setInstruction(`Station ${N} · Fenstergröße (${o.label})`,o.instr);
+    setHint("Ziehpunkt anfassen, halten und das Fenster passend ziehen.","");
+    const frame=document.createElement("div");frame.className="target-zone";
+    frame.style.left="20px";frame.style.top="20px";frame.style.width=o.TW+"px";frame.style.height=o.TH+"px";ws.appendChild(frame);
+    const win=document.createElement("div");win.className="winmove";
+    win.style.left="20px";win.style.top="20px";win.style.width=o.startW+"px";win.style.height=o.startH+"px";
+    const handle=o.mode==="right"?`<div class="reshandle-r"></div>`:o.mode==="bottom"?`<div class="reshandle-b"></div>`:`<div class="reshandle"></div>`;
+    win.innerHTML=`<div class="tbar">🪟 Fenster <span class="x" title="Schließen">×</span></div><div class="wc">Zieh mich auf die richtige Größe.</div>${handle}`;
+    ws.appendChild(win);
+    win.querySelector(".x").addEventListener("click",()=>setHint("Nicht schließen – nur die Größe ändern. 😊","warn"));
+    const fits=(w,h)=>o.mode==="right"?Math.abs(w-o.TW)<TOL:o.mode==="bottom"?Math.abs(h-o.TH)<TOL:(Math.abs(w-o.TW)<TOL&&Math.abs(h-o.TH)<TOL);
+    win.querySelector(".reshandle,.reshandle-r,.reshandle-b").addEventListener("mousedown",e=>{e.stopPropagation();
+      const r=win.getBoundingClientRect();
+      dragMove(e,ev=>{
+        if(o.mode!=="bottom"){let w=Math.max(120,ev.clientX-r.left);w=Math.min(w,ws.clientWidth-20-parseFloat(win.style.left));win.style.width=w+"px";}
+        if(o.mode!=="right"){let h=Math.max(90,ev.clientY-r.top);h=Math.min(h,ws.clientHeight-20-parseFloat(win.style.top));win.style.height=h+"px";}
+        win.classList.toggle("fit",fits(parseFloat(win.style.width),parseFloat(win.style.height)));
+      },()=>{const w=parseFloat(win.style.width),h=parseFloat(win.style.height);
+        if(fits(w,h)){if(o.mode!=="bottom")win.style.width=o.TW+"px";if(o.mode!=="right")win.style.height=o.TH+"px";
+          win.classList.add("fit");sfx.step();setHint("Genau die richtige Größe – super!","good");later(o.onDone,800);}
+        else setHint("Fast! Zieh den Punkt, bis das Fenster den Rahmen genau ausfüllt.","warn");});
+    });
+  }
+  function round1(){ resizeRound({mode:"corner",startW:150,startH:110,TW:320,TH:230,label:"1/3",
+    instr:"Unten rechts am Fenster ist ein <b>Ziehpunkt</b> ◢. <b>Halte ihn gedrückt und ziehe</b>, bis das Fenster den gestrichelten Rahmen genau ausfüllt.",onDone:round2}); }
+  function round2(){ resizeRound({mode:"corner",startW:340,startH:240,TW:170,TH:120,label:"2/3",
+    instr:"Jetzt andersherum: <b>Mach das Fenster kleiner</b>. Zieh den Eck-Ziehpunkt ◢ nach innen, bis es genau in den kleinen Rahmen passt.",onDone:round3}); }
+  function round3(){ resizeRound({mode:"right",startW:140,startH:200,TW:330,TH:200,label:"3/3",
+    instr:"Diesmal nur die <b>Breite</b>: Fasse den Ziehpunkt an der <b>rechten Kante</b> an und zieh das Fenster auf die Breite des Rahmens.",
+    onDone:()=>completeStation("sresize","Fenster genau in Form gezogen – an Ecke und Kante! ↔️")}); }
+  round1();
+};
+
 /* ---------- S8: Regler & Leiste ziehen ---------- */
 SCREENS.s8=(stage)=>{
   const N=stationNumber("s8");
@@ -2133,6 +2188,135 @@ SCREENS.s17=(stage)=>{
     setInstruction(`Station ${N} · Menüleiste (${r+1}/${rounds.length})`,
       `Klassische Programme haben oben eine Menüleiste. Öffne das Menü <b>„${want.menu}"</b> und wähle <b>„${want.lbl}"</b>.`);
     setHint(`Erst „${want.menu}" anklicken, dann „${want.lbl}".`,"");}
+  ask();
+};
+
+/* ---------- scopy: Kopieren & Einfügen (Zwischenablage) ---------- */
+SCREENS.scopy=(stage)=>{
+  const N=stationNumber("scopy");
+  const desk=document.createElement("div");desk.className="desktop";
+  const icons=document.createElement("div");icons.className="icons";desk.appendChild(icons);
+  const tb=document.createElement("div");tb.className="taskbar";
+  tb.innerHTML=`<span class="st-btn">⊞ Start</span><span>🖥️ Zwischenablage üben</span>`;desk.appendChild(tb);
+  stage.appendChild(desk);
+
+  const FILES=[{key:"f1",em:"📄",lb:"notiz.txt"},{key:"f2",em:"📝",lb:"brief.txt"}];
+  const FOLDERS=[{key:"texte",em:"📁",lb:"Texte"},{key:"bilder",em:"📁",lb:"Bilder"}];
+  const fileEls={}, folderEls={}, folderCount={};
+  FILES.forEach(f=>{const el=document.createElement("div");el.className="icon";el.dataset.role="file";el.dataset.key=f.key;
+    el.innerHTML=`<span class="em">${f.em}</span><span class="lb">${f.lb}</span>`;icons.appendChild(el);fileEls[f.key]=el;});
+  FOLDERS.forEach(fo=>{const el=document.createElement("div");el.className="icon";el.dataset.role="folder";el.dataset.key=fo.key;folderCount[fo.key]=0;
+    el.innerHTML=`<span class="em">${fo.em}</span><span class="lb">${fo.lb}</span><span class="cnt"></span>`;icons.appendChild(el);folderEls[fo.key]=el;});
+
+  let clip=null; // {key,em,lb,cut}
+  const ROUNDS=[{op:"copy",file:"f1",dest:"texte"},{op:"cut",file:"f2",dest:"bilder"}];
+  const rounds=ROUNDS.slice(0,dRounds(ROUNDS.length,2,2));
+  let r=0;
+  const fileOf=k=>FILES.find(x=>x.key===k), folderOf=k=>FOLDERS.find(x=>x.key===k);
+
+  function doCopy(key,cut){
+    const want=rounds[r];
+    if(key!==want.file){registerAttempt(false);sfx.soft();setHint(`Diese Datei ist gerade nicht dran. Nimm „${fileOf(want.file).lb}".`,"warn");return;}
+    if((want.op==="copy")!==(!cut)){registerAttempt(false);sfx.soft();
+      setHint(want.op==="copy"?"Diesmal „Kopieren“ wählen (nicht Ausschneiden).":"Diesmal „Ausschneiden“ wählen (nicht Kopieren).","warn");return;}
+    clip={key,cut};
+    FILES.forEach(f=>fileEls[f.key].classList.remove("selected","cutting"));
+    fileEls[key].classList.add("selected");if(cut)fileEls[key].classList.add("cutting");
+    sfx.step();
+    setHint(`„${fileOf(key).lb}" ${cut?"ausgeschnitten":"kopiert"} – jetzt per Rechtsklick in den Ordner „${folderOf(want.dest).lb}" einfügen.`,"good");
+  }
+  function doPaste(folderKey){
+    if(!clip)return;const want=rounds[r];
+    if(folderKey!==want.dest){registerAttempt(false);sfx.soft();setHint(`Nicht dieser Ordner. Füge in „${folderOf(want.dest).lb}" ein.`,"warn");return;}
+    folderCount[folderKey]++;folderEls[folderKey].querySelector(".cnt").textContent="("+folderCount[folderKey]+")";
+    folderEls[folderKey].classList.remove("pop");void folderEls[folderKey].offsetWidth;folderEls[folderKey].classList.add("pop");
+    if(clip.cut)fileEls[clip.key].remove(); else fileEls[clip.key].classList.remove("selected");
+    clip=null;sfx.step();r++;
+    if(r>=rounds.length)later(()=>completeStation("scopy","Kopieren, Ausschneiden und Einfügen – Zwischenablage sitzt! 📋"),650);
+    else{setHint("Super eingefügt! Weiter zur nächsten Aufgabe.","good");later(ask,650);}
+  }
+  function ask(){const w=rounds[r];const f=fileOf(w.file),fo=folderOf(w.dest);
+    clip=null;FILES.forEach(x=>fileEls[x.key]&&fileEls[x.key].classList.remove("selected","cutting"));
+    setCounter(`${r+1}/${rounds.length}`,"Aufgabe");
+    setInstruction(`Station ${N} · Kopieren & Einfügen (${r+1}/${rounds.length})`,
+      w.op==="copy"
+        ? `<b>Rechtsklick</b> auf <b>„${f.lb}"</b> ${f.em} → <b>„Kopieren"</b>, dann <b>Rechtsklick</b> auf den Ordner <b>„${fo.lb}"</b> ${fo.em} → <b>„Einfügen"</b>. Beim Kopieren bleibt das Original liegen.`
+        : `<b>Rechtsklick</b> auf <b>„${f.lb}"</b> ${f.em} → <b>„Ausschneiden"</b>, dann <b>Rechtsklick</b> auf den Ordner <b>„${fo.lb}"</b> ${fo.em} → <b>„Einfügen"</b>. Beim Ausschneiden <b>wandert</b> die Datei.`);
+    setHint("Erst die Datei kopieren/ausschneiden, dann in den Ordner einfügen.","");}
+
+  desk.addEventListener("contextmenu",e=>{
+    e.preventDefault();
+    const fileEl=e.target.closest('.icon[data-role="file"]');
+    const folderEl=e.target.closest('.icon[data-role="folder"]');
+    if(fileEl){const key=fileEl.dataset.key;
+      showCtx(e.clientX,e.clientY,[{icon:"📂",label:"Öffnen"},
+        {icon:"✂️",label:"Ausschneiden",key:"Strg+X",action:()=>doCopy(key,true)},
+        {icon:"📋",label:"Kopieren",key:"Strg+C",action:()=>doCopy(key,false)},{sep:true},
+        {icon:"✏️",label:"Umbenennen",key:"F2"},{icon:"🗑️",label:"Löschen",key:"Entf"}]);
+    }else if(folderEl){const key=folderEl.dataset.key;
+      showCtx(e.clientX,e.clientY,[{icon:"📂",label:"Öffnen"},{sep:true},
+        {icon:"📥",label:"Einfügen",key:"Strg+V",disabled:!clip,action:()=>doPaste(key)}]);
+    }else{
+      showCtx(e.clientX,e.clientY,[{icon:"🔄",label:"Aktualisieren"},{sep:true},
+        {icon:"📥",label:"Einfügen",key:"Strg+V",disabled:true}]);
+    }
+  });
+  ask();
+};
+
+/* ---------- scascade: Kaskadenmenü per Hover navigieren ---------- */
+SCREENS.scascade=(stage)=>{
+  const N=stationNumber("scascade");
+  const win=document.createElement("div");win.className="appwin";
+  const bar=document.createElement("div");bar.className="menubar";
+  const mb=document.createElement("div");mb.className="mb open";mb.textContent="Einfügen ▾";bar.appendChild(mb);
+  const doc=document.createElement("div");doc.className="docarea";
+  const cascWrap=document.createElement("div");cascWrap.className="cascade";
+  const msg=document.createElement("p");msg.style.cssText="color:var(--success);font-weight:600;min-height:1.3em;padding:0 14px;";
+  win.appendChild(bar);win.appendChild(doc);doc.appendChild(cascWrap);doc.appendChild(msg);stage.appendChild(win);
+
+  const ROUNDS=[
+    {targetPath:"Form ▸ Stern",tree:[
+      {icon:"🔷",label:"Form",children:[{icon:"⬤",label:"Kreis"},{icon:"⭐",label:"Stern",target:true},{icon:"🔺",label:"Dreieck"}]},
+      {icon:"🅰️",label:"Text"},{icon:"▦",label:"Tabelle"}]},
+    {targetPath:"Bild ▸ Foto ▸ Querformat",tree:[
+      {icon:"🖼️",label:"Bild",children:[
+        {icon:"📷",label:"Foto",children:[{icon:"📐",label:"Hochformat"},{icon:"🖥️",label:"Querformat",target:true}]},
+        {icon:"😀",label:"Symbol"}]},
+      {icon:"🔷",label:"Form",children:[{icon:"⬤",label:"Kreis"},{icon:"⭐",label:"Stern"}]}]}
+  ];
+  const rounds=ROUNDS.slice(0,dRounds(ROUNDS.length,2,2));
+  let r=0;
+
+  function render(items,depth){
+    $$(".casc-col",cascWrap).slice(depth).forEach(c=>c.remove());
+    const col=document.createElement("div");col.className="casc-col";
+    items.forEach(it=>{
+      const el=document.createElement("div");el.className="casc-item";
+      el.innerHTML=`<span>${it.icon||""}</span><span>${it.label}</span>`+(it.children?`<span class="arr">▸</span>`:"");
+      el.addEventListener("mouseenter",()=>{
+        $$(".casc-item",col).forEach(x=>x.classList.remove("open"));el.classList.add("open");
+        if(it.children)render(it.children,depth+1);
+        else $$(".casc-col",cascWrap).slice(depth+1).forEach(c=>c.remove());
+      });
+      if(!it.children)el.addEventListener("click",ev=>{ev.stopPropagation();pick(it);});
+      col.appendChild(el);
+    });
+    cascWrap.appendChild(col);
+  }
+  function pick(it){const want=rounds[r];
+    if(it.target){sfx.step();msg.textContent="Eingefügt: "+want.targetPath+" ✓";r++;
+      if(r>=rounds.length)later(()=>completeStation("scascade","Durch alle Untermenüs navigiert – ruhige Maushand! 📂"),650);
+      else{setHint("Richtig! Jetzt die nächste Aufgabe.","good");later(ask,650);}
+    }else{registerAttempt(false);sfx.soft();setHint(`Das war „${it.label}". Gesucht: ${want.targetPath}.`,"warn");}
+  }
+  function ask(){const want=rounds[r];cascWrap.innerHTML="";msg.textContent="";
+    setCounter(`${r+1}/${rounds.length}`,"Aufgabe");
+    setInstruction(`Station ${N} · Kaskadenmenü (${r+1}/${rounds.length})`,
+      `Manche Menüs haben <b>Untermenüs</b> (Pfeil ▸). Fahre mit dem Zeiger den Pfeilen nach – <b>ohne abzurutschen</b> – und klicke am Ende das Ziel an: <b>${want.targetPath}</b>.`);
+    setHint("Langsam mit dem Zeiger den Pfeilen ▸ folgen, dann das Ziel anklicken.","");
+    render(want.tree,0);
+  }
   ask();
 };
 
