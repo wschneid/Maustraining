@@ -879,8 +879,8 @@ const INTROS={
       {ic:"⬆️",txt:"Rad <b>zu dir hin</b> drehen → die Seite geht <b>nach oben</b>."},
       {ic:"🖱️",txt:"Man kann das Rad auch <b>drücken</b> (Mausradklick) – das kommt am Ende."}],
     steps:["Lege den Finger auf das Rad in der Mitte.","Drehe es <b>langsam von dir weg</b>, um nach unten zu scrollen.","Such die 42 – dann zurückdrehen, um wieder hochzukommen."]},
-  s6:{part:"left",head:"Ziehen & Ablegen",cap:"👆 Linke Taste – gedrückt halten",
-    lead:"Beim <b>Ziehen &amp; Ablegen</b> nimmst du etwas mit der Maus „in die Hand“: Du drückst die linke Taste auf einem Ding, <b>hältst sie gedrückt</b>, schiebst die Maus an eine neue Stelle und lässt dort wieder los.",
+  s6:{part:"left",head:"Drag and Drop",cap:"👆 Linke Taste – gedrückt halten",
+    lead:"Beim <b>Drag and Drop</b> (Ziehen &amp; Ablegen) nimmst du etwas mit der Maus „in die Hand“: Du drückst die linke Taste auf einem Ding, <b>hältst sie gedrückt</b>, schiebst die Maus an eine neue Stelle und lässt dort wieder los.",
     points:[{ic:"👆",txt:"Auf dem Ding die <b>linke Taste drücken und gedrückt halten</b>."},
       {ic:"✋",txt:"Mit weiter gedrückter Taste an die <b>neue Stelle ziehen</b>."},
       {ic:"🅿️",txt:"An der richtigen Stelle die Taste <b>loslassen</b> – abgelegt!"},
@@ -945,7 +945,8 @@ function maybeOfferBonus(next){
   if(n>0 && n%3===0 && state.current!=="exam"){
     _bonusReturn=next;
     const games=["bonus_catch","bonus_memory","bonus_reflex","bonus_simon","bonus_catch_left","bonus_catch_right","bonus_arkanoid"];const g=games[(n/3-1)%games.length];
-    showSkip(true,()=>go(next));$("#skipBtn").textContent="Bonus überspringen";
+    const nextShort=STATIONS.find(s=>s.id===next)?.short;
+    showSkip(true,()=>go(next));$("#skipBtn").textContent=nextShort?`Weiter zu „${nextShort}“ ›`:"Weiter ohne Bonus ›";
     showNext(true,"🎁 Bonus-Spiel!");$("#nextBtn").onclick=()=>go(g);
     return true;
   }
@@ -1689,7 +1690,7 @@ SCREENS.s6=(stage)=>{
   const N=stationNumber("s6");
   function roundSort(){
     stage.innerHTML="";
-    setInstruction(`Station ${N} · Ziehen & Ablegen (1/3)`,
+    setInstruction(`Station ${N} · Drag and Drop (1/3)`,
       "Drücke die linke Taste auf einer Datei, <b>halte sie gedrückt</b>, ziehe sie zum passenden Ordner und <b>lass dort los</b>. Sortiere alles ein!");
     setHint("Halten – ziehen – über dem Ordner loslassen.","");
     const FILES=[{em:"🐶",name:"Hund.jpg",type:"bilder"},{em:"🎵",name:"Lied.mp3",type:"musik"},{em:"📄",name:"Brief.txt",type:"texte"},
@@ -1716,7 +1717,7 @@ SCREENS.s6=(stage)=>{
       {em:"📄",name:"Brief.txt",type:"texte"},{em:"🎞️",name:"Clip.mp4",type:"videos"},{em:"🏞️",name:"Berg.jpg",type:"bilder"},
       {em:"🎶",name:"Song.mp3",type:"musik"},{em:"📝",name:"Notiz.txt",type:"texte"}];
     const FOLDERS=[{type:"bilder",nm:"Bilder"},{type:"musik",nm:"Musik"},{type:"texte",nm:"Texte"},{type:"videos",nm:"Videos"}];
-    build(FILES,FOLDERS,"Diese Dateien einsortieren:",()=>completeStation("s6","Sortiert und aufgeräumt – Ziehen & Ablegen sitzt! ✋"),"Alles erledigt!");
+    build(FILES,FOLDERS,"Diese Dateien einsortieren:",()=>completeStation("s6","Sortiert und aufgeräumt – Drag and Drop sitzt! ✋"),"Alles erledigt!");
   }
   function build(FILES,FOLDERS,trayLabel,onDone,doneMsg){
     const TOTAL=FILES.length;let placed=0;setCounter(`0/${TOTAL}`,"sortiert");
