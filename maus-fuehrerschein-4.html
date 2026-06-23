@@ -52,6 +52,14 @@
   #drawer .progress{flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;overflow-y:auto;gap:6px;padding:10px;flex:1;}
   #drawer .stamp{justify-content:flex-start;width:100%;font-size:.86rem;padding:9px 12px;}
   #drawer .stamp .dot{width:22px;height:22px;font-size:.8rem;}
+  /* Erklärseiten (Intro vor einer Station) */
+  .introcard{display:flex;flex-direction:column;align-items:center;gap:16px;padding:22px;max-width:620px;margin:0 auto;text-align:center;}
+  .intro-emoji{font-size:3.4rem;line-height:1;}
+  .intro-points{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;text-align:left;width:100%;max-width:520px;}
+  .intro-points li{display:flex;gap:12px;align-items:flex-start;background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+  .intro-points .ic{font-size:1.5rem;flex:none;line-height:1.2;}
+  .intro-points li span:last-child{color:var(--ink-soft);line-height:1.5;font-size:.98rem;}
+  .intro-points b{color:var(--ocean-deep);}
 
   .hud{display:flex;align-items:center;gap:9px;color:#fff;white-space:nowrap;}
   .hud .lvl{background:var(--ocean-bright);color:#06303f;font-weight:700;border-radius:999px;padding:4px 10px;font-size:.78rem;cursor:default;}
@@ -821,6 +829,54 @@ function go(id){
   $("main").scrollTop=0;
 }
 function nextStationId(){ const i=STATIONS.findIndex(s=>s.id===state.current); return STATIONS[Math.min(i+1,STATIONS.length-1)].id; }
+
+/* ---- Erklärseiten: kurze Intro vor ausgewählten Stationen ---- */
+const INTROS={
+  s1:{icon:"👆",lead:"Die <b>linke Maustaste</b> ist deine wichtigste Taste. Ein kurzer Druck – ein <b>Klick</b> – wählt etwas aus oder drückt einen Knopf.",
+    points:[{ic:"👆",txt:"<b>Linke Taste</b> einmal kurz drücken = <b>ein Klick</b>."},
+      {ic:"🎯",txt:"Erst mit dem Zeiger genau auf das Ziel gehen, dann klicken."},
+      {ic:"✨",txt:"Ein Klick <b>wählt aus</b> oder <b>drückt einen Knopf</b>."}]},
+  s2:{icon:"⚡",lead:"Zum <b>Öffnen</b> brauchst du den <b>Doppelklick</b>: zweimal schnell hintereinander auf die linke Taste tippen – ohne die Maus zu bewegen.",
+    points:[{ic:"⚡",txt:"<b>Zweimal schnell</b> hintereinander klicken = <b>Doppelklick</b>."},
+      {ic:"🖐️",txt:"Die Maus dabei <b>ruhig halten</b> – nur die Taste tippt."},
+      {ic:"📂",txt:"Ein Doppelklick <b>öffnet</b> Dateien und Ordner."}]},
+  s3:{icon:"📋",lead:"Mit der <b>rechten Maustaste</b> öffnest du ein kleines Menü – das <b>Kontextmenü</b>. Darin stehen Befehle für genau das, worauf du geklickt hast.",
+    points:[{ic:"🖱️",txt:"<b>Rechte Taste</b> drücken = ein <b>Menü</b> klappt auf."},
+      {ic:"📋",txt:"Im <b>Kontextmenü</b> stehen passende Befehle (Kopieren, Umbenennen …)."},
+      {ic:"▸",txt:"Ein Pfeil <b>▸</b> heißt: Es gibt noch ein <b>Untermenü</b>."}]},
+  s4:{icon:"🎡",lead:"Viele Seiten sind länger als der Bildschirm. Mit dem <b>Rädchen</b> in der Mitte der Maus rollst du den Inhalt nach oben und unten.",
+    points:[{ic:"🎡",txt:"Das <b>Mausrad</b> in der Mitte <b>drehen</b> = scrollen."},
+      {ic:"⬇️",txt:"Rad <b>von dir weg</b> drehen → Seite geht <b>nach unten</b>."},
+      {ic:"⬆️",txt:"Rad <b>zu dir</b> drehen → Seite geht <b>nach oben</b>."}]},
+  s6:{icon:"✋",lead:"Beim <b>Ziehen &amp; Ablegen</b> hältst du die linke Taste gedrückt, schiebst etwas an eine neue Stelle und lässt dann los.",
+    points:[{ic:"👆",txt:"Auf das Ding gehen und die <b>linke Taste gedrückt halten</b>."},
+      {ic:"✋",txt:"Mit gedrückter Taste an die <b>neue Stelle ziehen</b>."},
+      {ic:"🅿️",txt:"Taste <b>loslassen</b> – fertig abgelegt!"}]},
+  s7:{icon:"🪟",lead:"Programme laufen in <b>Fenstern</b>. Du kannst sie verschieben, größer und kleiner machen, schließen und nach vorne holen.",
+    points:[{ic:"↔️",txt:"An der <b>Titelleiste</b> oben fasst du ein Fenster an und <b>verschiebst</b> es."},
+      {ic:"◢",txt:"Am <b>Eck-Ziehpunkt</b> ziehst du es <b>größer oder kleiner</b>."},
+      {ic:"✖️",txt:"Mit <b>×</b> schließt du ein Fenster."}]}
+};
+let _introSkip=null; // Station-ID, deren Intro beim nächsten go() übersprungen wird
+// Zeigt vor der Station eine Erklärseite. Gibt true zurück, wenn die Station
+// noch warten soll (Intro sichtbar); dann bricht die Station-Funktion ab.
+function stationIntro(id,stage){
+  const info=INTROS[id];
+  if(!info) return false;
+  if(_introSkip===id){ _introSkip=null; return false; }
+  const st=STATIONS.find(s=>s.id===id);
+  setInstruction(`Station ${stationNumber(id)} · ${st?st.title:""}`,info.lead);
+  setHint("Lies kurz mit – dann auf „Los geht’s“ klicken.","");
+  const card=document.createElement("div");card.className="introcard";
+  card.innerHTML=`<div class="intro-emoji">${info.icon}</div>`+
+    `<ul class="intro-points">${info.points.map(p=>`<li><span class="ic">${p.ic}</span><span>${p.txt}</span></li>`).join("")}</ul>`;
+  stage.appendChild(card);
+  const begin=()=>{ _introSkip=id; go(id); };
+  showReplay(false);
+  showNext(true,"Los geht’s ›");$("#nextBtn").onclick=begin;
+  showSkip(true,begin);$("#skipBtn").textContent="Überspringen";
+  return true;
+}
 let _bonusReturn=null;
 function maybeOfferBonus(next){
   // Nach jeder 3. abgeschlossenen Station ein überspringbares Bonus-Spiel anbieten.
@@ -1066,6 +1122,7 @@ SCREENS.shover=(stage)=>{
 
 /* ---------- S1: Linksklick ---------- */
 SCREENS.s1=(stage)=>{
+  if(stationIntro("s1",stage))return;
   const N=stationNumber("s1");
   function roundSelect(){
     stage.innerHTML="";
@@ -1162,6 +1219,7 @@ function showGiftJoke(onContinue){
 
 /* ---------- S2: Doppelklick ---------- */
 SCREENS.s2=(stage)=>{
+  if(stationIntro("s2",stage))return;
   const N=stationNumber("s2");
   function roundChests(){
     stage.innerHTML="";
@@ -1244,6 +1302,7 @@ SCREENS.s2=(stage)=>{
 
 /* ---------- S3: Rechtsklick ---------- */
 SCREENS.s3=(stage)=>{
+  if(stationIntro("s3",stage))return;
   const N=stationNumber("s3");
   const desk=document.createElement("div");desk.className="desktop";
   const icons=document.createElement("div");icons.className="icons";desk.appendChild(icons);
@@ -1317,6 +1376,7 @@ SCREENS.s3=(stage)=>{
 
 /* ---------- S4: Scrollen ---------- */
 SCREENS.s4=(stage)=>{
+  if(stationIntro("s4",stage))return;
   const N=stationNumber("s4");
   setInstruction(`Station ${N} · Das Scrollrad (1/2)`,
     "Mit dem <b>Rädchen</b> in der Mitte der Maus bewegst du den Inhalt. Scrolle nach unten und finde die <b>42</b>.");
@@ -1326,17 +1386,33 @@ SCREENS.s4=(stage)=>{
   br.innerHTML=`<div class="bar"><span class="st-btn" style="background:var(--ocean-mid);color:#fff;border-radius:6px;padding:3px 8px;">🌐</span><div class="url">https://www.maus-uebung.de/lange-seite</div></div>`;
   const area=document.createElement("div");area.className="scrollarea";br.appendChild(area);stage.appendChild(br);
   const star=`<div style="text-align:center"><span class="findme star" id="starBtn">★</span><div style="font-size:.8rem;color:var(--ink-soft)">Start-Stern</div></div>`;
-  const texts=["Eine Maus hat meistens zwei Tasten und ein Rad in der Mitte.","Das Rad heißt Scrollrad. Damit bewegst du den Inhalt.",
-    "Drehst du das Rad zu dir, geht es nach oben.","Drehst du das Rad von dir weg, geht es nach unten.",
-    "Viele Webseiten sind länger als der Bildschirm.","Deshalb ist Scrollen so wichtig.","Du machst das schon richtig gut!",
-    "Fast geschafft – weiter nach unten.","Noch ein kleines Stück …","Gleich hast du es!"];
+  const texts=["Eine Maus hat meistens zwei Tasten und in der Mitte ein Rad.",
+    "Das Rad heißt Scrollrad. Damit bewegst du den Inhalt der Seite.",
+    "Drehst du das Rad zu dir, geht es nach oben.",
+    "Drehst du das Rad von dir weg, geht es nach unten.",
+    "Probier es ruhig aus: ein Stück nach unten, ein Stück nach oben.",
+    "Viele Webseiten sind viel länger als der Bildschirm.",
+    "Deshalb ist Scrollen so wichtig – sonst siehst du nur den Anfang.",
+    "Wusstest du? Die allererste Maus war aus Holz und hatte nur eine Taste.",
+    "Sie wurde vor über 50 Jahren erfunden.",
+    "Das Scrollrad kam erst viel später dazu.",
+    "Mit dem Rad geht das Lesen langer Seiten ganz leicht.",
+    "Du machst das schon richtig gut – einfach weiterdrehen!",
+    "Manche Mäuse können das Rad sogar zur Seite kippen.",
+    "Damit scrollt man dann nach links und rechts.",
+    "Heute üben wir aber nur nach oben und unten.",
+    "Immer weiter nach unten …",
+    "Fast geschafft – nicht aufgeben!",
+    "Noch ein kleines Stück.",
+    "Gleich hast du die Zahl gefunden.",
+    "Letzter Absatz vor dem Ziel – jetzt kommt sie gleich …"];
   let html=`<h3>Willkommen auf der langen Seite!</h3>${star}<p>Ganz unten wartet eine Zahl. Scrolle mit dem Mausrad nach unten, bis du sie findest.</p>`;
   texts.forEach(t=>html+=`<p>${t}</p>`);
   html+=`<div style="text-align:center;margin:14px 0"><span class="findme" id="numBtn">42</span><div style="font-size:.8rem;color:var(--ink-soft)">Klicke die 42 an!</div></div>`;
   html+=`<p>Super, gefunden. Jetzt geht es wieder nach oben.</p>`;
   area.innerHTML=html;
   let down=false;
-  area.addEventListener("scroll",()=>{if(phase===0&&area.scrollTop>120&&!down){down=true;setHint("Genau so! Weiter, bis du die 42 siehst.","good");}});
+  area.addEventListener("scroll",()=>{if(phase===0&&area.scrollTop>320&&!down){down=true;setHint("Genau so! Weiter, bis du die 42 siehst.","good");}});
   $("#numBtn",area).addEventListener("click",()=>{if(phase!==0)return;const b=$("#numBtn",area);b.classList.add("found");b.textContent="✓";sfx.step();
     phase=1;setCounter("2/2","Aufgabe");setInstruction(`Station ${N} · Das Scrollrad (1/2)`,
       "Klasse! Jetzt zurück: Scrolle wieder <b>ganz nach oben</b> und klicke den <b>Start-Stern ★</b>.");setHint("Drehe das Rad jetzt nach oben.","");});
@@ -1498,6 +1574,7 @@ SCREENS.s5=(stage)=>{
 
 /* ---------- S6: Sortieren (Ziehen & Ablegen) ---------- */
 SCREENS.s6=(stage)=>{
+  if(stationIntro("s6",stage))return;
   const N=stationNumber("s6");
   function roundSort(){
     stage.innerHTML="";
@@ -1683,6 +1760,7 @@ SCREENS.spuzzle=(stage)=>{
 
 /* ---------- S7: Fenster bewegen & Größe ---------- */
 SCREENS.s7=(stage)=>{
+  if(stationIntro("s7",stage))return;
   const N=stationNumber("s7");
   const ws=document.createElement("div");ws.className="winstage";stage.appendChild(ws);
 
