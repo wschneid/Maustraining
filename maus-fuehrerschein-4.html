@@ -34,6 +34,24 @@
   .gear{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:40px;height:40px;
     border-radius:10px;font-size:1.2rem;cursor:pointer;display:grid;place-items:center;}
   .gear:hover{background:rgba(255,255,255,.28);}
+  /* Stationsmenü als ☰-Drawer */
+  .navbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:40px;height:40px;border-radius:10px;font-size:1.2rem;cursor:pointer;display:grid;place-items:center;}
+  .navbtn:hover{background:rgba(255,255,255,.28);}
+  .stationnow{margin-right:auto;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:999px;padding:6px 14px;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis;}
+  .stationnow:hover{background:rgba(255,255,255,.26);}
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(7,40,53,.5);z-index:59;display:none;}
+  .drawer-backdrop.open{display:block;}
+  .drawer{position:fixed;left:0;top:0;bottom:0;width:min(300px,86vw);z-index:60;display:flex;flex-direction:column;
+    background:linear-gradient(160deg,var(--ocean-deep),var(--ocean-mid));box-shadow:6px 0 24px rgba(0,0,0,.3);
+    transform:translateX(-100%);transition:transform .25s ease;}
+  .drawer.open{transform:none;}
+  .drawer-head{display:flex;align-items:center;gap:8px;padding:14px 14px 10px;color:#fff;font-weight:700;font-size:1rem;border-bottom:1px solid rgba(255,255,255,.18);}
+  .drawer-head .drawer-progress{margin-left:auto;font-size:.76rem;font-weight:600;background:rgba(255,255,255,.15);border-radius:999px;padding:3px 9px;}
+  .drawer-x{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:30px;height:30px;border-radius:8px;font-size:1.1rem;cursor:pointer;display:grid;place-items:center;}
+  .drawer-x:hover{background:rgba(255,255,255,.3);}
+  #drawer .progress{flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;overflow-y:auto;gap:6px;padding:10px;flex:1;}
+  #drawer .stamp{justify-content:flex-start;width:100%;font-size:.86rem;padding:9px 12px;}
+  #drawer .stamp .dot{width:22px;height:22px;font-size:.8rem;}
 
   .hud{display:flex;align-items:center;gap:9px;color:#fff;white-space:nowrap;}
   .hud .lvl{background:var(--ocean-bright);color:#06303f;font-weight:700;border-radius:999px;padding:4px 10px;font-size:.78rem;cursor:default;}
@@ -459,7 +477,7 @@
     .xpfloat,.bot.bot-happy,.bot.bot-cheer,.bot.bot-think{animation:none!important;}
   }
   @media print{
-    header.app,.footbar,.instruct,.gear,.overlay,.toast,.xpfloat{display:none!important;}
+    header.app,.footbar,.instruct,.gear,.overlay,.toast,.xpfloat,.drawer,.drawer-backdrop{display:none!important;}
     body,main,.card{background:#fff!important;box-shadow:none!important;}
     main{padding:0;} .play{padding:0;}
     .urkunde{border-color:#000;max-width:100%;}
@@ -472,7 +490,8 @@
 
 <header class="app">
   <div class="brand"><span class="glyph">🖱️</span><span>Maus-Führerschein<small>Bedienung Schritt für Schritt üben</small></span></div>
-  <nav class="progress" id="progress" aria-label="Stationen"></nav>
+  <button class="navbtn" id="navBtn" aria-label="Stationen" aria-expanded="false">☰</button>
+  <button class="stationnow" id="stationNow" aria-label="Aktuelle Station">Start</button>
   <div class="hud" id="hud" aria-label="Punktestand">
     <span class="lvl" id="hudLvl">Lv 1</span>
     <div class="xpbar"><div class="xpfill" id="hudXp"></div><span class="xptxt" id="hudXpTxt"></span></div>
@@ -517,6 +536,16 @@
 
 <div class="ctxmenu" id="ctxmenu" role="menu"></div>
 <div class="submenu" id="submenu" role="menu"></div>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <span>Stationen</span>
+    <span class="drawer-progress" id="drawerProgress"></span>
+    <button class="drawer-x" id="drawerClose" aria-label="Schließen">×</button>
+  </div>
+  <nav class="progress" id="progress" aria-label="Stationen"></nav>
+</aside>
 
 <div class="overlay" id="overlay">
   <div class="panel" role="dialog" aria-modal="true" aria-label="Einstellungen">
@@ -748,13 +777,35 @@ function buildProgress(){
   STATIONS.forEach(st=>{ if(st.id==="start")return;
     const b=document.createElement("button");b.className="stamp";b.dataset.id=st.id;
     b.innerHTML=`<span class="dot">${st.icon}</span>${st.short}`;
-    b.addEventListener("click",()=>go(st.id));nav.appendChild(b);
+    b.addEventListener("click",()=>{closeDrawer();go(st.id);});nav.appendChild(b);
   });
 }
 function refreshProgress(){
   $$(".stamp").forEach(b=>{const id=b.dataset.id;
     b.classList.toggle("done",!!state.done[id]);b.classList.toggle("active",state.current===id);
     b.querySelector(".dot").textContent=state.done[id]?"✓":STATIONS.find(s=>s.id===id).icon;});
+  refreshStationNow();
+}
+// Aktuelle Station + Fortschritt im Header-Chip und im Drawer-Kopf anzeigen.
+function refreshStationNow(){
+  const playable=STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam");
+  const total=playable.length, done=playable.filter(s=>state.done[s.id]).length;
+  const cur=STATIONS.find(s=>s.id===state.current);
+  const label = state.current==="start" ? "Start"
+    : state.current==="exam" ? "🏆 Prüfung"
+    : `Station ${stationNumber(state.current)}/${total} · ${cur?cur.short:""}`;
+  const sn=$("#stationNow"); if(sn)sn.textContent=label;
+  const dp=$("#drawerProgress"); if(dp)dp.textContent=`${done}/${total} ✓`;
+}
+// Drawer öffnen/schließen
+function openDrawer(){
+  $("#drawer").classList.add("open");$("#drawerBackdrop").classList.add("open");
+  $("#navBtn").setAttribute("aria-expanded","true");$("#drawer").setAttribute("aria-hidden","false");
+  const a=$(".stamp.active"); if(a)a.scrollIntoView({block:"nearest"});
+}
+function closeDrawer(){
+  $("#drawer").classList.remove("open");$("#drawerBackdrop").classList.remove("open");
+  $("#navBtn").setAttribute("aria-expanded","false");$("#drawer").setAttribute("aria-hidden","true");
 }
 function markDone(id){ state.done[id]=true; refreshProgress(); }
 
@@ -3376,6 +3427,13 @@ SCREENS.exam_done=(stage)=>{
     <div class="foot"><span>Ausgestellt am ${today}</span><span>${title} · ${state.xp} XP · 🪙 ${state.coins}</span></div></div>`;
   showReplay(false);showNext(true,"🖨️ Drucken");$("#nextBtn").onclick=()=>window.print();
 };
+
+/* ---------- Stationen-Drawer ---------- */
+$("#navBtn").addEventListener("click",openDrawer);
+$("#stationNow").addEventListener("click",openDrawer);
+$("#drawerClose").addEventListener("click",closeDrawer);
+$("#drawerBackdrop").addEventListener("click",closeDrawer);
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
 
 /* ---------- Einstellungen ---------- */
 $("#gearBtn").addEventListener("click",()=>{$("#overlay").style.display="flex";});
