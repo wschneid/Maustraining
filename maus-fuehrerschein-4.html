@@ -944,7 +944,9 @@ function maybeOfferBonus(next){
   const n=Object.keys(state.done).length;
   if(n>0 && n%3===0 && state.current!=="exam"){
     _bonusReturn=next;
-    const games=["bonus_catch","bonus_memory","bonus_reflex","bonus_simon","bonus_catch_left","bonus_catch_right","bonus_arkanoid"];const g=games[(n/3-1)%games.length];
+    const games=["bonus_catch","bonus_memory","bonus_reflex","bonus_simon","bonus_catch_left","bonus_catch_right","bonus_arkanoid"];
+    let g=games[(n/3-1)%games.length];
+    if(n===27)g="bonus_simon_hard"; // 9. Bonus-Angebot (Position 27): schwierigeres Simon statt zweitem Memory
     const nextShort=STATIONS.find(s=>s.id===next)?.short;
     showSkip(true,()=>go(next));$("#skipBtn").textContent=nextShort?`Weiter zu „${nextShort}“ ›`:"Weiter ohne Bonus ›";
     showNext(true,"🎁 Bonus-Spiel!");$("#nextBtn").onclick=()=>go(g);
@@ -3028,9 +3030,11 @@ SCREENS.bonus_memory=(stage)=>{
 // Simon (klassisch): farbige Segmente in einem Neonkreis leuchten auf.
 // Die Folge wird vorgespielt, die Schülerin klickt sie in gleicher Reihenfolge nach.
 // Jede geschaffte Runde verlängert die Folge um eine Farbe; ein Fehler startet neu.
-SCREENS.bonus_simon=(stage)=>{
+function simonGame(stage,opts){
+  opts=opts||{};const hard=!!opts.hard;
   unlock("bonus_fan");bonusBackBar();
-  setInstruction("Bonus-Spiel 🎁 · Simon",
+  setInstruction(hard?"Bonus-Spiel 🎁 · Simon Profi":"Bonus-Spiel 🎁 · Simon",
+    (hard?"Jetzt wird's richtig knifflig: <b>längere</b> Folgen, die auch noch <b>schneller</b> aufblinken. ":"")+
     "Schau genau zu, welche Farben im Kreis nacheinander <b>aufleuchten</b> – und klicke sie danach "+
     "in der <b>gleichen Reihenfolge</b> nach. Schaffst du eine Runde, wird die Folge ein Stück länger!");
   setHint("Erst zuschauen, dann nachklicken.","");
@@ -3042,9 +3046,9 @@ SCREENS.bonus_simon=(stage)=>{
     {name:"Blau", dim:"#0a5a9e", bright:"#1fc8ff", glow:"#93e6ff", freq:262},
     {name:"Gelb", dim:"#a8890a", bright:"#ffe600", glow:"#fff58a", freq:494}
   ];
-  const TARGET=dCount(6,4);                       // leicht 4 · mittel 6 · schwer 8
-  const FLASH_MS=Math.round(380/diff().speed);    // Leuchtdauer beim Vorspielen
-  const GAP_MS=Math.round(180/diff().speed);      // Pause zwischen zwei Farben
+  const TARGET=dCount(6,4)+(hard?3:0);            // normal: leicht 4 · mittel 6 · schwer 8 · Profi je +3
+  const FLASH_MS=Math.round((hard?300:380)/diff().speed); // Leuchtdauer beim Vorspielen (Profi schneller)
+  const GAP_MS=Math.round((hard?110:180)/diff().speed);   // Pause zwischen zwei Farben (Profi kürzer)
 
   const wrap=document.createElement("div");
   wrap.style.cssText="display:flex;flex-direction:column;align-items:center;gap:14px;padding:14px;";
@@ -3181,7 +3185,9 @@ SCREENS.bonus_simon=(stage)=>{
   setCounter(`0/${TARGET}`,"Länge");
   banner.textContent="Gleich geht's los …";
   newRound();
-};
+}
+SCREENS.bonus_simon=(stage)=>simonGame(stage);
+SCREENS.bonus_simon_hard=(stage)=>simonGame(stage,{hard:true});
 
 /* ---------- SHOLD: Halten & Steuern (Smiley) ---------- */
 SCREENS.shold=(stage)=>{
