@@ -246,7 +246,7 @@
 </main>
 
 <footer class="sitefooter">
-  <p>© 2026 Wolfgang Schneider · <b>Word-Führerschein</b> (Phase 0 – im Aufbau)</p>
+  <p>© 2026 Wolfgang Schneider · <b>Word-Führerschein</b> (im Aufbau · Stationen 1–5 spielbar)</p>
   <p>Lizenz: <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>.
      Microsoft Word ist eine Marke der Microsoft Corp.; diese Übung ist eine eigenständige Nachbildung zu Lernzwecken.</p>
 </footer>
@@ -307,8 +307,8 @@ const STATIONS = [
 ];
 const PLAYABLE = STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam");
 const stationNumber = id => PLAYABLE.findIndex(s=>s.id===id)+1;
-/* Stationen, die in Phase 0 bereits voll spielbar sind: */
-const IMPLEMENTED = ["s1","s5"];
+/* Stationen, die bereits voll spielbar sind (Phase 0 + Phase 1): */
+const IMPLEMENTED = ["s1","s2","s3","s4","s5"];
 
 /* ============================================================
    Zustand & Gamification (analog Maus-Trainer)
@@ -462,6 +462,21 @@ const INTROS={
       {ic:"⌨️",txt:"<b>Tippe</b> Buchstaben – sie erscheinen am Cursor."},
       {ic:"⏎",txt:"Mit <b>Enter</b> beginnst du eine neue Zeile."}],
     steps:["Klicke in das weiße Blatt.","Tippe den vorgegebenen Satz ab.","Achte auf Groß- und Kleinschreibung."]},
+  s2:{head:"Korrigieren – Löschen", lead:"Beim Schreiben passieren Tippfehler. Zwei Tasten helfen: Die <b>Rücktaste</b> (⌫) löscht <b>links</b> vom Cursor (das eben Getippte). Die <b>Entf-Taste</b> löscht <b>rechts</b> vom Cursor.",
+    points:[{ic:"⌫",txt:"<b>Rücktaste</b> löscht das Zeichen <b>vor</b> dem Cursor."},
+      {ic:"⌦",txt:"<b>Entf</b> löscht das Zeichen <b>hinter</b> dem Cursor."},
+      {ic:"👆",txt:"Klicke an die richtige Stelle, bevor du löschst."}],
+    steps:["Klicke direkt neben den Fehler.","Drücke die Rücktaste, um zu viel Getipptes zu entfernen.","Korrigiere, bis der Satz genau stimmt."]},
+  s3:{head:"Rückgängig & Wiederholen", lead:"Ein Versehen ist kein Problem: Mit <b>Rückgängig</b> (Pfeil ↶ oder <b>Strg+Z</b>) nimmst du den letzten Schritt zurück. <b>Wiederholen</b> (↷) stellt ihn wieder her.",
+    points:[{ic:"↶",txt:"<b>Rückgängig</b> macht den letzten Schritt rückgängig."},
+      {ic:"↷",txt:"<b>Wiederholen</b> bringt ihn wieder zurück."},
+      {ic:"🔁",txt:"Mehrmals klicken geht mehrere Schritte zurück."}],
+    steps:["Schau, was sich verändert hat.","Klicke oben auf Rückgängig (↶).","Wiederhole, bis alles wieder gut aussieht."]},
+  s4:{head:"Text markieren", lead:"Bevor man Text formatieren, kopieren oder löschen kann, muss man ihn <b>markieren</b>. Ein <b>Doppelklick</b> markiert ein einzelnes <b>Wort</b>. Mit <b>Strg+A</b> markierst du <b>alles</b> auf einmal.",
+    points:[{ic:"🖱️",txt:"<b>Doppelklick</b> auf ein Wort markiert genau dieses Wort."},
+      {ic:"🅰️",txt:"<b>Strg+A</b> markiert den <b>ganzen</b> Text."},
+      {ic:"🟦",txt:"Markierter Text wird <b>blau</b> hinterlegt."}],
+    steps:["Mach einen Doppelklick auf das gesuchte Wort.","Für „alles“ drücke Strg und A zusammen.","Markiertes erkennst du an der blauen Farbe."]},
   s5:{head:"Fett · Kursiv · Unterstrichen", lead:"Mit den Knöpfen <b>F</b>, <b>K</b> und <b>U</b> im Menüband machst du Text <b>auffälliger</b>. Wichtig ist die Reihenfolge: <b>zuerst markieren</b>, was du ändern willst – <b>dann</b> auf den Knopf klicken.",
     points:[{ic:"🖱️",txt:"<b>Erst das Wort anklicken</b> (markieren)."},
       {ic:"𝐁",txt:"<b>F</b> = Fett, <b>K</b> = Kursiv, <b>U</b> = Unterstrichen."},
@@ -599,6 +614,125 @@ SCREENS.s1=(stage)=>{
       setHint("Kleiner Tippfehler – vergleiche mit der Vorlage oben.","warn");
     }
   });
+};
+
+/* ---- Station 2: Korrigieren (Löschen) ---- */
+SCREENS.s2=(stage)=>{
+  if(stationIntro("s2",stage))return;
+  const st=STATIONS.find(s=>s.id==="s2");
+  setInstruction(`Station ${stationNumber("s2")} · ${st.title}`,"Lösche die Fehler, bis der Satz genau mit der Vorlage übereinstimmt.");
+  const TASKS=[
+    {start:"Der Hund belltt laut.",            target:"Der Hund bellt laut.",      tip:'Im Wort „belltt" ist ein <b>t</b> zu viel. Klicke dahinter und drücke die <b>Rücktaste</b>.'},
+    {start:"Die Sonne scheint hell hell.",     target:"Die Sonne scheint hell.",   tip:'Das Wort „hell" steht <b>doppelt</b>. Lösche das zweite davon.'}
+  ];
+  let ti=0, done=false;
+  const target=document.createElement("div");target.className="type-target";
+  stage.appendChild(target);
+  const w=buildWord(stage,{tab:"start",editable:true,fname:"Korrektur – Word"});
+  function loadTask(){
+    const t=TASKS[ti];done=false;
+    setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe");
+    target.innerHTML="🎯 So soll es heißen: <b>"+t.target+"</b>";
+    w.page.textContent=t.start;
+    setHint("💡 "+t.tip,"");
+    w.page.focus();
+  }
+  w.page.addEventListener("input",()=>{
+    if(done)return;
+    const cur=w.page.textContent.replace(/ /g," ").replace(/\s+/g," ").trim();
+    const t=TASKS[ti];
+    w.setStatus(`Zeichen: ${cur.length}`,null);
+    if(cur===t.target){
+      sfx.good();mascotReact("happy");done=true;
+      if(ti<TASKS.length-1){ setHint("Stimmt! Nächste Aufgabe …","good"); later(()=>{ti++;loadTask();},950); }
+      else completeStation("s2","Alle Fehler beseitigt! ✏️");
+    }
+  });
+  loadTask();
+};
+
+/* ---- Station 3: Rückgängig & Wiederholen ---- */
+SCREENS.s3=(stage)=>{
+  if(stationIntro("s3",stage))return;
+  const st=STATIONS.find(s=>s.id==="s3");
+  setInstruction(`Station ${stationNumber("s3")} · ${st.title}`,"Zwei Versehen sind passiert. Nimm sie mit Rückgängig (↶) zurück.");
+  const bar=document.createElement("div");
+  bar.style.cssText="display:flex;gap:8px;justify-content:center;margin:0 0 12px;";
+  bar.innerHTML=`
+    <button class="rb-btn" id="undoBtn" title="Rückgängig (Strg+Z)" style="height:38px;font-size:1.05rem;">↶ Rückgängig</button>
+    <button class="rb-btn" id="redoBtn" title="Wiederholen (Strg+Y)" style="height:38px;font-size:1.05rem;">↷ Wiederholen</button>`;
+  stage.appendChild(bar);
+  const w=buildWord(stage,{tab:"start",fname:"Brief – Word"});
+  // Verlauf: [0]=guter Zustand, dann zwei „Versehen" obendrauf
+  const history=[
+    'Mein Lieblingstier ist der <span class="tok">Delfin</span>.',
+    'Mein Lieblingstier ist der <span class="tok">&nbsp;&nbsp;&nbsp;</span>.',
+    'Mein Lieblingstier ist der <span class="tok">&nbsp;&nbsp;&nbsp;</span>.<br><span style="font-size:1.8rem;letter-spacing:3px;color:#b9520b">qwhz!!</span>'
+  ];
+  let ptr=history.length-1;
+  function render(){
+    w.page.innerHTML=history[ptr];
+    $("#undoBtn").disabled = ptr<=0;
+    $("#redoBtn").disabled = ptr>=history.length-1;
+  }
+  function check(){
+    if(ptr===0) completeStation("s3","Alles wieder in Ordnung! ↶");
+    else setHint(`Gut – noch ${ptr}× Rückgängig.`,"");
+  }
+  function undo(){ if(ptr>0){ptr--;render();sfx.step();check();} }
+  function redo(){ if(ptr<history.length-1){ptr++;render();sfx.step();} }
+  $("#undoBtn").onclick=undo; $("#redoBtn").onclick=redo;
+  w.page.tabIndex=0;
+  w.page.addEventListener("keydown",e=>{
+    const k=e.key.toLowerCase();
+    if((e.ctrlKey||e.metaKey)&&k==="z"){ e.preventDefault(); undo(); }
+    if((e.ctrlKey||e.metaKey)&&k==="y"){ e.preventDefault(); redo(); }
+  });
+  render();
+  setHint("Klicke 2× auf <b>Rückgängig (↶)</b> – oder drücke <b>Strg+Z</b>.","");
+};
+
+/* ---- Station 4: Markieren ---- */
+SCREENS.s4=(stage)=>{
+  if(stationIntro("s4",stage))return;
+  const st=STATIONS.find(s=>s.id==="s4");
+  setInstruction(`Station ${stationNumber("s4")} · ${st.title}`,"Markiere genau das Gesuchte – per Doppelklick oder mit Strg+A.");
+  const w=buildWord(stage,{tab:"start",fname:"Markieren – Word"});
+  fillTokens(w.page,"Im Garten wachsen Äpfel, Birnen und süße Kirschen.");
+  w.page.tabIndex=0;
+  const toks=$$(".tok",w.page);
+  const TASKS=[
+    {type:"word", word:"birnen", disp:"Birnen", label:'Markiere das Wort <b>Birnen</b> mit einem <b>Doppelklick</b>.'},
+    {type:"all",  label:'Markiere jetzt <b>alles</b> mit <b>Strg+A</b>.'}
+  ];
+  let ti=0;
+  const clearSel=()=>toks.forEach(t=>t.classList.remove("sel"));
+  function setTask(){ const t=TASKS[ti]; setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+t.label,""); }
+  function advance(){
+    sfx.good();mascotReact("happy");
+    if(ti<TASKS.length-1){ ti++; clearSel(); setTask(); w.page.focus(); }
+    else completeStation("s4","Super markiert! 🖍️");
+  }
+  function check(){
+    const sel=toks.filter(t=>t.classList.contains("sel"));
+    const t=TASKS[ti];
+    if(t.type==="word"){
+      if(sel.length===1 && sel[0].dataset.word===t.word) advance();
+      else if(sel.length>=1) setHint(`Fast! Markiere genau das Wort „${t.disp}".`,"warn");
+    } else {
+      if(sel.length===toks.length) advance();
+    }
+  }
+  function pickOnly(tok){ clearSel(); tok.classList.add("sel"); sfx.step(); check(); }
+  toks.forEach(tok=>{
+    tok.addEventListener("dblclick",()=>pickOnly(tok));
+    tok.addEventListener("click",()=>{ if(TASKS[ti].type==="word") pickOnly(tok); }); // nachsichtig: Klick zählt wie Doppelklick
+  });
+  w.page.addEventListener("keydown",e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="a"){ e.preventDefault(); toks.forEach(t=>t.classList.add("sel")); sfx.step(); check(); }
+  });
+  w.page.focus();
+  setTask();
 };
 
 /* ---- Station 5: Fett / Kursiv / Unterstrichen ---- */
