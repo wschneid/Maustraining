@@ -152,6 +152,17 @@
   .word-page .tok.bold{font-weight:800;}
   .word-page .tok.italic{font-style:italic;}
   .word-page .tok.underline{text-decoration:underline;}
+  .rb-btn svg{display:block;}
+  /* Listen im Dokument */
+  .doclist .li{padding:1px 0;}
+  .doclist[data-type="none"] .li{list-style:none;}
+  .doclist[data-type="bullet"] .li::before{content:"•  ";color:var(--word);font-weight:700;}
+  .doclist[data-type="number"]{counter-reset:li;}
+  .doclist[data-type="number"] .li{counter-increment:li;}
+  .doclist[data-type="number"] .li::before{content:counter(li) ".  ";color:var(--word);font-weight:700;}
+  /* Kopieren/Einfügen: Lücke */
+  .word-page .slot{background:#fde7c9;border:1px dashed var(--hint);border-radius:5px;padding:0 6px;color:var(--hint);font-weight:600;}
+  .word-page .slot.filled{background:var(--success-soft);border-style:solid;border-color:var(--success);color:var(--ink);font-weight:400;}
   .word-status{display:flex;align-items:center;gap:14px;background:var(--word);color:#fff;font-size:.74rem;padding:4px 14px;}
   .word-status .right{margin-left:auto;}
 
@@ -246,7 +257,7 @@
 </main>
 
 <footer class="sitefooter">
-  <p>© 2026 Wolfgang Schneider · <b>Word-Führerschein</b> (im Aufbau · Stationen 1–5 spielbar)</p>
+  <p>© 2026 Wolfgang Schneider · <b>Word-Führerschein</b> (im Aufbau · Stationen 1–9 spielbar)</p>
   <p>Lizenz: <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>.
      Microsoft Word ist eine Marke der Microsoft Corp.; diese Übung ist eine eigenständige Nachbildung zu Lernzwecken.</p>
 </footer>
@@ -307,8 +318,8 @@ const STATIONS = [
 ];
 const PLAYABLE = STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam");
 const stationNumber = id => PLAYABLE.findIndex(s=>s.id===id)+1;
-/* Stationen, die bereits voll spielbar sind (Phase 0 + Phase 1): */
-const IMPLEMENTED = ["s1","s2","s3","s4","s5"];
+/* Stationen, die bereits voll spielbar sind (Phase 0–2): */
+const IMPLEMENTED = ["s1","s2","s3","s4","s5","s6","s7","s8","s9"];
 
 /* ============================================================
    Zustand & Gamification (analog Maus-Trainer)
@@ -477,6 +488,26 @@ const INTROS={
       {ic:"🅰️",txt:"<b>Strg+A</b> markiert den <b>ganzen</b> Text."},
       {ic:"🟦",txt:"Markierter Text wird <b>blau</b> hinterlegt."}],
     steps:["Mach einen Doppelklick auf das gesuchte Wort.","Für „alles“ drücke Strg und A zusammen.","Markiertes erkennst du an der blauen Farbe."]},
+  s6:{head:"Schriftart, Größe & Farbe", lead:"Du kannst aussuchen, <b>wie</b> dein Text aussieht: eine andere <b>Schriftart</b>, eine größere <b>Schriftgröße</b> oder eine bunte <b>Farbe</b>. Auch hier gilt: <b>erst markieren, dann ändern</b>.",
+    points:[{ic:"🔤",txt:"Im linken Feld wählst du die <b>Schriftart</b>."},
+      {ic:"🔢",txt:"Im kleinen Feld daneben die <b>Größe</b> (Zahl)."},
+      {ic:"🎨",txt:"Mit dem <b>A</b>-Knopf gibst du eine <b>Farbe</b>."}],
+    steps:["Klicke ein Wort an.","Wähle oben Schriftart, Größe oder Farbe.","Das markierte Wort verändert sich sofort."]},
+  s7:{head:"Text ausrichten", lead:"Ein Absatz kann unterschiedlich am Blatt stehen: ganz <b>links</b>, in der <b>Mitte</b>, ganz <b>rechts</b> oder als <b>Blocksatz</b> (an beiden Rändern bündig). Dafür gibt es vier Knöpfe im Menüband.",
+    points:[{ic:"⬅️",txt:"<b>Linksbündig</b> – der normale Start."},
+      {ic:"↔️",txt:"<b>Zentriert</b> – mittig, gut für Überschriften."},
+      {ic:"➡️",txt:"<b>Rechtsbündig</b> – z. B. für ein Datum."}],
+    steps:["Klicke in den Absatz.","Wähle oben den passenden Ausrichtungs-Knopf.","Der ganze Absatz rückt an die neue Stelle."]},
+  s8:{head:"Aufzählung & Nummerierung", lead:"Mehrere Punkte werden übersichtlich als <b>Liste</b>. Eine <b>Aufzählung</b> setzt vor jede Zeile einen Punkt (•). Eine <b>Nummerierung</b> setzt Zahlen (1. 2. 3.) – gut für eine Reihenfolge.",
+    points:[{ic:"•",txt:"<b>Aufzählung</b>: Punkte vor jeder Zeile."},
+      {ic:"1️⃣",txt:"<b>Nummerierung</b>: durchgezählte Zeilen."},
+      {ic:"🔁",txt:"Nochmal klicken schaltet die Liste wieder aus."}],
+    steps:["Schau dir die Zeilen an.","Klicke oben auf Aufzählung oder Nummerierung.","Vor den Zeilen erscheinen Punkte oder Zahlen."]},
+  s9:{head:"Kopieren & Einfügen", lead:"Was du schon geschrieben hast, musst du nicht abtippen: Mit <b>Kopieren</b> (Strg+C) merkt sich Word den Text, mit <b>Einfügen</b> (Strg+V) setzt du ihn an einer neuen Stelle wieder ein.",
+    points:[{ic:"⧉",txt:"<b>Kopieren</b> (Strg+C): markierten Text merken."},
+      {ic:"📋",txt:"<b>Einfügen</b> (Strg+V): an neuer Stelle einsetzen."},
+      {ic:"🖱️",txt:"Beides geht auch per <b>Rechtsklick</b>-Menü."}],
+    steps:["Markiere das Wort.","Drücke Strg+C (kopieren).","Klicke an die Lücke und drücke Strg+V (einfügen)."]},
   s5:{head:"Fett · Kursiv · Unterstrichen", lead:"Mit den Knöpfen <b>F</b>, <b>K</b> und <b>U</b> im Menüband machst du Text <b>auffälliger</b>. Wichtig ist die Reihenfolge: <b>zuerst markieren</b>, was du ändern willst – <b>dann</b> auf den Knopf klicken.",
     points:[{ic:"🖱️",txt:"<b>Erst das Wort anklicken</b> (markieren)."},
       {ic:"𝐁",txt:"<b>F</b> = Fett, <b>K</b> = Kursiv, <b>U</b> = Unterstrichen."},
@@ -521,6 +552,65 @@ function buildWord(stage, opts={}){
     underline:`<button class="rb-btn underline" data-tool="underline" title="Unterstrichen (Strg+U)">U</button>`
   };
   const startTools = tools.map(t=>TOOLBTN[t]||"").join("");
+  const alignIcon = type => {
+    const x = type==="center"?4 : type==="right"?8 : 0;
+    const w2 = type==="justify"?18:10;
+    return `<svg width="18" height="12" fill="currentColor" aria-hidden="true">
+      <rect y="0" width="18" height="2" rx="1"/>
+      <rect y="5" x="${type==="justify"?0:x}" width="${w2}" height="2" rx="1"/>
+      <rect y="10" width="18" height="2" rx="1"/></svg>`;
+  };
+  // Zwischenablage-Gruppe (Kopieren/Einfügen)
+  const clipGroup = opts.clipboard ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn" data-tool="paste" title="Einfügen (Strg+V)" style="flex-direction:column;height:auto;padding:4px 8px;">📋<span style="font-size:.6rem">Einfügen</span></button>
+        <button class="rb-btn" data-tool="copy" title="Kopieren (Strg+C)">⧉</button>
+      </div>
+      <div class="rb-label">Zwischenablage</div>
+    </div>` : "";
+  // Schriftart-Gruppe: funktionsfähig (fontControls) oder Deko
+  const fonts=["Calibri","Arial","Times New Roman","Comic Sans MS"];
+  const sizes=[11,12,14,16,20,28];
+  const fontGroup = opts.fontControls ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <select class="rb-sel" data-ctl="font">${fonts.map(f=>`<option>${f}</option>`).join("")}</select>
+        <select class="rb-sel" data-ctl="size">${sizes.map(s=>`<option>${s}</option>`).join("")}</select>
+        <button class="rb-btn" data-tool="color" title="Schriftfarbe (Rot)"><span style="border-bottom:3px solid #c0392b;line-height:.7;font-weight:700">A</span></button>
+      </div>
+      <div class="rb-label">Schriftart</div>
+    </div>` : `
+    <div class="rb-group">
+      <div class="rb-row">
+        <select class="rb-sel" disabled><option>Calibri</option></select>
+        <select class="rb-sel" disabled><option>11</option></select>
+      </div>
+      <div class="rb-label">Schriftart</div>
+    </div>`;
+  const formatGroup = startTools ? `
+    <div class="rb-group">
+      <div class="rb-row">${startTools}</div>
+      <div class="rb-label">Schrift</div>
+    </div>` : "";
+  const alignGroup = opts.align ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn" data-tool="align-left"    title="Linksbündig">${alignIcon("left")}</button>
+        <button class="rb-btn" data-tool="align-center"  title="Zentriert">${alignIcon("center")}</button>
+        <button class="rb-btn" data-tool="align-right"   title="Rechtsbündig">${alignIcon("right")}</button>
+        <button class="rb-btn" data-tool="align-justify" title="Blocksatz">${alignIcon("justify")}</button>
+      </div>
+      <div class="rb-label">Absatz</div>
+    </div>` : "";
+  const listGroup = opts.lists ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn" data-tool="bullet" title="Aufzählung" style="font-weight:700">• ☰</button>
+        <button class="rb-btn" data-tool="number" title="Nummerierung" style="font-weight:700">1. ☰</button>
+      </div>
+      <div class="rb-label">Absatz</div>
+    </div>` : "";
   wrap.innerHTML=`
     <div class="word-title"><span class="dot"></span><span class="fname">${opts.fname||"Dokument1 – Word"}</span>
       <span class="win">— ▢ ✕</span></div>
@@ -529,19 +619,7 @@ function buildWord(stage, opts={}){
       <button class="word-tab${tab==="einfuegen"?" active":""}" data-tab="einfuegen">Einfügen</button>
       <button class="word-tab${tab==="layout"?" active":""}" data-tab="layout">Layout</button>
     </div>
-    <div class="ribbon">
-      <div class="rb-group">
-        <div class="rb-row">
-          <select class="rb-sel" disabled><option>Calibri</option></select>
-          <select class="rb-sel" disabled><option>11</option></select>
-        </div>
-        <div class="rb-label">Schriftart</div>
-      </div>
-      <div class="rb-group">
-        <div class="rb-row">${startTools||'<span class="rb-label">—</span>'}</div>
-        <div class="rb-label">Format</div>
-      </div>
-    </div>
+    <div class="ribbon">${clipGroup}${fontGroup}${formatGroup}${alignGroup}${listGroup}</div>
     <div class="word-canvas"><div class="word-page" ${opts.editable?'contenteditable="true"':''} spellcheck="false"></div></div>
     <div class="word-status"><span id="wStatusL">Seite 1 von 1</span><span class="right" id="wStatusR">Deutsch</span></div>`;
   stage.appendChild(wrap);
@@ -553,6 +631,8 @@ function buildWord(stage, opts={}){
   return {
     wrap, page,
     ribbonBtn:(tool)=>$(`.rb-btn[data-tool="${tool}"]`,wrap),
+    fontSel:$('select[data-ctl="font"]',wrap),
+    sizeSel:$('select[data-ctl="size"]',wrap),
     setStatus:(l,r)=>{ if(l!=null)$("#wStatusL",wrap).textContent=l; if(r!=null)$("#wStatusR",wrap).textContent=r; }
   };
 }
@@ -788,6 +868,125 @@ SCREENS.s5=(stage)=>{
     });
   });
   setTask();
+};
+
+/* ---- Station 6: Schriftart, Größe & Farbe ---- */
+SCREENS.s6=(stage)=>{
+  if(stationIntro("s6",stage))return;
+  const st=STATIONS.find(s=>s.id==="s6");
+  setInstruction(`Station ${stationNumber("s6")} · ${st.title}`,"Erst ein Wort markieren, dann oben Größe, Farbe oder Schriftart wählen.");
+  const w=buildWord(stage,{tab:"start",fontControls:true,fname:"Plakat – Word"});
+  fillTokens(w.page,"Unser großes Sommerfest beginnt bald.");
+  let selected=null;
+  $$(".tok",w.page).forEach(t=>t.addEventListener("click",()=>{
+    if(selected)selected.classList.remove("sel");selected=t;t.classList.add("sel");sfx.step();
+  }));
+  const TASKS=[
+    {word:"sommerfest", label:'Markiere <b>Sommerfest</b> und stelle die <b>Größe</b> auf <b>20</b> (oder größer).', ok:tok=>parseInt(tok.style.fontSize)>=20},
+    {word:"sommerfest", label:'Gib <b>Sommerfest</b> jetzt eine <b>Farbe</b> (Knopf <span style="color:#c0392b;font-weight:700">A</span>).', ok:tok=>!!tok.style.color},
+    {word:"unser",      label:'Markiere <b>Unser</b> und wähle die Schriftart <b>Arial</b>.', ok:tok=>/Arial/.test(tok.style.fontFamily)}
+  ];
+  let ti=0;
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+TASKS[ti].label,""); }
+  function apply(prop,val){ if(!selected){ setHint("Klicke zuerst ein Wort an.","warn"); return; } selected.style[prop]=val; sfx.step(); check(); }
+  function check(){
+    const t=TASKS[ti], tok=$$(".tok",w.page).find(x=>x.dataset.word===t.word);
+    if(tok && t.ok(tok)){
+      sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ ti++; if(selected){selected.classList.remove("sel");selected=null;} setTask(); }
+      else completeStation("s6","Tolle Gestaltung! 🔤");
+    }
+  }
+  w.sizeSel.addEventListener("change",()=>apply("fontSize",w.sizeSel.value+"px"));
+  w.fontSel.addEventListener("change",()=>apply("fontFamily",w.fontSel.value));
+  w.ribbonBtn("color").addEventListener("click",()=>apply("color","#c0392b"));
+  setTask();
+};
+
+/* ---- Station 7: Ausrichten ---- */
+SCREENS.s7=(stage)=>{
+  if(stationIntro("s7",stage))return;
+  const st=STATIONS.find(s=>s.id==="s7");
+  setInstruction(`Station ${stationNumber("s7")} · ${st.title}`,"Stelle die Ausrichtung des Absatzes mit den Knöpfen im Menüband ein.");
+  const w=buildWord(stage,{tab:"start",align:true,fname:"Einladung – Word"});
+  w.page.innerHTML='<div id="para">Herzliche Einladung<br>zu meinem Geburtstag<br>am Samstag um 15 Uhr!</div>';
+  const para=$("#para",w.page); para.style.textAlign="left";
+  const map={left:"align-left",center:"align-center",right:"align-right",justify:"align-justify"};
+  const TASKS=[
+    {al:"center", label:'Stelle den Text auf <b>zentriert</b> (mittig).'},
+    {al:"right",  label:'Jetzt auf <b>rechtsbündig</b>.'}
+  ];
+  let ti=0;
+  function sync(){ Object.entries(map).forEach(([al,tool])=>w.ribbonBtn(tool).classList.toggle("active",para.style.textAlign===al)); }
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+TASKS[ti].label,""); sync(); }
+  function apply(al){
+    para.style.textAlign=al; sfx.step(); sync();
+    if(al===TASKS[ti].al){ sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ ti++; setTask(); } else completeStation("s7","Sauber ausgerichtet! ⬛"); }
+  }
+  Object.entries(map).forEach(([al,tool])=>w.ribbonBtn(tool).addEventListener("click",()=>apply(al)));
+  setTask();
+};
+
+/* ---- Station 8: Listen ---- */
+SCREENS.s8=(stage)=>{
+  if(stationIntro("s8",stage))return;
+  const st=STATIONS.find(s=>s.id==="s8");
+  setInstruction(`Station ${stationNumber("s8")} · ${st.title}`,"Mach aus den Zeilen eine Liste – mit den Listen-Knöpfen oben.");
+  const w=buildWord(stage,{tab:"start",lists:true,fname:"Einkauf – Word"});
+  const items=["Äpfel","Brot","Milch"];
+  w.page.innerHTML=`<div class="doclist" data-type="none">${items.map(i=>`<div class="li">${i}</div>`).join("")}</div>`;
+  const list=$(".doclist",w.page);
+  const TASKS=[
+    {type:"bullet", label:'Mach aus der Einkaufsliste eine <b>Aufzählung</b> (• Punkte).'},
+    {type:"number", label:'Wandle sie jetzt in eine <b>Nummerierung</b> (1. 2. 3.) um.'}
+  ];
+  let ti=0;
+  function sync(){ w.ribbonBtn("bullet").classList.toggle("active",list.dataset.type==="bullet");
+                   w.ribbonBtn("number").classList.toggle("active",list.dataset.type==="number"); }
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+TASKS[ti].label,""); sync(); }
+  function apply(type){
+    list.dataset.type = list.dataset.type===type ? "none" : type; sfx.step(); sync();
+    if(list.dataset.type===TASKS[ti].type){ sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ ti++; setTask(); } else completeStation("s8","Liste fertig! 📋"); }
+  }
+  w.ribbonBtn("bullet").addEventListener("click",()=>apply("bullet"));
+  w.ribbonBtn("number").addEventListener("click",()=>apply("number"));
+  setTask();
+};
+
+/* ---- Station 9: Kopieren & Einfügen ---- */
+SCREENS.s9=(stage)=>{
+  if(stationIntro("s9",stage))return;
+  const st=STATIONS.find(s=>s.id==="s9");
+  setInstruction(`Station ${stationNumber("s9")} · ${st.title}`,"Kopiere das Wort und füge es in die Lücke ein.");
+  const w=buildWord(stage,{tab:"start",clipboard:true,fname:"Notiz – Word"});
+  w.page.innerHTML=`Mein Lieblingseis ist <span class="tok" data-word="vanille">Vanille</span>.<br>Bitte hol mir <span class="slot" data-need="vanille">[ hier einfügen ]</span>!`;
+  w.page.tabIndex=0;
+  const tok=$(".tok",w.page), slot=$(".slot",w.page);
+  let clip=null, selected=null;
+  tok.addEventListener("click",()=>{
+    if(selected)selected.classList.remove("sel");selected=tok;tok.classList.add("sel");sfx.step();
+    setHint("Markiert! Jetzt <b>Kopieren</b> (Strg+C oder ⧉).","");
+  });
+  function copy(){
+    if(!selected){ setHint("Markiere zuerst das Wort <b>Vanille</b>.","warn"); return; }
+    clip=selected.textContent; sfx.step();
+    setHint("Kopiert! Jetzt in die Lücke <b>Einfügen</b> (Strg+V).","");
+  }
+  function paste(){
+    if(!clip){ setHint("Erst <b>Kopieren</b> (Strg+C).","warn"); return; }
+    slot.textContent=clip; slot.classList.add("filled"); sfx.good();
+    if(clip.replace(/[.,!?]/g,"").toLowerCase()===slot.dataset.need){ mascotReact("happy"); completeStation("s9","Kopiert & eingefügt! 📋"); }
+  }
+  w.ribbonBtn("copy").addEventListener("click",copy);
+  w.ribbonBtn("paste").addEventListener("click",paste);
+  w.page.addEventListener("keydown",e=>{
+    const k=e.key.toLowerCase();
+    if((e.ctrlKey||e.metaKey)&&k==="c"){ e.preventDefault(); copy(); }
+    if((e.ctrlKey||e.metaKey)&&k==="v"){ e.preventDefault(); paste(); }
+  });
+  setHint("Klicke <b>Vanille</b> an, dann Strg+C, dann Strg+V in die Lücke.","");
 };
 
 /* ---- Platzhalter für noch nicht umgesetzte Stationen ---- */
