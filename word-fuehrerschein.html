@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word-Führerschein</title>
+<!--
+  Word-Führerschein – Trainer für Microsoft-Word-Grundoperationen (Einsteiger).
+  Stand: Phase 0 (Grundgerüst). Aufbau bewusst analog zu maus-fuehrerschein-4.html.
+  Die Word-Oberfläche ist NACHGEBAUT (kein echtes Word, keine echte .docx).
+  Voll umgesetzt: Start, Station 1 (Tippen & Cursor), Station 5 (Fett/Kursiv/Unterstrichen).
+  Übrige Stationen: gekennzeichnete Platzhalter (folgen in Phase 1–4).
+-->
+<style>
+  :root{
+    /* An aktuelles Word angelehnte Farben (Word-Blau) */
+    --word-deep:#1b3a6b; --word:#2b579a; --word-bright:#2f6fc5; --word-pale:#eef3fb;
+    --bg:#f3f5f9; --card:#fff; --ink:#1d2733; --ink-soft:#5a6675; --line:#d9e0ea;
+    --success:#217a3e; --success-soft:#e6f4ea; --hint:#b9520b; --hint-soft:#fbeede;
+    --ribbon:#f7f9fc; --ribbon-line:#dbe3ee;
+    --shadow:0 10px 30px rgba(27,58,107,.12); --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);
+    color:var(--ink);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh;}
+  .no-select{user-select:none;-webkit-user-select:none;}
+
+  /* ---- Kopfzeile der App ---- */
+  header.app{background:linear-gradient(120deg,var(--word-deep),var(--word) 60%,var(--word-bright));
+    color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px;
+    box-shadow:0 4px 16px rgba(27,58,107,.25);flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.18rem;white-space:nowrap;}
+  .brand .glyph{font-size:1.45rem;}
+  .brand small{display:block;font-weight:400;font-size:.68rem;opacity:.85;letter-spacing:.4px;text-transform:uppercase;}
+  .navbtn,.gear{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:38px;height:38px;
+    border-radius:9px;font-size:1.15rem;cursor:pointer;display:grid;place-items:center;}
+  .navbtn:hover,.gear:hover{background:rgba(255,255,255,.28);}
+  .stationnow{margin-right:auto;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#fff;
+    border-radius:999px;padding:6px 14px;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap;
+    max-width:46vw;overflow:hidden;text-overflow:ellipsis;}
+  .stationnow:hover{background:rgba(255,255,255,.26);}
+  .hud{display:flex;align-items:center;gap:9px;color:#fff;white-space:nowrap;}
+  .hud .lvl{background:#ffd479;color:#5a3a06;font-weight:700;border-radius:999px;padding:4px 10px;font-size:.78rem;}
+  .hud .xpbar{position:relative;width:120px;height:13px;background:rgba(255,255,255,.2);border-radius:8px;overflow:hidden;}
+  .hud .xpfill{height:100%;width:0;background:linear-gradient(90deg,var(--hint),#ffd479);transition:width .45s ease;}
+  .hud .xptxt{position:absolute;inset:0;display:grid;place-items:center;font-size:.62rem;font-weight:700;color:#5a3a06;}
+  .hud .coins{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:600;}
+
+  .xpfloat{position:fixed;z-index:90;transform:translateX(-50%);font-weight:800;color:var(--hint);
+    text-shadow:0 1px 4px rgba(0,0,0,.2);pointer-events:none;animation:rise 1.1s ease-out forwards;}
+  @keyframes rise{0%{opacity:0;transform:translate(-50%,6px) scale(.8);}20%{opacity:1;}100%{opacity:0;transform:translate(-50%,-34px) scale(1.1);}}
+  .toast{position:fixed;top:68px;right:18px;z-index:90;max-width:300px;background:#fff;border-left:5px solid var(--word);
+    border-radius:10px;box-shadow:0 12px 30px rgba(27,58,107,.25);padding:12px 16px;font-size:.9rem;color:var(--ink);line-height:1.4;
+    opacity:0;transform:translateX(30px);transition:opacity .3s,transform .3s;}
+  .toast.show{opacity:1;transform:translateX(0);}
+  .toast.good{border-left-color:var(--success);}
+
+  /* ---- Maskottchen ---- */
+  .bot{transition:transform .15s;}
+  .bot.bot-happy{animation:botHappy .9s ease;}
+  .bot.bot-cheer{animation:botCheer .9s ease;}
+  .bot.bot-think{animation:botThink .9s ease;}
+  @keyframes botHappy{0%,100%{transform:translateY(0);}30%{transform:translateY(-7px);}60%{transform:translateY(-2px);}}
+  @keyframes botCheer{0%,100%{transform:rotate(0) scale(1);}25%{transform:rotate(-9deg) scale(1.12);}55%{transform:rotate(9deg) scale(1.12);}80%{transform:rotate(-4deg) scale(1.05);}}
+  @keyframes botThink{0%,100%{transform:rotate(0);}40%{transform:rotate(-6deg);}}
+
+  /* ---- Karte / Instruktion / Footer ---- */
+  main{flex:1;display:flex;justify-content:center;padding:20px 16px 28px;}
+  .card{background:var(--card);width:min(1000px,100%);border-radius:var(--radius);box-shadow:var(--shadow);
+    overflow:hidden;display:flex;flex-direction:column;}
+  .instruct{display:flex;gap:14px;align-items:flex-start;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--word-pale);}
+  .bot.avatar{flex:none;width:48px;height:48px;border-radius:50%;background:#fff;border:2px solid var(--word-bright);
+    display:grid;place-items:center;box-shadow:0 4px 12px rgba(27,58,107,.12);}
+  .bot.avatar svg{width:28px;height:28px;}
+  .instruct .txt{flex:1;}
+  .instruct h2{margin:0 0 3px;font-size:1.1rem;color:var(--word-deep);}
+  .instruct p{margin:0;color:var(--ink-soft);font-size:.95rem;line-height:1.45;}
+  .counter{flex:none;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center;font-size:.76rem;color:var(--ink-soft);min-width:76px;}
+  .counter b{display:block;font-size:1.18rem;color:var(--word);line-height:1.1;}
+
+  .play{padding:20px;min-height:380px;display:flex;flex-direction:column;}
+  .footbar{display:flex;align-items:center;gap:12px;padding:13px 20px;border-top:1px solid var(--line);background:#fbfcfe;min-height:60px;flex-wrap:wrap;}
+  .hint{flex:1;min-width:200px;font-size:.94rem;color:var(--ink-soft);display:flex;align-items:center;gap:9px;transition:.2s;}
+  .hint.good{color:var(--success);font-weight:600;}
+  .hint.warn{color:var(--hint);}
+  .btn{border:none;border-radius:9px;padding:10px 18px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;}
+  .btn-primary{background:var(--word);color:#fff;}
+  .btn-primary:hover{background:var(--word-deep);}
+  .btn-ghost{background:#fff;color:var(--word);border:1px solid var(--line);}
+  .btn-ghost:hover{background:var(--word-pale);}
+  .btn-small{padding:7px 12px;font-size:.85rem;}
+
+  /* ---- Startseite ---- */
+  .hero{text-align:center;max-width:640px;margin:6px auto;}
+  .hero h1{color:var(--word-deep);font-size:1.7rem;margin:.2em 0;}
+  .hero p{color:var(--ink-soft);line-height:1.55;}
+  .hero .doc-emoji{font-size:3rem;}
+
+  /* ---- Erklärseite ---- */
+  .explainer{max-width:740px;margin:6px auto 12px;background:linear-gradient(170deg,#fff,var(--word-pale));
+    border:2px solid var(--word-bright);border-radius:18px;box-shadow:0 8px 26px rgba(27,58,107,.14);overflow:hidden;}
+  .explainer-head{display:flex;align-items:center;gap:10px;padding:11px 18px;
+    background:linear-gradient(90deg,var(--word-deep),var(--word));color:#fff;font-weight:700;font-size:1.05rem;}
+  .explainer-head .badge{font-size:1.3rem;line-height:1;}
+  .explainer-body{padding:18px 22px 4px;}
+  .explainer-lead{margin:0 0 14px;color:var(--ink);font-size:1.0rem;line-height:1.55;}
+  .explainer ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;}
+  .explainer ul li{display:flex;gap:10px;align-items:flex-start;font-size:.95rem;color:var(--ink-soft);line-height:1.45;}
+  .explainer ul li .me{font-size:1.15rem;line-height:1;flex:none;}
+  .explainer-steps{margin:6px 22px 20px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;}
+  .explainer-steps h3{margin:0 0 9px;font-size:1.0rem;color:var(--word-deep);}
+  .explainer-steps ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:7px;}
+  .explainer-steps li{font-size:.94rem;color:var(--ink-soft);line-height:1.5;}
+  .explainer b{color:var(--word-deep);}
+
+  /* ============================================================
+     Nachgebaute Word-Oberfläche (wiederverwendbar)
+     ============================================================ */
+  .word{border:1px solid var(--ribbon-line);border-radius:10px;overflow:hidden;box-shadow:0 6px 18px rgba(27,58,107,.10);background:#fff;}
+  .word-title{background:var(--word);color:#fff;display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:.82rem;}
+  .word-title .dot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.55);}
+  .word-title .fname{margin-left:6px;font-weight:600;}
+  .word-title .win{margin-left:auto;display:flex;gap:14px;opacity:.85;}
+  /* Registerkarten */
+  .word-tabs{display:flex;gap:2px;background:var(--word-deep);padding:0 8px;}
+  .word-tab{color:#dce6f5;padding:8px 16px;font-size:.84rem;cursor:pointer;border:none;background:none;font-family:inherit;
+    border-top-left-radius:6px;border-top-right-radius:6px;}
+  .word-tab:hover{background:rgba(255,255,255,.12);color:#fff;}
+  .word-tab.active{background:var(--ribbon);color:var(--word-deep);font-weight:600;}
+  /* Menüband */
+  .ribbon{display:flex;gap:0;background:var(--ribbon);border-bottom:1px solid var(--ribbon-line);padding:8px 6px 4px;flex-wrap:wrap;}
+  .rb-group{display:flex;flex-direction:column;align-items:center;padding:0 10px;border-right:1px solid var(--ribbon-line);gap:5px;}
+  .rb-row{display:flex;gap:4px;align-items:center;}
+  .rb-label{font-size:.66rem;color:var(--ink-soft);}
+  .rb-btn{min-width:34px;height:34px;padding:0 8px;border:1px solid transparent;background:none;border-radius:6px;cursor:pointer;
+    font-size:.95rem;font-family:inherit;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:4px;}
+  .rb-btn:hover{background:#e4ecf7;border-color:var(--ribbon-line);}
+  .rb-btn.active{background:#d3e2f7;border-color:var(--word-bright);color:var(--word-deep);}
+  .rb-btn.bold{font-weight:800;}
+  .rb-btn.italic{font-style:italic;}
+  .rb-btn.underline{text-decoration:underline;}
+  .rb-btn:disabled{opacity:.4;cursor:default;}
+  .rb-sel{height:30px;border:1px solid var(--ribbon-line);border-radius:6px;font-family:inherit;font-size:.85rem;padding:0 6px;background:#fff;}
+  /* Schreibblatt */
+  .word-canvas{background:#e7ebf2;padding:22px;display:flex;justify-content:center;max-height:360px;overflow:auto;}
+  .word-page{background:#fff;width:min(540px,100%);min-height:230px;box-shadow:0 3px 12px rgba(0,0,0,.14);
+    padding:34px 40px;font-size:1rem;line-height:1.7;color:#1d2733;outline:none;}
+  .word-page:focus{box-shadow:0 0 0 2px var(--word-bright),0 3px 12px rgba(0,0,0,.14);}
+  .word-page .tok{cursor:pointer;border-radius:3px;padding:0 1px;}
+  .word-page .tok.sel{background:#cfe0f7;box-shadow:0 0 0 1px var(--word-bright);}
+  .word-page .tok.bold{font-weight:800;}
+  .word-page .tok.italic{font-style:italic;}
+  .word-page .tok.underline{text-decoration:underline;}
+  .word-status{display:flex;align-items:center;gap:14px;background:var(--word);color:#fff;font-size:.74rem;padding:4px 14px;}
+  .word-status .right{margin-left:auto;}
+
+  /* Tipp-Eingabezeile (Station Tippen) */
+  .type-target{background:var(--word-pale);border:1px dashed var(--word-bright);border-radius:8px;padding:8px 12px;
+    font-size:1rem;color:var(--word-deep);margin:0 0 10px;}
+  .type-target b{background:#fff;padding:1px 5px;border-radius:4px;}
+
+  /* Platzhalter-Stationen */
+  .placeholder{max-width:560px;margin:10px auto;text-align:center;background:var(--word-pale);
+    border:1px solid var(--line);border-radius:14px;padding:26px;}
+  .placeholder .big{font-size:2.4rem;}
+  .placeholder h3{color:var(--word-deep);margin:.4em 0;}
+  .placeholder p{color:var(--ink-soft);line-height:1.5;margin:.3em 0;}
+
+  /* ---- Drawer / Fortschritt ---- */
+  .progress{display:none;}
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(20,40,70,.5);z-index:59;display:none;}
+  .drawer-backdrop.open{display:block;}
+  .drawer{position:fixed;left:0;top:0;bottom:0;width:min(300px,86vw);z-index:60;display:flex;flex-direction:column;
+    background:linear-gradient(160deg,var(--word-deep),var(--word));box-shadow:6px 0 24px rgba(0,0,0,.3);
+    transform:translateX(-100%);transition:transform .25s ease;}
+  .drawer.open{transform:none;}
+  .drawer-head{display:flex;align-items:center;gap:8px;padding:14px;color:#fff;font-weight:700;border-bottom:1px solid rgba(255,255,255,.18);}
+  .drawer-head .drawer-progress{margin-left:auto;font-size:.76rem;background:rgba(255,255,255,.15);border-radius:999px;padding:3px 9px;}
+  .drawer-x{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:30px;height:30px;border-radius:8px;font-size:1.1rem;cursor:pointer;}
+  #drawer .progress{display:flex;flex-direction:column;gap:6px;padding:10px;overflow-y:auto;flex:1;}
+  .stamp{display:flex;align-items:center;gap:9px;width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+    color:#fff;border-radius:999px;padding:9px 12px;font-size:.86rem;cursor:pointer;text-align:left;font-family:inherit;}
+  .stamp:hover{background:rgba(255,255,255,.22);}
+  .stamp.active{outline:2px solid #fff;outline-offset:1px;}
+  .stamp.done{background:#fff;color:var(--word-deep);font-weight:600;}
+  .stamp .dot{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:.8rem;flex:none;}
+  .stamp.done .dot{background:var(--success);color:#fff;}
+
+  /* ---- Einstellungen-Overlay ---- */
+  .overlay{position:fixed;inset:0;background:rgba(20,40,70,.5);z-index:70;display:none;align-items:center;justify-content:center;padding:18px;}
+  .overlay.open{display:flex;}
+  .panel{background:#fff;border-radius:14px;width:min(440px,100%);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+  .panel header{background:var(--word);color:#fff;padding:13px 18px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+  .panel header button{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;}
+  .panel .body{padding:18px;}
+  .setrow{margin-bottom:16px;}
+  .setrow label{font-weight:600;display:block;margin-bottom:5px;}
+  .setrow .help{font-size:.82rem;color:var(--ink-soft);margin-bottom:6px;}
+
+  footer.sitefooter{text-align:center;color:var(--ink-soft);font-size:.78rem;padding:14px;line-height:1.5;}
+  footer.sitefooter a{color:var(--word);}
+
+  @media (max-width:560px){ .word-page{padding:22px 20px;} .rb-group{padding:0 6px;} }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="brand"><span class="glyph">📄</span><span>Word-Führerschein<small>Schreiben Schritt für Schritt üben</small></span></div>
+  <button class="navbtn" id="navBtn" aria-label="Stationen" aria-expanded="false">☰</button>
+  <button class="stationnow" id="stationNow" aria-label="Aktuelle Station">Start</button>
+  <div class="hud" id="hud" aria-label="Punktestand">
+    <span class="lvl" id="hudLvl">Lv 1</span>
+    <div class="xpbar"><div class="xpfill" id="hudXp"></div><span class="xptxt" id="hudXpTxt"></span></div>
+    <span class="coins" id="hudCoins">🪙 0</span>
+  </div>
+  <button class="gear" id="gearBtn" title="Einstellungen" aria-label="Einstellungen">⚙</button>
+</header>
+
+<main>
+  <div class="card">
+    <div class="instruct">
+      <div class="bot avatar" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none">
+          <rect x="9" y="13" width="22" height="18" rx="5" fill="#2f6fc5"/>
+          <rect x="13" y="18" width="14" height="8" rx="3" fill="#fff"/>
+          <circle cx="17" cy="22" r="2" fill="#1b3a6b"/><circle cx="23" cy="22" r="2" fill="#1b3a6b"/>
+          <rect x="18.5" y="6" width="3" height="6" rx="1.5" fill="#2b579a"/><circle cx="20" cy="5" r="2.5" fill="#b9520b"/>
+          <rect x="6" y="19" width="3" height="7" rx="1.5" fill="#2b579a"/><rect x="31" y="19" width="3" height="7" rx="1.5" fill="#2b579a"/>
+        </svg>
+      </div>
+      <div class="txt"><h2 id="iTitle">Willkommen</h2><p id="iText">Schön, dass du da bist!</p></div>
+      <div class="counter" id="counter" style="display:none;"><b id="cNum">0</b><span id="cLab">Aufgabe</span></div>
+    </div>
+
+    <div class="play" id="stage"></div>
+
+    <div class="footbar">
+      <div class="hint" id="hint"><span class="ic">💬</span><span id="hintText">Klicke auf „Los geht’s“, um zu starten.</span></div>
+      <button class="btn btn-ghost btn-small" id="skipBtn" style="display:none;">Überspringen</button>
+      <button class="btn btn-ghost" id="replayBtn" style="display:none;">Nochmal üben</button>
+      <button class="btn btn-primary" id="nextBtn" style="display:none;">Weiter</button>
+    </div>
+  </div>
+</main>
+
+<footer class="sitefooter">
+  <p>© 2026 Wolfgang Schneider · <b>Word-Führerschein</b> (Phase 0 – im Aufbau)</p>
+  <p>Lizenz: <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>.
+     Microsoft Word ist eine Marke der Microsoft Corp.; diese Übung ist eine eigenständige Nachbildung zu Lernzwecken.</p>
+</footer>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <span>Stationen</span>
+    <span class="drawer-progress" id="drawerProgress"></span>
+    <button class="drawer-x" id="drawerClose" aria-label="Schließen">×</button>
+  </div>
+  <nav class="progress" id="progress" aria-label="Stationen"></nav>
+</aside>
+
+<div class="overlay" id="overlay">
+  <div class="panel" role="dialog" aria-modal="true" aria-label="Einstellungen">
+    <header>Einstellungen <button id="closeSet" aria-label="Schließen">×</button></header>
+    <div class="body">
+      <div class="setrow">
+        <label><input type="checkbox" id="soundChk" checked> Töne abspielen</label>
+        <div class="help">Kleine Klänge bei Erfolg.</div>
+      </div>
+      <div class="setrow" style="margin-bottom:0;text-align:center;">
+        <button class="btn btn-ghost" id="resetBtn">Fortschritt zurücksetzen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $  = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
+
+/* ============================================================
+   Stationen
+   ============================================================ */
+const STATIONS = [
+  {id:"start",   short:"Start",        icon:"🏁"},
+  {id:"s1",      short:"Tippen",       icon:"⌨️", title:"Tippen & Cursor",        desc:"Text eingeben, Cursor setzen"},
+  {id:"s2",      short:"Korrigieren",  icon:"⌫",  title:"Korrigieren",            desc:"Löschen mit Entf & Rücktaste"},
+  {id:"s3",      short:"Rückgängig",   icon:"↶",  title:"Rückgängig",             desc:"Strg+Z & Wiederholen"},
+  {id:"s4",      short:"Markieren",    icon:"🖍️", title:"Markieren",              desc:"Wort, Zeile, Absatz, Alles"},
+  {id:"s5",      short:"Fett/Kursiv",  icon:"𝐁",  title:"Fett · Kursiv · Unterstrichen", desc:"Zeichen formatieren"},
+  {id:"s6",      short:"Schrift",      icon:"🔤", title:"Schriftart & Größe",     desc:"Schriftart, Größe, Farbe"},
+  {id:"s7",      short:"Ausrichten",   icon:"⬛", title:"Ausrichten",             desc:"Links · Mitte · Rechts · Blocksatz"},
+  {id:"s8",      short:"Listen",       icon:"•",  title:"Listen",                 desc:"Aufzählung & Nummerierung"},
+  {id:"s9",      short:"Kopieren",     icon:"📋", title:"Kopieren & Einfügen",    desc:"Strg+C/X/V · Rechtsklick"},
+  {id:"s10",     short:"Suchen",       icon:"🔍", title:"Suchen & Ersetzen",      desc:"Wort finden und ersetzen"},
+  {id:"s11",     short:"Bild",         icon:"🖼️", title:"Bild einfügen",          desc:"Einfügen → Bild platzieren"},
+  {id:"s12",     short:"Tabelle",      icon:"▦",  title:"Tabelle einfügen",       desc:"Tabelle erstellen & füllen"},
+  {id:"s13",     short:"Überschrift",  icon:"🅷", title:"Überschriften",          desc:"Formatvorlagen & Gliederung"},
+  {id:"s14",     short:"Speichern",    icon:"💾", title:"Speichern",              desc:"Speichern unter · Dateiname"},
+  {id:"s15",     short:"Drucken",      icon:"🖨️", title:"Drucken",                desc:"Seitenansicht & Druckdialog"},
+  {id:"s16",     short:"Rechtschr.",   icon:"✅", title:"Rechtschreibung",        desc:"Unterringeltes Wort korrigieren"},
+  {id:"project", short:"Projekt",      icon:"📝", title:"Projekt: Steckbrief",    desc:"Alles zusammen anwenden"},
+  {id:"exam",    short:"Prüfung",      icon:"🏆", title:"Prüfung",                desc:"Der Word-Führerschein!"}
+];
+const PLAYABLE = STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam");
+const stationNumber = id => PLAYABLE.findIndex(s=>s.id===id)+1;
+/* Stationen, die in Phase 0 bereits voll spielbar sind: */
+const IMPLEMENTED = ["s1","s5"];
+
+/* ============================================================
+   Zustand & Gamification (analog Maus-Trainer)
+   ============================================================ */
+const state = {
+  current:"start", done:{}, sound:true, xp:0, level:1, coins:0, badges:{},
+  stats:{attempts:0, fails:0}
+};
+let _timers=[];
+function stopLoop(){ _timers.forEach(clearTimeout); _timers=[]; }
+function later(fn,ms){ const t=setTimeout(fn,ms); _timers.push(t); return t; }
+
+let audioCtx=null;
+function tone(freq,dur=0.12,type="sine",vol=0.18){
+  if(!state.sound) return;
+  try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+dur);
+    o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+const sfx={ good(){tone(660,.1,"sine",.16);later(()=>tone(880,.14,"sine",.16),90);},
+  step(){tone(560,.08,"triangle",.13);}, win(){[523,659,784,1046].forEach((f,i)=>later(()=>tone(f,.16,"sine",.17),i*120));} };
+
+const LEVELS=[
+  {min:0,title:"Wort-Lehrling"},{min:60,title:"Wort-Schüler"},{min:150,title:"Wort-Kenner"},
+  {min:300,title:"Wort-Profi"},{min:500,title:"Wort-Meister"}
+];
+function levelForXp(xp){let lv=1,t=LEVELS[0].title;LEVELS.forEach((l,i)=>{if(xp>=l.min){lv=i+1;t=l.title;}});return{lv,title:t};}
+const BADGES={
+  first_step:{icon:"👣",title:"Erster Schritt"}, typist:{icon:"⌨️",title:"Schnellschreiber"},
+  format_artist:{icon:"🎨",title:"Format-Künstler"}, list_pro:{icon:"📋",title:"Listen-Profi"},
+  table_master:{icon:"▦",title:"Tabellen-Baumeister"}, image_pro:{icon:"🖼️",title:"Bilder-Profi"},
+  saver:{icon:"💾",title:"Sicherungs-Held"}, halfway:{icon:"🌟",title:"Halbzeit-Star"},
+  champion:{icon:"🏆",title:"Word-Champion"}
+};
+
+function toast(html,mood){
+  const t=document.createElement("div");t.className="toast"+(mood?" "+mood:"");t.innerHTML=html;
+  document.body.appendChild(t);requestAnimationFrame(()=>t.classList.add("show"));
+  setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),350);},2600);
+}
+function floatXP(n){
+  const hud=$("#hud");if(!hud)return;const r=hud.getBoundingClientRect();
+  const f=document.createElement("div");f.className="xpfloat";f.textContent="+"+n+" XP";
+  f.style.left=(r.left+r.width/2)+"px";f.style.top=(r.bottom+4)+"px";
+  document.body.appendChild(f);setTimeout(()=>f.remove(),1100);
+}
+function mascotReact(mood){
+  const bot=$(".bot.avatar");if(!bot)return;
+  const cls=mood==="level"?"bot-cheer":mood==="warn"?"bot-think":"bot-happy";
+  bot.classList.remove("bot-cheer","bot-happy","bot-think");void bot.offsetWidth;bot.classList.add(cls);
+  setTimeout(()=>bot.classList.remove(cls),900);
+}
+function refreshHUD(){
+  const {lv}=levelForXp(state.xp);state.level=lv;
+  $("#hudLvl").textContent="Lv "+lv;$("#hudLvl").title=LEVELS[lv-1].title;
+  const cur=LEVELS[lv-1].min,next=LEVELS[lv]?LEVELS[lv].min:cur,span=Math.max(1,next-cur);
+  const pct=LEVELS[lv]?Math.min(100,Math.round((state.xp-cur)/span*100)):100;
+  $("#hudXp").style.width=pct+"%";
+  $("#hudXpTxt").textContent=LEVELS[lv]?(state.xp+" / "+next):(state.xp+" XP");
+  $("#hudCoins").textContent="🪙 "+state.coins;
+}
+function awardXP(n){
+  const before=state.level;state.xp+=n;state.coins+=n;
+  const {lv,title}=levelForXp(state.xp);state.level=lv;refreshHUD();floatXP(n);
+  if(lv>before){sfx.win();mascotReact("level");
+    toast(`🎉 <b>Level ${lv}!</b><br>Codi: „Stark – du bist jetzt <b>${title}</b>!"`,"good");}
+}
+function unlock(id){
+  if(state.badges[id]||!BADGES[id])return;
+  state.badges[id]=true;const b=BADGES[id];sfx.good();
+  toast(`Abzeichen freigeschaltet:<br><b>${b.icon} ${b.title}</b>`,"good");
+  state.xp+=15;state.coins+=15;refreshHUD();
+}
+function checkStationBadges(id){
+  unlock("first_step");
+  if(id==="s1")unlock("typist");
+  if(id==="s5")unlock("format_artist");
+  if(id==="s8")unlock("list_pro");
+  if(id==="s12")unlock("table_master");
+  if(id==="s11")unlock("image_pro");
+  if(id==="s14")unlock("saver");
+  if(Object.keys(state.done).length>=8)unlock("halfway");
+  if(id==="exam")unlock("champion");
+}
+
+/* ---- Anzeige-Helfer ---- */
+function setInstruction(title,text){ $("#iTitle").textContent=title; $("#iText").innerHTML=text; }
+function setHint(html,mood){
+  const h=$("#hint");h.className="hint"+(mood?" "+mood:"");
+  h.querySelector(".ic").textContent=mood==="good"?"✅":mood==="warn"?"💡":"💬";
+  $("#hintText").innerHTML=html;
+}
+function setCounter(num,label){const c=$("#counter");if(num==null){c.style.display="none";return;}c.style.display="";$("#cNum").textContent=num;$("#cLab").textContent=label||"Aufgabe";}
+function showNext(show,label="Weiter"){const b=$("#nextBtn");b.style.display=show?"":"none";b.textContent=label;}
+function showReplay(show){$("#replayBtn").style.display=show?"":"none";}
+function showSkip(show,fn){const b=$("#skipBtn");b.style.display=show?"":"none";b.onclick=fn||null;}
+
+/* ---- Fortschritt / Drawer ---- */
+function buildProgress(){
+  const nav=$("#progress");nav.innerHTML="";
+  STATIONS.forEach(st=>{ if(st.id==="start")return;
+    const b=document.createElement("button");b.className="stamp";b.dataset.id=st.id;
+    b.innerHTML=`<span class="dot">${st.icon}</span>${st.short}`;
+    b.addEventListener("click",()=>{closeDrawer();go(st.id);});nav.appendChild(b);
+  });
+}
+function refreshProgress(){
+  $$(".stamp").forEach(b=>{const id=b.dataset.id;
+    b.classList.toggle("done",!!state.done[id]);b.classList.toggle("active",state.current===id);
+    b.querySelector(".dot").textContent=state.done[id]?"✓":STATIONS.find(s=>s.id===id).icon;});
+  const total=PLAYABLE.length,done=PLAYABLE.filter(s=>state.done[s.id]).length;
+  const cur=STATIONS.find(s=>s.id===state.current);
+  const label=state.current==="start"?"Start":state.current==="exam"?"🏆 Prüfung"
+    :`Station ${stationNumber(state.current)}/${total} · ${cur?cur.short:""}`;
+  $("#stationNow").textContent=label;
+  $("#drawerProgress").textContent=`${done}/${total} ✓`;
+}
+function openDrawer(){$("#drawer").classList.add("open");$("#drawerBackdrop").classList.add("open");$("#navBtn").setAttribute("aria-expanded","true");}
+function closeDrawer(){$("#drawer").classList.remove("open");$("#drawerBackdrop").classList.remove("open");$("#navBtn").setAttribute("aria-expanded","false");}
+function markDone(id){state.done[id]=true;refreshProgress();}
+function nextStationId(){const i=STATIONS.findIndex(s=>s.id===state.current);return STATIONS[Math.min(i+1,STATIONS.length-1)].id;}
+
+/* ---- Router ---- */
+function go(id){
+  stopLoop();state.current=id;
+  const stage=$("#stage");stage.innerHTML="";
+  setHint("","");showNext(false);showReplay(false);showSkip(false);setCounter(null);
+  refreshProgress();refreshHUD();
+  (SCREENS[id]||SCREENS.start)(stage);
+  $("main").scrollTop=0;
+}
+function completeStation(id,msg){
+  const isNew=!state.done[id];
+  markDone(id);setHint(msg||"Super gemacht! 🎉","good");sfx.win();showSkip(false);
+  if(isNew){ awardXP(id==="exam"?50:20); state.stats.attempts++; checkStationBadges(id); }
+  const next=nextStationId();showReplay(true);
+  if(id==="exam"){ showNext(false); }
+  else { showNext(true,'Weiter zu „'+STATIONS.find(s=>s.id===next).short+'“ ›'); $("#nextBtn").onclick=()=>go(next); }
+}
+$("#replayBtn").addEventListener("click",()=>go(state.current));
+
+/* ============================================================
+   Erklärseiten
+   ============================================================ */
+const INTROS={
+  s1:{head:"Tippen & Cursor", lead:"In Word schreibst du in das große weiße Blatt. Der blinkende Strich heißt <b>Cursor</b> – er zeigt, wo der nächste Buchstabe erscheint. Mit einem <b>Klick</b> setzt du den Cursor an eine andere Stelle.",
+    points:[{ic:"👆",txt:"<b>Klicke</b> ins Blatt, um den Cursor dorthin zu setzen."},
+      {ic:"⌨️",txt:"<b>Tippe</b> Buchstaben – sie erscheinen am Cursor."},
+      {ic:"⏎",txt:"Mit <b>Enter</b> beginnst du eine neue Zeile."}],
+    steps:["Klicke in das weiße Blatt.","Tippe den vorgegebenen Satz ab.","Achte auf Groß- und Kleinschreibung."]},
+  s5:{head:"Fett · Kursiv · Unterstrichen", lead:"Mit den Knöpfen <b>F</b>, <b>K</b> und <b>U</b> im Menüband machst du Text <b>auffälliger</b>. Wichtig ist die Reihenfolge: <b>zuerst markieren</b>, was du ändern willst – <b>dann</b> auf den Knopf klicken.",
+    points:[{ic:"🖱️",txt:"<b>Erst das Wort anklicken</b> (markieren)."},
+      {ic:"𝐁",txt:"<b>F</b> = Fett, <b>K</b> = Kursiv, <b>U</b> = Unterstrichen."},
+      {ic:"🔁",txt:"Nochmal klicken schaltet die Formatierung wieder aus."}],
+    steps:["Klicke das gesuchte Wort an, bis es blau markiert ist.","Klicke oben im Menüband auf den richtigen Knopf.","Fertig – das Wort sieht jetzt anders aus."]}
+};
+let _introSkip=null;
+function stationIntro(id,stage){
+  const info=INTROS[id];
+  if(!info) return false;
+  if(_introSkip===id){_introSkip=null;return false;}
+  const st=STATIONS.find(s=>s.id===id);
+  setInstruction(`Station ${stationNumber(id)} · ${st.title}`,"Schau dir kurz die neue Funktion an. Klicke dann auf „Los geht’s“.");
+  setHint("Lies die Erklärung – dann auf „Los geht’s“ klicken.","");
+  const ex=document.createElement("div");ex.className="explainer";
+  ex.innerHTML=`
+    <div class="explainer-head"><span class="badge">📖</span><span>Neu erklärt: ${info.head}</span></div>
+    <div class="explainer-body">
+      <p class="explainer-lead">${info.lead}</p>
+      <ul>${info.points.map(p=>`<li><span class="me">${p.ic}</span><div>${p.txt}</div></li>`).join("")}</ul>
+    </div>
+    <div class="explainer-steps"><h3>👉 So geht’s</h3><ol>${info.steps.map(s=>`<li>${s}</li>`).join("")}</ol></div>`;
+  stage.appendChild(ex);
+  const begin=()=>{_introSkip=id;go(id);};
+  showNext(true,"Los geht’s ›");$("#nextBtn").onclick=begin;
+  return true;
+}
+
+/* ============================================================
+   Wiederverwendbare Word-Oberfläche
+   buildWord(stage,opts) -> {page, ribbon, setStatus}
+   opts.tab: aktive Registerkarte ("start"|"einfuegen"|"layout")
+   opts.tools: Liste der Werkzeuge im Start-Menüband, z.B. ["bold","italic","underline"]
+   ============================================================ */
+function buildWord(stage, opts={}){
+  const tab = opts.tab || "start";
+  const tools = opts.tools || [];
+  const wrap=document.createElement("div");wrap.className="word no-select";
+  const TOOLBTN={
+    bold:`<button class="rb-btn bold" data-tool="bold" title="Fett (Strg+F)">F</button>`,
+    italic:`<button class="rb-btn italic" data-tool="italic" title="Kursiv (Strg+K)">K</button>`,
+    underline:`<button class="rb-btn underline" data-tool="underline" title="Unterstrichen (Strg+U)">U</button>`
+  };
+  const startTools = tools.map(t=>TOOLBTN[t]||"").join("");
+  wrap.innerHTML=`
+    <div class="word-title"><span class="dot"></span><span class="fname">${opts.fname||"Dokument1 – Word"}</span>
+      <span class="win">— ▢ ✕</span></div>
+    <div class="word-tabs">
+      <button class="word-tab${tab==="start"?" active":""}" data-tab="start">Start</button>
+      <button class="word-tab${tab==="einfuegen"?" active":""}" data-tab="einfuegen">Einfügen</button>
+      <button class="word-tab${tab==="layout"?" active":""}" data-tab="layout">Layout</button>
+    </div>
+    <div class="ribbon">
+      <div class="rb-group">
+        <div class="rb-row">
+          <select class="rb-sel" disabled><option>Calibri</option></select>
+          <select class="rb-sel" disabled><option>11</option></select>
+        </div>
+        <div class="rb-label">Schriftart</div>
+      </div>
+      <div class="rb-group">
+        <div class="rb-row">${startTools||'<span class="rb-label">—</span>'}</div>
+        <div class="rb-label">Format</div>
+      </div>
+    </div>
+    <div class="word-canvas"><div class="word-page" ${opts.editable?'contenteditable="true"':''} spellcheck="false"></div></div>
+    <div class="word-status"><span id="wStatusL">Seite 1 von 1</span><span class="right" id="wStatusR">Deutsch</span></div>`;
+  stage.appendChild(wrap);
+  const page=$(".word-page",wrap);
+  // Registerkarten: nur Deko-Wechsel (Inhalte folgen je Station)
+  $$(".word-tab",wrap).forEach(t=>t.addEventListener("click",()=>{
+    $$(".word-tab",wrap).forEach(x=>x.classList.remove("active"));t.classList.add("active");
+  }));
+  return {
+    wrap, page,
+    ribbonBtn:(tool)=>$(`.rb-btn[data-tool="${tool}"]`,wrap),
+    setStatus:(l,r)=>{ if(l!=null)$("#wStatusL",wrap).textContent=l; if(r!=null)$("#wStatusR",wrap).textContent=r; }
+  };
+}
+/* Tokenisiert einen Satz in klickbare Wörter (für Markier-/Format-Stationen). */
+function fillTokens(page, text){
+  page.innerHTML="";
+  text.split(/(\s+)/).forEach(part=>{
+    if(/^\s+$/.test(part)){ page.appendChild(document.createTextNode(part)); return; }
+    const span=document.createElement("span");span.className="tok";span.textContent=part;
+    span.dataset.word=part.replace(/[.,!?]/g,"").toLowerCase();
+    page.appendChild(span);
+  });
+}
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+const SCREENS={};
+
+/* ---- Start ---- */
+SCREENS.start=(stage)=>{
+  setInstruction("Willkommen beim Word-Führerschein","Hier lernst du Schritt für Schritt, wie man mit Microsoft Word schreibt.");
+  setHint("Klicke auf „Los geht’s“, um zu starten.","");
+  const hero=document.createElement("div");hero.className="hero";
+  hero.innerHTML=`
+    <div class="doc-emoji">📄</div>
+    <h1>Word-Führerschein</h1>
+    <p>Du übst die wichtigsten Word-Handgriffe: <b>tippen, markieren, formatieren, kopieren, speichern</b> und mehr –
+       an einer nachgebauten Word-Oberfläche. Am Ende wartet ein kleines <b>Schreibprojekt</b> und deine Urkunde.</p>
+    <p style="font-size:.88rem;opacity:.85">Tipp: Über das ☰-Menü oben links springst du zwischen den Stationen.</p>`;
+  stage.appendChild(hero);
+  const first=PLAYABLE[0].id;
+  showNext(true,"Los geht’s ›");$("#nextBtn").onclick=()=>go(first);
+};
+
+/* ---- Station 1: Tippen & Cursor ---- */
+SCREENS.s1=(stage)=>{
+  if(stationIntro("s1",stage))return;
+  const st=STATIONS.find(s=>s.id==="s1");
+  setInstruction(`Station ${stationNumber("s1")} · ${st.title}`,"Klicke in das weiße Blatt und tippe den Satz genau ab.");
+  setHint("Klicke ins Blatt und beginne zu tippen.","");
+  const TARGET="Heute lerne ich Word.";
+  const target=document.createElement("div");target.className="type-target";
+  target.innerHTML=`✍️ Tippe genau ab: <b>${TARGET}</b>`;
+  stage.appendChild(target);
+  const w=buildWord(stage,{tab:"start",editable:true,fname:"Übung – Word"});
+  w.page.focus();
+  let done=false;
+  w.page.addEventListener("input",()=>{
+    const cur=w.page.textContent.replace(/ /g," ");
+    w.setStatus(`Zeichen: ${cur.length}`,null);
+    if(done) return;
+    if(cur.trim()===TARGET){
+      done=true;
+      completeStation("s1","Perfekt abgetippt! ⌨️");
+    } else if(TARGET.startsWith(cur.trim()) || cur.trim().length<TARGET.length){
+      setHint("Weiter so – tippe genau weiter.","");
+    } else {
+      setHint("Kleiner Tippfehler – vergleiche mit der Vorlage oben.","warn");
+    }
+  });
+};
+
+/* ---- Station 5: Fett / Kursiv / Unterstrichen ---- */
+SCREENS.s5=(stage)=>{
+  if(stationIntro("s5",stage))return;
+  const st=STATIONS.find(s=>s.id==="s5");
+  setInstruction(`Station ${stationNumber("s5")} · ${st.title}`,"Erst das Wort anklicken (markieren), dann den richtigen Knopf im Menüband drücken.");
+  // kleine Aufgabenliste
+  const TASKS=[
+    {word:"sonne",  tool:"bold",      label:'Mache das Wort <b>Sonne</b> <b>fett</b>.'},
+    {word:"meer",   tool:"italic",    label:'Mache das Wort <b>Meer</b> <i>kursiv</i>.'},
+    {word:"strand", tool:"underline", label:'<u>Unterstreiche</u> das Wort <b>Strand</b>.'}
+  ];
+  let ti=0;
+  const w=buildWord(stage,{tab:"start",tools:["bold","italic","underline"],fname:"Sommer – Word"});
+  fillTokens(w.page,"Die Sonne, das Meer und der Strand machen Freude.");
+  let selected=null;
+
+  function selectTok(tok){
+    if(selected)selected.classList.remove("sel");
+    selected=tok;tok.classList.add("sel");sfx.step();
+    setHint("Gut markiert! Jetzt den richtigen Knopf oben drücken.","");
+    syncRibbon();
+  }
+  function syncRibbon(){
+    ["bold","italic","underline"].forEach(t=>{
+      const b=w.ribbonBtn(t);if(!b)return;
+      b.classList.toggle("active", !!(selected&&selected.classList.contains(t)));
+    });
+  }
+  $$(".tok",w.page).forEach(tok=>tok.addEventListener("click",()=>selectTok(tok)));
+
+  function setTask(){
+    const t=TASKS[ti];
+    setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe");
+    setHint("👉 "+t.label,"");
+  }
+  function checkDone(){
+    const t=TASKS[ti];
+    const tok=$$(".tok",w.page).find(x=>x.dataset.word===t.word);
+    if(tok && tok.classList.contains(t.tool)){
+      sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ ti++; if(selected){selected.classList.remove("sel");selected=null;} syncRibbon(); setTask(); }
+      else { completeStation("s5","Toll formatiert! 🎨"); }
+    }
+  }
+  ["bold","italic","underline"].forEach(tool=>{
+    const b=w.ribbonBtn(tool);if(!b)return;
+    b.addEventListener("click",()=>{
+      if(!selected){ setHint("Klicke zuerst ein Wort an, dann den Knopf.","warn"); return; }
+      selected.classList.toggle(tool);
+      syncRibbon();sfx.step();checkDone();
+    });
+  });
+  setTask();
+};
+
+/* ---- Platzhalter für noch nicht umgesetzte Stationen ---- */
+function placeholderScreen(id){
+  return (stage)=>{
+    const st=STATIONS.find(s=>s.id===id);
+    setInstruction(`Station ${stationNumber(id)} · ${st.title}`,st.desc);
+    setHint("Diese Station entsteht gerade.","");
+    const ph=document.createElement("div");ph.className="placeholder";
+    ph.innerHTML=`
+      <div class="big">${st.icon}🚧</div>
+      <h3>${st.title}</h3>
+      <p>Diese Übung wird in einer der nächsten Ausbaustufen ergänzt.</p>
+      <p style="font-size:.86rem">Lernziel: ${st.desc}.</p>`;
+    stage.appendChild(ph);
+    const next=nextStationId();
+    showNext(true,'Weiter zu „'+STATIONS.find(s=>s.id===next).short+'“ ›');
+    $("#nextBtn").onclick=()=>go(next);
+  };
+}
+/* Prüfung/Projekt vorläufig ebenfalls als Platzhalter */
+STATIONS.forEach(st=>{
+  if(st.id==="start") return;
+  if(!IMPLEMENTED.includes(st.id)) SCREENS[st.id]=placeholderScreen(st.id);
+});
+
+/* ============================================================
+   Einstellungen & Start
+   ============================================================ */
+$("#gearBtn").addEventListener("click",()=>$("#overlay").classList.add("open"));
+$("#closeSet").addEventListener("click",()=>$("#overlay").classList.remove("open"));
+$("#overlay").addEventListener("click",e=>{if(e.target===$("#overlay"))$("#overlay").classList.remove("open");});
+$("#soundChk").addEventListener("change",e=>state.sound=e.target.checked);
+$("#resetBtn").addEventListener("click",()=>{
+  state.done={};state.xp=0;state.coins=0;state.level=1;state.badges={};
+  $("#overlay").classList.remove("open");go("start");
+});
+$("#navBtn").addEventListener("click",openDrawer);
+$("#drawerClose").addEventListener("click",closeDrawer);
+$("#drawerBackdrop").addEventListener("click",closeDrawer);
+$("#stationNow").addEventListener("click",openDrawer);
+
+buildProgress();
+refreshHUD();
+go("start");
+</script>
+</body>
+</html>
