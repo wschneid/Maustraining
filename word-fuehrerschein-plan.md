@@ -9,6 +9,19 @@ und `tastatur-fuehrerschein.html`.
 
 ---
 
+## ✅ Festgelegte Entscheidungen (Stand 2026-06-26)
+
+- **Stationsumfang:** wie unten beschrieben (16 Stationen + Abschlussprojekt) – freigegeben.
+- **Zielgruppe:** **Word-Anfänger:innen** (echte Einsteiger, noch nie/kaum mit Word gearbeitet).
+- **Touch-Bedienung:** **optional** (Maus/Tastatur stehen im Vordergrund; Touch nur „nice to have").
+- **Abschlussprojekt** („Steckbrief schreiben"): **Pflicht-Station** vor der Urkunde.
+- **Oberfläche:** **vereinfacht**, aber **an aktuelles Word (Microsoft 365 / Word 2021)** angelehnt
+  – erkennbares Menüband mit Registerkarten *Start / Einfügen / Layout*.
+- **Speicherort:** Entwicklung **vorerst im bestehenden Repo `Maustraining`** als Datei
+  `word-fuehrerschein.html` (eigenes Repo war per Integration nicht anlegbar – später umziehbar).
+
+---
+
 ## 1. Ziel & Zielgruppe
 
 - **Ziel:** Lernende sollen die wichtigsten Word-Handgriffe sicher beherrschen –
