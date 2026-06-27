@@ -152,6 +152,38 @@
   .word-page .tok.bold{font-weight:800;}
   .word-page .tok.italic{font-style:italic;}
   .word-page .tok.underline{text-decoration:underline;}
+  .rb-btn svg{display:block;}
+  /* Listen im Dokument */
+  .doclist .li{padding:1px 0;}
+  .doclist[data-type="none"] .li{list-style:none;}
+  .doclist[data-type="bullet"] .li::before{content:"•  ";color:var(--word);font-weight:700;}
+  .doclist[data-type="number"]{counter-reset:li;}
+  .doclist[data-type="number"] .li{counter-increment:li;}
+  .doclist[data-type="number"] .li::before{content:counter(li) ".  ";color:var(--word);font-weight:700;}
+  /* Kopieren/Einfügen: Lücke */
+  .word-page .slot{background:#fde7c9;border:1px dashed var(--hint);border-radius:5px;padding:0 6px;color:var(--hint);font-weight:600;}
+  .word-page .slot.filled{background:var(--success-soft);border-style:solid;border-color:var(--success);color:var(--ink);font-weight:400;}
+  /* Bild, Tabelle, Überschriftszeilen im Dokument */
+  .docimg{font-size:3.2rem;text-align:center;margin:8px 0;}
+  .doctable{border-collapse:collapse;margin:10px 0;}
+  .doctable td{border:1px solid var(--word);min-width:44px;height:26px;padding:2px 6px;}
+  .docline{padding:2px 2px;cursor:pointer;border-radius:4px;}
+  .docline.sel{background:#eef3fb;box-shadow:inset 3px 0 0 var(--word-bright);}
+  .docline.heading{font-size:1.5rem;font-weight:700;color:var(--word-deep);}
+  /* Word-Dialog (Ersetzen, Bild, Tabelle) */
+  .wdialog{position:fixed;z-index:75;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border:1px solid var(--line);
+    border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.32);padding:16px 18px;width:min(360px,92vw);}
+  .wdialog-head{font-weight:700;color:var(--word-deep);margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:8px;}
+  .wdialog label{display:block;margin-bottom:10px;font-size:.9rem;color:var(--ink-soft);}
+  .wdialog input{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-family:inherit;font-size:.95rem;margin-top:3px;}
+  .wdialog-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:6px;}
+  .wgallery{display:flex;gap:10px;justify-content:center;}
+  .wgallery button{font-size:2rem;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;}
+  .wgallery button:hover{background:var(--word-pale);border-color:var(--word-bright);}
+  .tgrid{display:grid;grid-template-columns:repeat(5,22px);gap:3px;justify-content:center;margin:8px 0;}
+  .tgrid div{width:22px;height:22px;border:1px solid var(--line);border-radius:3px;cursor:pointer;}
+  .tgrid div.on{background:var(--word-bright);border-color:var(--word);}
+  .tgrid-label{text-align:center;font-size:.85rem;color:var(--ink-soft);margin-top:4px;}
   .word-status{display:flex;align-items:center;gap:14px;background:var(--word);color:#fff;font-size:.74rem;padding:4px 14px;}
   .word-status .right{margin-left:auto;}
 
@@ -246,7 +278,7 @@
 </main>
 
 <footer class="sitefooter">
-  <p>© 2026 Wolfgang Schneider · <b>Word-Führerschein</b> (Phase 0 – im Aufbau)</p>
+  <p>© 2026 Wolfgang Schneider · <b>Word-Führerschein</b> (im Aufbau · Stationen 1–13 spielbar)</p>
   <p>Lizenz: <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>.
      Microsoft Word ist eine Marke der Microsoft Corp.; diese Übung ist eine eigenständige Nachbildung zu Lernzwecken.</p>
 </footer>
@@ -307,8 +339,8 @@ const STATIONS = [
 ];
 const PLAYABLE = STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam");
 const stationNumber = id => PLAYABLE.findIndex(s=>s.id===id)+1;
-/* Stationen, die in Phase 0 bereits voll spielbar sind: */
-const IMPLEMENTED = ["s1","s5"];
+/* Stationen, die bereits voll spielbar sind (Phase 0–3): */
+const IMPLEMENTED = ["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","s12","s13"];
 
 /* ============================================================
    Zustand & Gamification (analog Maus-Trainer)
@@ -462,6 +494,61 @@ const INTROS={
       {ic:"⌨️",txt:"<b>Tippe</b> Buchstaben – sie erscheinen am Cursor."},
       {ic:"⏎",txt:"Mit <b>Enter</b> beginnst du eine neue Zeile."}],
     steps:["Klicke in das weiße Blatt.","Tippe den vorgegebenen Satz ab.","Achte auf Groß- und Kleinschreibung."]},
+  s2:{head:"Korrigieren – Löschen", lead:"Beim Schreiben passieren Tippfehler. Zwei Tasten helfen: Die <b>Rücktaste</b> (⌫) löscht <b>links</b> vom Cursor (das eben Getippte). Die <b>Entf-Taste</b> löscht <b>rechts</b> vom Cursor.",
+    points:[{ic:"⌫",txt:"<b>Rücktaste</b> löscht das Zeichen <b>vor</b> dem Cursor."},
+      {ic:"⌦",txt:"<b>Entf</b> löscht das Zeichen <b>hinter</b> dem Cursor."},
+      {ic:"👆",txt:"Klicke an die richtige Stelle, bevor du löschst."}],
+    steps:["Klicke direkt neben den Fehler.","Drücke die Rücktaste, um zu viel Getipptes zu entfernen.","Korrigiere, bis der Satz genau stimmt."]},
+  s3:{head:"Rückgängig & Wiederholen", lead:"Ein Versehen ist kein Problem: Mit <b>Rückgängig</b> (Pfeil ↶ oder <b>Strg+Z</b>) nimmst du den letzten Schritt zurück. <b>Wiederholen</b> (↷) stellt ihn wieder her.",
+    points:[{ic:"↶",txt:"<b>Rückgängig</b> macht den letzten Schritt rückgängig."},
+      {ic:"↷",txt:"<b>Wiederholen</b> bringt ihn wieder zurück."},
+      {ic:"🔁",txt:"Mehrmals klicken geht mehrere Schritte zurück."}],
+    steps:["Schau, was sich verändert hat.","Klicke oben auf Rückgängig (↶).","Wiederhole, bis alles wieder gut aussieht."]},
+  s4:{head:"Text markieren", lead:"Bevor man Text formatieren, kopieren oder löschen kann, muss man ihn <b>markieren</b>. Ein <b>Doppelklick</b> markiert ein einzelnes <b>Wort</b>. Mit <b>Strg+A</b> markierst du <b>alles</b> auf einmal.",
+    points:[{ic:"🖱️",txt:"<b>Doppelklick</b> auf ein Wort markiert genau dieses Wort."},
+      {ic:"🅰️",txt:"<b>Strg+A</b> markiert den <b>ganzen</b> Text."},
+      {ic:"🟦",txt:"Markierter Text wird <b>blau</b> hinterlegt."}],
+    steps:["Mach einen Doppelklick auf das gesuchte Wort.","Für „alles“ drücke Strg und A zusammen.","Markiertes erkennst du an der blauen Farbe."]},
+  s6:{head:"Schriftart, Größe & Farbe", lead:"Du kannst aussuchen, <b>wie</b> dein Text aussieht: eine andere <b>Schriftart</b>, eine größere <b>Schriftgröße</b> oder eine bunte <b>Farbe</b>. Auch hier gilt: <b>erst markieren, dann ändern</b>.",
+    points:[{ic:"🔤",txt:"Im linken Feld wählst du die <b>Schriftart</b>."},
+      {ic:"🔢",txt:"Im kleinen Feld daneben die <b>Größe</b> (Zahl)."},
+      {ic:"🎨",txt:"Mit dem <b>A</b>-Knopf gibst du eine <b>Farbe</b>."}],
+    steps:["Klicke ein Wort an.","Wähle oben Schriftart, Größe oder Farbe.","Das markierte Wort verändert sich sofort."]},
+  s7:{head:"Text ausrichten", lead:"Ein Absatz kann unterschiedlich am Blatt stehen: ganz <b>links</b>, in der <b>Mitte</b>, ganz <b>rechts</b> oder als <b>Blocksatz</b> (an beiden Rändern bündig). Dafür gibt es vier Knöpfe im Menüband.",
+    points:[{ic:"⬅️",txt:"<b>Linksbündig</b> – der normale Start."},
+      {ic:"↔️",txt:"<b>Zentriert</b> – mittig, gut für Überschriften."},
+      {ic:"➡️",txt:"<b>Rechtsbündig</b> – z. B. für ein Datum."}],
+    steps:["Klicke in den Absatz.","Wähle oben den passenden Ausrichtungs-Knopf.","Der ganze Absatz rückt an die neue Stelle."]},
+  s8:{head:"Aufzählung & Nummerierung", lead:"Mehrere Punkte werden übersichtlich als <b>Liste</b>. Eine <b>Aufzählung</b> setzt vor jede Zeile einen Punkt (•). Eine <b>Nummerierung</b> setzt Zahlen (1. 2. 3.) – gut für eine Reihenfolge.",
+    points:[{ic:"•",txt:"<b>Aufzählung</b>: Punkte vor jeder Zeile."},
+      {ic:"1️⃣",txt:"<b>Nummerierung</b>: durchgezählte Zeilen."},
+      {ic:"🔁",txt:"Nochmal klicken schaltet die Liste wieder aus."}],
+    steps:["Schau dir die Zeilen an.","Klicke oben auf Aufzählung oder Nummerierung.","Vor den Zeilen erscheinen Punkte oder Zahlen."]},
+  s9:{head:"Kopieren & Einfügen", lead:"Was du schon geschrieben hast, musst du nicht abtippen: Mit <b>Kopieren</b> (Strg+C) merkt sich Word den Text, mit <b>Einfügen</b> (Strg+V) setzt du ihn an einer neuen Stelle wieder ein.",
+    points:[{ic:"⧉",txt:"<b>Kopieren</b> (Strg+C): markierten Text merken."},
+      {ic:"📋",txt:"<b>Einfügen</b> (Strg+V): an neuer Stelle einsetzen."},
+      {ic:"🖱️",txt:"Beides geht auch per <b>Rechtsklick</b>-Menü."}],
+    steps:["Markiere das Wort.","Drücke Strg+C (kopieren).","Klicke an die Lücke und drücke Strg+V (einfügen)."]},
+  s10:{head:"Suchen & Ersetzen", lead:"Du musst ein Wort nicht überall von Hand austauschen. <b>Suchen & Ersetzen</b> findet ein Wort im ganzen Text und tauscht es <b>auf einen Schlag</b> gegen ein anderes.",
+    points:[{ic:"🔍",txt:"Bei <b>Suchen nach</b> gibst du das alte Wort ein."},
+      {ic:"✏️",txt:"Bei <b>Ersetzen durch</b> das neue Wort."},
+      {ic:"⚡",txt:"<b>Alle ersetzen</b> tauscht jedes Vorkommen."}],
+    steps:["Öffne oben rechts „Ersetzen“.","Tippe das alte und das neue Wort ein.","Klicke „Alle ersetzen“."]},
+  s11:{head:"Bild einfügen", lead:"Ein Dokument wird mit einem <b>Bild</b> schöner. Bilder fügst du über die Registerkarte <b>Einfügen</b> hinzu.",
+    points:[{ic:"🗂️",txt:"Oben auf den Reiter <b>Einfügen</b> wechseln."},
+      {ic:"🖼️",txt:"Auf <b>Bild</b> klicken und eines auswählen."},
+      {ic:"📄",txt:"Das Bild erscheint dann im Dokument."}],
+    steps:["Klicke auf <b>Bild</b> im Menüband.","Wähle ein Bild aus.","Es wird in dein Dokument eingefügt."]},
+  s12:{head:"Tabelle einfügen", lead:"Eine <b>Tabelle</b> ordnet Dinge in Zeilen und Spalten – praktisch für einen Stundenplan. Du wählst die Größe in einem kleinen <b>Gitter</b> aus.",
+    points:[{ic:"▦",txt:"Reiter <b>Einfügen</b> → <b>Tabelle</b>."},
+      {ic:"🖱️",txt:"Fahre über das Gitter, um die Größe zu wählen."},
+      {ic:"✅",txt:"Klicke, um die Tabelle einzufügen."}],
+    steps:["Öffne <b>Tabelle</b> im Reiter Einfügen.","Fahre über das Gitter (z. B. 2×2).","Klicke, um die Tabelle zu erzeugen."]},
+  s13:{head:"Überschriften (Formatvorlagen)", lead:"Eine <b>Überschrift</b> hebt den Titel hervor und gliedert den Text. Dafür gibt es fertige <b>Formatvorlagen</b> wie „Überschrift 1“ – ein Klick genügt.",
+    points:[{ic:"🅷",txt:"Zeile anklicken, dann <b>Überschrift 1</b> wählen."},
+      {ic:"🔠",txt:"Die Zeile wird groß und auffällig."},
+      {ic:"↩️",txt:"<b>Standard</b> macht sie wieder normal."}],
+    steps:["Klicke die Titelzeile an.","Wähle oben die Formatvorlage <b>Überschrift 1</b>.","Der Titel sieht jetzt wie eine Überschrift aus."]},
   s5:{head:"Fett · Kursiv · Unterstrichen", lead:"Mit den Knöpfen <b>F</b>, <b>K</b> und <b>U</b> im Menüband machst du Text <b>auffälliger</b>. Wichtig ist die Reihenfolge: <b>zuerst markieren</b>, was du ändern willst – <b>dann</b> auf den Knopf klicken.",
     points:[{ic:"🖱️",txt:"<b>Erst das Wort anklicken</b> (markieren)."},
       {ic:"𝐁",txt:"<b>F</b> = Fett, <b>K</b> = Kursiv, <b>U</b> = Unterstrichen."},
@@ -506,6 +593,89 @@ function buildWord(stage, opts={}){
     underline:`<button class="rb-btn underline" data-tool="underline" title="Unterstrichen (Strg+U)">U</button>`
   };
   const startTools = tools.map(t=>TOOLBTN[t]||"").join("");
+  const alignIcon = type => {
+    const x = type==="center"?4 : type==="right"?8 : 0;
+    const w2 = type==="justify"?18:10;
+    return `<svg width="18" height="12" fill="currentColor" aria-hidden="true">
+      <rect y="0" width="18" height="2" rx="1"/>
+      <rect y="5" x="${type==="justify"?0:x}" width="${w2}" height="2" rx="1"/>
+      <rect y="10" width="18" height="2" rx="1"/></svg>`;
+  };
+  // Zwischenablage-Gruppe (Kopieren/Einfügen)
+  const clipGroup = opts.clipboard ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn" data-tool="paste" title="Einfügen (Strg+V)" style="flex-direction:column;height:auto;padding:4px 8px;">📋<span style="font-size:.6rem">Einfügen</span></button>
+        <button class="rb-btn" data-tool="copy" title="Kopieren (Strg+C)">⧉</button>
+      </div>
+      <div class="rb-label">Zwischenablage</div>
+    </div>` : "";
+  // Schriftart-Gruppe: funktionsfähig (fontControls) oder Deko
+  const fonts=["Calibri","Arial","Times New Roman","Comic Sans MS"];
+  const sizes=[11,12,14,16,20,28];
+  const fontGroup = opts.fontControls ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <select class="rb-sel" data-ctl="font">${fonts.map(f=>`<option>${f}</option>`).join("")}</select>
+        <select class="rb-sel" data-ctl="size">${sizes.map(s=>`<option>${s}</option>`).join("")}</select>
+        <button class="rb-btn" data-tool="color" title="Schriftfarbe (Rot)"><span style="border-bottom:3px solid #c0392b;line-height:.7;font-weight:700">A</span></button>
+      </div>
+      <div class="rb-label">Schriftart</div>
+    </div>` : `
+    <div class="rb-group">
+      <div class="rb-row">
+        <select class="rb-sel" disabled><option>Calibri</option></select>
+        <select class="rb-sel" disabled><option>11</option></select>
+      </div>
+      <div class="rb-label">Schriftart</div>
+    </div>`;
+  const formatGroup = startTools ? `
+    <div class="rb-group">
+      <div class="rb-row">${startTools}</div>
+      <div class="rb-label">Schrift</div>
+    </div>` : "";
+  const alignGroup = opts.align ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn" data-tool="align-left"    title="Linksbündig">${alignIcon("left")}</button>
+        <button class="rb-btn" data-tool="align-center"  title="Zentriert">${alignIcon("center")}</button>
+        <button class="rb-btn" data-tool="align-right"   title="Rechtsbündig">${alignIcon("right")}</button>
+        <button class="rb-btn" data-tool="align-justify" title="Blocksatz">${alignIcon("justify")}</button>
+      </div>
+      <div class="rb-label">Absatz</div>
+    </div>` : "";
+  const listGroup = opts.lists ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn" data-tool="bullet" title="Aufzählung" style="font-weight:700">• ☰</button>
+        <button class="rb-btn" data-tool="number" title="Nummerierung" style="font-weight:700">1. ☰</button>
+      </div>
+      <div class="rb-label">Absatz</div>
+    </div>` : "";
+  const styleGroup = opts.styles ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn" data-tool="style-h1" style="color:var(--word-deep);font-weight:700;">Überschrift 1</button>
+        <button class="rb-btn" data-tool="style-normal">Standard</button>
+      </div>
+      <div class="rb-label">Formatvorlagen</div>
+    </div>` : "";
+  const insertTools = opts.insertTools || [];
+  const insertGroup = insertTools.length ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        ${insertTools.includes("image")?`<button class="rb-btn" data-tool="image" title="Bild einfügen" style="flex-direction:column;height:auto;padding:4px 8px;">🖼️<span style="font-size:.6rem">Bild</span></button>`:""}
+        ${insertTools.includes("table")?`<button class="rb-btn" data-tool="table" title="Tabelle einfügen" style="flex-direction:column;height:auto;padding:4px 8px;">▦<span style="font-size:.6rem">Tabelle</span></button>`:""}
+      </div>
+      <div class="rb-label">Einfügen</div>
+    </div>` : "";
+  const editGroup = opts.edit ? `
+    <div class="rb-group" style="margin-left:auto;border-right:none;">
+      <div class="rb-row">
+        <button class="rb-btn" data-tool="replace" title="Suchen und Ersetzen" style="flex-direction:column;height:auto;padding:4px 8px;">🔍<span style="font-size:.6rem">Ersetzen</span></button>
+      </div>
+      <div class="rb-label">Bearbeiten</div>
+    </div>` : "";
   wrap.innerHTML=`
     <div class="word-title"><span class="dot"></span><span class="fname">${opts.fname||"Dokument1 – Word"}</span>
       <span class="win">— ▢ ✕</span></div>
@@ -514,19 +684,7 @@ function buildWord(stage, opts={}){
       <button class="word-tab${tab==="einfuegen"?" active":""}" data-tab="einfuegen">Einfügen</button>
       <button class="word-tab${tab==="layout"?" active":""}" data-tab="layout">Layout</button>
     </div>
-    <div class="ribbon">
-      <div class="rb-group">
-        <div class="rb-row">
-          <select class="rb-sel" disabled><option>Calibri</option></select>
-          <select class="rb-sel" disabled><option>11</option></select>
-        </div>
-        <div class="rb-label">Schriftart</div>
-      </div>
-      <div class="rb-group">
-        <div class="rb-row">${startTools||'<span class="rb-label">—</span>'}</div>
-        <div class="rb-label">Format</div>
-      </div>
-    </div>
+    <div class="ribbon">${clipGroup}${fontGroup}${formatGroup}${alignGroup}${listGroup}${styleGroup}${insertGroup}${editGroup}</div>
     <div class="word-canvas"><div class="word-page" ${opts.editable?'contenteditable="true"':''} spellcheck="false"></div></div>
     <div class="word-status"><span id="wStatusL">Seite 1 von 1</span><span class="right" id="wStatusR">Deutsch</span></div>`;
   stage.appendChild(wrap);
@@ -538,6 +696,8 @@ function buildWord(stage, opts={}){
   return {
     wrap, page,
     ribbonBtn:(tool)=>$(`.rb-btn[data-tool="${tool}"]`,wrap),
+    fontSel:$('select[data-ctl="font"]',wrap),
+    sizeSel:$('select[data-ctl="size"]',wrap),
     setStatus:(l,r)=>{ if(l!=null)$("#wStatusL",wrap).textContent=l; if(r!=null)$("#wStatusR",wrap).textContent=r; }
   };
 }
@@ -601,6 +761,125 @@ SCREENS.s1=(stage)=>{
   });
 };
 
+/* ---- Station 2: Korrigieren (Löschen) ---- */
+SCREENS.s2=(stage)=>{
+  if(stationIntro("s2",stage))return;
+  const st=STATIONS.find(s=>s.id==="s2");
+  setInstruction(`Station ${stationNumber("s2")} · ${st.title}`,"Lösche die Fehler, bis der Satz genau mit der Vorlage übereinstimmt.");
+  const TASKS=[
+    {start:"Der Hund belltt laut.",            target:"Der Hund bellt laut.",      tip:'Im Wort „belltt" ist ein <b>t</b> zu viel. Klicke dahinter und drücke die <b>Rücktaste</b>.'},
+    {start:"Die Sonne scheint hell hell.",     target:"Die Sonne scheint hell.",   tip:'Das Wort „hell" steht <b>doppelt</b>. Lösche das zweite davon.'}
+  ];
+  let ti=0, done=false;
+  const target=document.createElement("div");target.className="type-target";
+  stage.appendChild(target);
+  const w=buildWord(stage,{tab:"start",editable:true,fname:"Korrektur – Word"});
+  function loadTask(){
+    const t=TASKS[ti];done=false;
+    setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe");
+    target.innerHTML="🎯 So soll es heißen: <b>"+t.target+"</b>";
+    w.page.textContent=t.start;
+    setHint("💡 "+t.tip,"");
+    w.page.focus();
+  }
+  w.page.addEventListener("input",()=>{
+    if(done)return;
+    const cur=w.page.textContent.replace(/ /g," ").replace(/\s+/g," ").trim();
+    const t=TASKS[ti];
+    w.setStatus(`Zeichen: ${cur.length}`,null);
+    if(cur===t.target){
+      sfx.good();mascotReact("happy");done=true;
+      if(ti<TASKS.length-1){ setHint("Stimmt! Nächste Aufgabe …","good"); later(()=>{ti++;loadTask();},950); }
+      else completeStation("s2","Alle Fehler beseitigt! ✏️");
+    }
+  });
+  loadTask();
+};
+
+/* ---- Station 3: Rückgängig & Wiederholen ---- */
+SCREENS.s3=(stage)=>{
+  if(stationIntro("s3",stage))return;
+  const st=STATIONS.find(s=>s.id==="s3");
+  setInstruction(`Station ${stationNumber("s3")} · ${st.title}`,"Zwei Versehen sind passiert. Nimm sie mit Rückgängig (↶) zurück.");
+  const bar=document.createElement("div");
+  bar.style.cssText="display:flex;gap:8px;justify-content:center;margin:0 0 12px;";
+  bar.innerHTML=`
+    <button class="rb-btn" id="undoBtn" title="Rückgängig (Strg+Z)" style="height:38px;font-size:1.05rem;">↶ Rückgängig</button>
+    <button class="rb-btn" id="redoBtn" title="Wiederholen (Strg+Y)" style="height:38px;font-size:1.05rem;">↷ Wiederholen</button>`;
+  stage.appendChild(bar);
+  const w=buildWord(stage,{tab:"start",fname:"Brief – Word"});
+  // Verlauf: [0]=guter Zustand, dann zwei „Versehen" obendrauf
+  const history=[
+    'Mein Lieblingstier ist der <span class="tok">Delfin</span>.',
+    'Mein Lieblingstier ist der <span class="tok">&nbsp;&nbsp;&nbsp;</span>.',
+    'Mein Lieblingstier ist der <span class="tok">&nbsp;&nbsp;&nbsp;</span>.<br><span style="font-size:1.8rem;letter-spacing:3px;color:#b9520b">qwhz!!</span>'
+  ];
+  let ptr=history.length-1;
+  function render(){
+    w.page.innerHTML=history[ptr];
+    $("#undoBtn").disabled = ptr<=0;
+    $("#redoBtn").disabled = ptr>=history.length-1;
+  }
+  function check(){
+    if(ptr===0) completeStation("s3","Alles wieder in Ordnung! ↶");
+    else setHint(`Gut – noch ${ptr}× Rückgängig.`,"");
+  }
+  function undo(){ if(ptr>0){ptr--;render();sfx.step();check();} }
+  function redo(){ if(ptr<history.length-1){ptr++;render();sfx.step();} }
+  $("#undoBtn").onclick=undo; $("#redoBtn").onclick=redo;
+  w.page.tabIndex=0;
+  w.page.addEventListener("keydown",e=>{
+    const k=e.key.toLowerCase();
+    if((e.ctrlKey||e.metaKey)&&k==="z"){ e.preventDefault(); undo(); }
+    if((e.ctrlKey||e.metaKey)&&k==="y"){ e.preventDefault(); redo(); }
+  });
+  render();
+  setHint("Klicke 2× auf <b>Rückgängig (↶)</b> – oder drücke <b>Strg+Z</b>.","");
+};
+
+/* ---- Station 4: Markieren ---- */
+SCREENS.s4=(stage)=>{
+  if(stationIntro("s4",stage))return;
+  const st=STATIONS.find(s=>s.id==="s4");
+  setInstruction(`Station ${stationNumber("s4")} · ${st.title}`,"Markiere genau das Gesuchte – per Doppelklick oder mit Strg+A.");
+  const w=buildWord(stage,{tab:"start",fname:"Markieren – Word"});
+  fillTokens(w.page,"Im Garten wachsen Äpfel, Birnen und süße Kirschen.");
+  w.page.tabIndex=0;
+  const toks=$$(".tok",w.page);
+  const TASKS=[
+    {type:"word", word:"birnen", disp:"Birnen", label:'Markiere das Wort <b>Birnen</b> mit einem <b>Doppelklick</b>.'},
+    {type:"all",  label:'Markiere jetzt <b>alles</b> mit <b>Strg+A</b>.'}
+  ];
+  let ti=0;
+  const clearSel=()=>toks.forEach(t=>t.classList.remove("sel"));
+  function setTask(){ const t=TASKS[ti]; setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+t.label,""); }
+  function advance(){
+    sfx.good();mascotReact("happy");
+    if(ti<TASKS.length-1){ ti++; clearSel(); setTask(); w.page.focus(); }
+    else completeStation("s4","Super markiert! 🖍️");
+  }
+  function check(){
+    const sel=toks.filter(t=>t.classList.contains("sel"));
+    const t=TASKS[ti];
+    if(t.type==="word"){
+      if(sel.length===1 && sel[0].dataset.word===t.word) advance();
+      else if(sel.length>=1) setHint(`Fast! Markiere genau das Wort „${t.disp}".`,"warn");
+    } else {
+      if(sel.length===toks.length) advance();
+    }
+  }
+  function pickOnly(tok){ clearSel(); tok.classList.add("sel"); sfx.step(); check(); }
+  toks.forEach(tok=>{
+    tok.addEventListener("dblclick",()=>pickOnly(tok));
+    tok.addEventListener("click",()=>{ if(TASKS[ti].type==="word") pickOnly(tok); }); // nachsichtig: Klick zählt wie Doppelklick
+  });
+  w.page.addEventListener("keydown",e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="a"){ e.preventDefault(); toks.forEach(t=>t.classList.add("sel")); sfx.step(); check(); }
+  });
+  w.page.focus();
+  setTask();
+};
+
 /* ---- Station 5: Fett / Kursiv / Unterstrichen ---- */
 SCREENS.s5=(stage)=>{
   if(stationIntro("s5",stage))return;
@@ -654,6 +933,252 @@ SCREENS.s5=(stage)=>{
     });
   });
   setTask();
+};
+
+/* ---- Station 6: Schriftart, Größe & Farbe ---- */
+SCREENS.s6=(stage)=>{
+  if(stationIntro("s6",stage))return;
+  const st=STATIONS.find(s=>s.id==="s6");
+  setInstruction(`Station ${stationNumber("s6")} · ${st.title}`,"Erst ein Wort markieren, dann oben Größe, Farbe oder Schriftart wählen.");
+  const w=buildWord(stage,{tab:"start",fontControls:true,fname:"Plakat – Word"});
+  fillTokens(w.page,"Unser großes Sommerfest beginnt bald.");
+  let selected=null;
+  $$(".tok",w.page).forEach(t=>t.addEventListener("click",()=>{
+    if(selected)selected.classList.remove("sel");selected=t;t.classList.add("sel");sfx.step();
+  }));
+  const TASKS=[
+    {word:"sommerfest", label:'Markiere <b>Sommerfest</b> und stelle die <b>Größe</b> auf <b>20</b> (oder größer).', ok:tok=>parseInt(tok.style.fontSize)>=20},
+    {word:"sommerfest", label:'Gib <b>Sommerfest</b> jetzt eine <b>Farbe</b> (Knopf <span style="color:#c0392b;font-weight:700">A</span>).', ok:tok=>!!tok.style.color},
+    {word:"unser",      label:'Markiere <b>Unser</b> und wähle die Schriftart <b>Arial</b>.', ok:tok=>/Arial/.test(tok.style.fontFamily)}
+  ];
+  let ti=0;
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+TASKS[ti].label,""); }
+  function apply(prop,val){ if(!selected){ setHint("Klicke zuerst ein Wort an.","warn"); return; } selected.style[prop]=val; sfx.step(); check(); }
+  function check(){
+    const t=TASKS[ti], tok=$$(".tok",w.page).find(x=>x.dataset.word===t.word);
+    if(tok && t.ok(tok)){
+      sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ ti++; if(selected){selected.classList.remove("sel");selected=null;} setTask(); }
+      else completeStation("s6","Tolle Gestaltung! 🔤");
+    }
+  }
+  w.sizeSel.addEventListener("change",()=>apply("fontSize",w.sizeSel.value+"px"));
+  w.fontSel.addEventListener("change",()=>apply("fontFamily",w.fontSel.value));
+  w.ribbonBtn("color").addEventListener("click",()=>apply("color","#c0392b"));
+  setTask();
+};
+
+/* ---- Station 7: Ausrichten ---- */
+SCREENS.s7=(stage)=>{
+  if(stationIntro("s7",stage))return;
+  const st=STATIONS.find(s=>s.id==="s7");
+  setInstruction(`Station ${stationNumber("s7")} · ${st.title}`,"Stelle die Ausrichtung des Absatzes mit den Knöpfen im Menüband ein.");
+  const w=buildWord(stage,{tab:"start",align:true,fname:"Einladung – Word"});
+  w.page.innerHTML='<div id="para">Herzliche Einladung<br>zu meinem Geburtstag<br>am Samstag um 15 Uhr!</div>';
+  const para=$("#para",w.page); para.style.textAlign="left";
+  const map={left:"align-left",center:"align-center",right:"align-right",justify:"align-justify"};
+  const TASKS=[
+    {al:"center", label:'Stelle den Text auf <b>zentriert</b> (mittig).'},
+    {al:"right",  label:'Jetzt auf <b>rechtsbündig</b>.'}
+  ];
+  let ti=0;
+  function sync(){ Object.entries(map).forEach(([al,tool])=>w.ribbonBtn(tool).classList.toggle("active",para.style.textAlign===al)); }
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+TASKS[ti].label,""); sync(); }
+  function apply(al){
+    para.style.textAlign=al; sfx.step(); sync();
+    if(al===TASKS[ti].al){ sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ ti++; setTask(); } else completeStation("s7","Sauber ausgerichtet! ⬛"); }
+  }
+  Object.entries(map).forEach(([al,tool])=>w.ribbonBtn(tool).addEventListener("click",()=>apply(al)));
+  setTask();
+};
+
+/* ---- Station 8: Listen ---- */
+SCREENS.s8=(stage)=>{
+  if(stationIntro("s8",stage))return;
+  const st=STATIONS.find(s=>s.id==="s8");
+  setInstruction(`Station ${stationNumber("s8")} · ${st.title}`,"Mach aus den Zeilen eine Liste – mit den Listen-Knöpfen oben.");
+  const w=buildWord(stage,{tab:"start",lists:true,fname:"Einkauf – Word"});
+  const items=["Äpfel","Brot","Milch"];
+  w.page.innerHTML=`<div class="doclist" data-type="none">${items.map(i=>`<div class="li">${i}</div>`).join("")}</div>`;
+  const list=$(".doclist",w.page);
+  const TASKS=[
+    {type:"bullet", label:'Mach aus der Einkaufsliste eine <b>Aufzählung</b> (• Punkte).'},
+    {type:"number", label:'Wandle sie jetzt in eine <b>Nummerierung</b> (1. 2. 3.) um.'}
+  ];
+  let ti=0;
+  function sync(){ w.ribbonBtn("bullet").classList.toggle("active",list.dataset.type==="bullet");
+                   w.ribbonBtn("number").classList.toggle("active",list.dataset.type==="number"); }
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+TASKS[ti].label,""); sync(); }
+  function apply(type){
+    list.dataset.type = list.dataset.type===type ? "none" : type; sfx.step(); sync();
+    if(list.dataset.type===TASKS[ti].type){ sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ ti++; setTask(); } else completeStation("s8","Liste fertig! 📋"); }
+  }
+  w.ribbonBtn("bullet").addEventListener("click",()=>apply("bullet"));
+  w.ribbonBtn("number").addEventListener("click",()=>apply("number"));
+  setTask();
+};
+
+/* ---- Station 9: Kopieren & Einfügen ---- */
+SCREENS.s9=(stage)=>{
+  if(stationIntro("s9",stage))return;
+  const st=STATIONS.find(s=>s.id==="s9");
+  setInstruction(`Station ${stationNumber("s9")} · ${st.title}`,"Kopiere das Wort und füge es in die Lücke ein.");
+  const w=buildWord(stage,{tab:"start",clipboard:true,fname:"Notiz – Word"});
+  w.page.innerHTML=`Mein Lieblingseis ist <span class="tok" data-word="vanille">Vanille</span>.<br>Bitte hol mir <span class="slot" data-need="vanille">[ hier einfügen ]</span>!`;
+  w.page.tabIndex=0;
+  const tok=$(".tok",w.page), slot=$(".slot",w.page);
+  let clip=null, selected=null;
+  tok.addEventListener("click",()=>{
+    if(selected)selected.classList.remove("sel");selected=tok;tok.classList.add("sel");sfx.step();
+    setHint("Markiert! Jetzt <b>Kopieren</b> (Strg+C oder ⧉).","");
+  });
+  function copy(){
+    if(!selected){ setHint("Markiere zuerst das Wort <b>Vanille</b>.","warn"); return; }
+    clip=selected.textContent; sfx.step();
+    setHint("Kopiert! Jetzt in die Lücke <b>Einfügen</b> (Strg+V).","");
+  }
+  function paste(){
+    if(!clip){ setHint("Erst <b>Kopieren</b> (Strg+C).","warn"); return; }
+    slot.textContent=clip; slot.classList.add("filled"); sfx.good();
+    if(clip.replace(/[.,!?]/g,"").toLowerCase()===slot.dataset.need){ mascotReact("happy"); completeStation("s9","Kopiert & eingefügt! 📋"); }
+  }
+  w.ribbonBtn("copy").addEventListener("click",copy);
+  w.ribbonBtn("paste").addEventListener("click",paste);
+  w.page.addEventListener("keydown",e=>{
+    const k=e.key.toLowerCase();
+    if((e.ctrlKey||e.metaKey)&&k==="c"){ e.preventDefault(); copy(); }
+    if((e.ctrlKey||e.metaKey)&&k==="v"){ e.preventDefault(); paste(); }
+  });
+  setHint("Klicke <b>Vanille</b> an, dann Strg+C, dann Strg+V in die Lücke.","");
+};
+
+/* ---- Station 10: Suchen & Ersetzen ---- */
+SCREENS.s10=(stage)=>{
+  if(stationIntro("s10",stage))return;
+  const st=STATIONS.find(s=>s.id==="s10");
+  setInstruction(`Station ${stationNumber("s10")} · ${st.title}`,"Öffne „Ersetzen“, tausche das Wort und klicke „Alle ersetzen“.");
+  const w=buildWord(stage,{tab:"start",edit:true,fname:"Geschichte – Word"});
+  w.page.textContent="Der Hund läuft. Der Hund bellt. Der Hund schläft.";
+  const ORIG=w.page.textContent, FIND="Hund", REPL="Katze";
+  const dlg=document.createElement("div");dlg.className="wdialog";dlg.style.display="none";
+  dlg.innerHTML=`
+    <div class="wdialog-head">Suchen und Ersetzen</div>
+    <label>Suchen nach:<input type="text" id="findInp" autocomplete="off"></label>
+    <label>Ersetzen durch:<input type="text" id="replInp" autocomplete="off"></label>
+    <div class="wdialog-btns">
+      <button class="btn btn-ghost btn-small" id="dlgClose">Schließen</button>
+      <button class="btn btn-primary btn-small" id="dlgReplace">Alle ersetzen</button>
+    </div>`;
+  stage.appendChild(dlg);
+  w.ribbonBtn("replace").addEventListener("click",()=>{
+    dlg.style.display="block";$("#findInp",dlg).focus();
+    setHint('Tippe bei „Suchen nach“ <b>Hund</b> und bei „Ersetzen durch“ <b>Katze</b>.',"");
+  });
+  $("#dlgClose",dlg).onclick=()=>dlg.style.display="none";
+  $("#dlgReplace",dlg).onclick=()=>{
+    const f=$("#findInp",dlg).value.trim(), r=$("#replInp",dlg).value.trim();
+    if(!f){ setHint("Gib zuerst ein Suchwort ein.","warn"); return; }
+    w.page.textContent = ORIG.split(f).join(r);  // immer vom Original aus, ohne Fehler-Stapelung
+    sfx.step();
+    if(f===FIND && r===REPL){
+      dlg.style.display="none"; sfx.good(); mascotReact("happy");
+      completeStation("s10","Alle ersetzt! 🔍");
+    } else {
+      setHint('Fast – suche nach „Hund“ und ersetze durch „Katze“.',"warn");
+      later(()=>{ w.page.textContent=ORIG; },800);
+    }
+  };
+  setHint("Klicke oben rechts auf <b>Ersetzen</b>, um den Dialog zu öffnen.","");
+};
+
+/* ---- Station 11: Bild einfügen ---- */
+SCREENS.s11=(stage)=>{
+  if(stationIntro("s11",stage))return;
+  const st=STATIONS.find(s=>s.id==="s11");
+  setInstruction(`Station ${stationNumber("s11")} · ${st.title}`,"Öffne „Bild“ und wähle ein Bild für dein Dokument.");
+  const w=buildWord(stage,{tab:"einfuegen",insertTools:["image"],fname:"Steckbrief – Word"});
+  w.page.innerHTML='<div>Mein Lieblingstier:</div>';
+  const dlg=document.createElement("div");dlg.className="wdialog";dlg.style.display="none";
+  dlg.innerHTML=`
+    <div class="wdialog-head">Bild einfügen</div>
+    <p style="font-size:.88rem;color:var(--ink-soft);margin:0 0 12px;">Wähle ein Bild aus:</p>
+    <div class="wgallery">
+      <button data-img="🐶" title="Hund">🐶</button>
+      <button data-img="🐱" title="Katze">🐱</button>
+      <button data-img="🐰" title="Hase">🐰</button>
+    </div>
+    <div class="wdialog-btns"><button class="btn btn-ghost btn-small" id="imgClose">Abbrechen</button></div>`;
+  stage.appendChild(dlg);
+  w.ribbonBtn("image").addEventListener("click",()=>{ dlg.style.display="block"; setHint("Klicke eines der Bilder an.",""); });
+  $("#imgClose",dlg).onclick=()=>dlg.style.display="none";
+  $$(".wgallery button",dlg).forEach(btn=>btn.addEventListener("click",()=>{
+    const img=document.createElement("div");img.className="docimg";img.textContent=btn.dataset.img;
+    w.page.appendChild(img); dlg.style.display="none"; sfx.good(); mascotReact("happy");
+    completeStation("s11","Bild eingefügt! 🖼️");
+  }));
+  setHint("Klicke im Reiter <b>Einfügen</b> auf <b>Bild</b>.","");
+};
+
+/* ---- Station 12: Tabelle einfügen ---- */
+SCREENS.s12=(stage)=>{
+  if(stationIntro("s12",stage))return;
+  const st=STATIONS.find(s=>s.id==="s12");
+  setInstruction(`Station ${stationNumber("s12")} · ${st.title}`,"Öffne „Tabelle“ und wähle die Größe (mindestens 2×2).");
+  const w=buildWord(stage,{tab:"einfuegen",insertTools:["table"],fname:"Plan – Word"});
+  w.page.innerHTML='<div>Mein Stundenplan:</div>';
+  const dlg=document.createElement("div");dlg.className="wdialog";dlg.style.display="none";
+  let grid="";
+  for(let r=1;r<=5;r++) for(let c=1;c<=5;c++) grid+=`<div data-r="${r}" data-c="${c}"></div>`;
+  dlg.innerHTML=`
+    <div class="wdialog-head">Tabelle einfügen</div>
+    <div class="tgrid">${grid}</div>
+    <div class="tgrid-label" id="tgLabel">Größe wählen …</div>
+    <div class="wdialog-btns"><button class="btn btn-ghost btn-small" id="tblClose">Abbrechen</button></div>`;
+  stage.appendChild(dlg);
+  const cells=$$(".tgrid div",dlg);
+  function hi(r,c){ cells.forEach(d=>d.classList.toggle("on",+d.dataset.r<=r&&+d.dataset.c<=c)); $("#tgLabel",dlg).textContent=`${c} × ${r} Tabelle`; }
+  function insert(r,c){
+    let html='<table class="doctable"><tbody>';
+    for(let i=0;i<r;i++){ html+="<tr>"; for(let j=0;j<c;j++) html+="<td></td>"; html+="</tr>"; }
+    html+="</tbody></table>";
+    if(r>=2&&c>=2){ w.page.insertAdjacentHTML("beforeend",html); dlg.style.display="none"; sfx.good(); mascotReact("happy"); completeStation("s12","Tabelle eingefügt! ▦"); }
+    else setHint("Nimm bitte mindestens <b>2×2</b> Felder.","warn");
+  }
+  cells.forEach(d=>{
+    d.addEventListener("mouseenter",()=>hi(+d.dataset.r,+d.dataset.c));
+    d.addEventListener("click",()=>insert(+d.dataset.r,+d.dataset.c));
+  });
+  w.ribbonBtn("table").addEventListener("click",()=>{ dlg.style.display="block"; setHint("Fahre über das Gitter und klicke bei <b>2×2</b> (oder größer).",""); });
+  $("#tblClose",dlg).onclick=()=>dlg.style.display="none";
+  setHint("Klicke im Reiter <b>Einfügen</b> auf <b>Tabelle</b>.","");
+};
+
+/* ---- Station 13: Überschriften (Formatvorlagen) ---- */
+SCREENS.s13=(stage)=>{
+  if(stationIntro("s13",stage))return;
+  const st=STATIONS.find(s=>s.id==="s13");
+  setInstruction(`Station ${stationNumber("s13")} · ${st.title}`,"Klicke die Titelzeile an und gib ihr die Formatvorlage „Überschrift 1“.");
+  const w=buildWord(stage,{tab:"start",styles:true,fname:"Aufsatz – Word"});
+  w.page.innerHTML='<div class="docline" data-line="title">Meine Sommerferien</div><div class="docline">Wir waren zwei Wochen am Meer.</div>';
+  let sel=null;
+  $$(".docline",w.page).forEach(l=>l.addEventListener("click",()=>{
+    if(sel)sel.classList.remove("sel");sel=l;l.classList.add("sel");sfx.step();
+    setHint("Zeile markiert! Jetzt oben <b>Überschrift 1</b> wählen.","");
+  }));
+  w.ribbonBtn("style-h1").addEventListener("click",()=>{
+    if(!sel){ setHint("Klicke zuerst eine Zeile an.","warn"); return; }
+    sel.classList.add("heading"); sfx.step();
+    const title=$('.docline[data-line="title"]',w.page);
+    if(sel===title){ sfx.good(); mascotReact("happy"); completeStation("s13","Überschrift gesetzt! 🅷"); }
+    else setHint("Das ist nicht die Titelzeile – wähle die obere Zeile.","warn");
+  });
+  w.ribbonBtn("style-normal").addEventListener("click",()=>{
+    if(!sel){ setHint("Klicke zuerst eine Zeile an.","warn"); return; }
+    sel.classList.remove("heading"); sfx.step();
+  });
+  setHint("Klicke die obere Zeile <b>Meine Sommerferien</b> an.","");
 };
 
 /* ---- Platzhalter für noch nicht umgesetzte Stationen ---- */
