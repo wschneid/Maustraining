@@ -6,10 +6,10 @@
 <title>Word-Führerschein</title>
 <!--
   Word-Führerschein – Trainer für Microsoft-Word-Grundoperationen (Einsteiger).
-  Stand: Phase 0 (Grundgerüst). Aufbau bewusst analog zu maus-fuehrerschein-4.html.
-  Die Word-Oberfläche ist NACHGEBAUT (kein echtes Word, keine echte .docx).
-  Voll umgesetzt: Start, Station 1 (Tippen & Cursor), Station 5 (Fett/Kursiv/Unterstrichen).
-  Übrige Stationen: gekennzeichnete Platzhalter (folgen in Phase 1–4).
+  Stand: vollständig (Stationen 1–16 + Pflicht-Projekt „Steckbrief" + Prüfung + Urkunde).
+  Aufbau bewusst analog zu maus-fuehrerschein-4.html.
+  Die Word-Oberfläche ist NACHGEBAUT (kein echtes Word, keine echte .docx),
+  vereinfacht, aber an aktuelles Word (Microsoft 365 / Word 2021) angelehnt.
 -->
 <style>
   :root{
@@ -184,6 +184,35 @@
   .tgrid div{width:22px;height:22px;border:1px solid var(--line);border-radius:3px;cursor:pointer;}
   .tgrid div.on{background:var(--word-bright);border-color:var(--word);}
   .tgrid-label{text-align:center;font-size:.85rem;color:var(--ink-soft);margin-top:4px;}
+  /* Rechtschreibung: rote Wellenlinie + Kontextmenü */
+  .word-page .spell{text-decoration:underline;text-decoration-style:wavy;text-decoration-color:#d33;text-decoration-skip-ink:none;cursor:context-menu;}
+  .spellmenu{position:fixed;z-index:80;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 10px 26px rgba(0,0,0,.25);padding:4px;min-width:150px;}
+  .spellmenu .mi{padding:7px 12px;border-radius:6px;cursor:pointer;font-size:.92rem;color:var(--ink);}
+  .spellmenu .mi:hover{background:var(--word-pale);}
+  .spellmenu .mi.sug{font-weight:600;color:var(--word-deep);}
+  .spellmenu .sep{height:1px;background:var(--line);margin:4px 6px;}
+  /* Projekt-Checkliste */
+  .checklist{max-width:560px;margin:0 auto 12px;background:var(--word-pale);border:1px solid var(--line);border-radius:12px;padding:12px 16px;}
+  .checklist h4{margin:0 0 8px;color:var(--word-deep);font-size:.96rem;}
+  .cl-item{display:flex;align-items:center;gap:9px;font-size:.92rem;color:var(--ink);padding:3px 0;}
+  .cl-item.ok{color:var(--success);}
+  .cl-box{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;border:1px solid var(--line);font-size:.8rem;flex:none;}
+  .cl-item.ok .cl-box{background:var(--success);color:#fff;border-color:var(--success);}
+  /* Urkunde */
+  .urkunde{max-width:600px;margin:6px auto;background:#fff;border:4px double var(--word);border-radius:14px;padding:26px 30px;text-align:center;box-shadow:var(--shadow);}
+  .urkunde .seal{font-size:3rem;}
+  .urkunde h1{color:var(--word-deep);margin:.15em 0;font-size:1.7rem;}
+  .urkunde .sub{color:var(--ink-soft);}
+  .urkunde .nameline{margin:18px 0;}
+  .urkunde .nameline input{font-size:1.15rem;border:none;border-bottom:2px solid var(--word);text-align:center;font-family:inherit;padding:4px 8px;min-width:220px;color:var(--word-deep);}
+  .urkunde .stats{display:flex;justify-content:center;gap:18px;margin:14px 0;flex-wrap:wrap;font-weight:600;color:var(--word);}
+  .urkunde .badgewrap{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px;}
+  .urkunde .bdg{background:var(--word-pale);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.82rem;}
+  @media print{
+    header.app,.footbar,.instruct,.drawer,.drawer-backdrop,.overlay,.toast,.xpfloat,footer.sitefooter{display:none!important;}
+    body,main,.card{background:#fff!important;box-shadow:none!important;}
+    .card{border-radius:0;} .urkunde{border-color:#000;box-shadow:none;}
+  }
   .word-status{display:flex;align-items:center;gap:14px;background:var(--word);color:#fff;font-size:.74rem;padding:4px 14px;}
   .word-status .right{margin-left:auto;}
 
@@ -278,7 +307,7 @@
 </main>
 
 <footer class="sitefooter">
-  <p>© 2026 Wolfgang Schneider · <b>Word-Führerschein</b> (im Aufbau · Stationen 1–13 spielbar)</p>
+  <p>© 2026 Wolfgang Schneider · <b>Word-Führerschein</b> · Stationen 1–16 + Projekt + Prüfung</p>
   <p>Lizenz: <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>.
      Microsoft Word ist eine Marke der Microsoft Corp.; diese Übung ist eine eigenständige Nachbildung zu Lernzwecken.</p>
 </footer>
@@ -339,8 +368,8 @@ const STATIONS = [
 ];
 const PLAYABLE = STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam");
 const stationNumber = id => PLAYABLE.findIndex(s=>s.id===id)+1;
-/* Stationen, die bereits voll spielbar sind (Phase 0–3): */
-const IMPLEMENTED = ["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","s12","s13"];
+/* Stationen, die bereits voll spielbar sind (Phase 0–4 = vollständig): */
+const IMPLEMENTED = ["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","s12","s13","s14","s15","s16","project","exam"];
 
 /* ============================================================
    Zustand & Gamification (analog Maus-Trainer)
@@ -480,7 +509,7 @@ function completeStation(id,msg){
   markDone(id);setHint(msg||"Super gemacht! 🎉","good");sfx.win();showSkip(false);
   if(isNew){ awardXP(id==="exam"?50:20); state.stats.attempts++; checkStationBadges(id); }
   const next=nextStationId();showReplay(true);
-  if(id==="exam"){ showNext(false); }
+  if(id==="exam"){ showNext(true,"Urkunde anzeigen 🏆"); $("#nextBtn").onclick=()=>go("exam_done"); }
   else { showNext(true,'Weiter zu „'+STATIONS.find(s=>s.id===next).short+'“ ›'); $("#nextBtn").onclick=()=>go(next); }
 }
 $("#replayBtn").addEventListener("click",()=>go(state.current));
@@ -549,6 +578,31 @@ const INTROS={
       {ic:"🔠",txt:"Die Zeile wird groß und auffällig."},
       {ic:"↩️",txt:"<b>Standard</b> macht sie wieder normal."}],
     steps:["Klicke die Titelzeile an.","Wähle oben die Formatvorlage <b>Überschrift 1</b>.","Der Titel sieht jetzt wie eine Überschrift aus."]},
+  s14:{head:"Speichern", lead:"Damit deine Arbeit nicht verloren geht, musst du sie <b>speichern</b>. Beim ersten Mal fragt Word nach einem <b>Dateinamen</b> und einem <b>Ort</b> – das nennt man „Speichern unter“. Schnell geht es mit <b>Strg+S</b>.",
+    points:[{ic:"💾",txt:"<b>Strg+S</b> oder den Speichern-Knopf drücken."},
+      {ic:"✏️",txt:"Einen <b>Dateinamen</b> eingeben (z. B. Steckbrief)."},
+      {ic:"📁",txt:"Einen <b>Ort</b> wählen und auf Speichern klicken."}],
+    steps:["Drücke Strg+S oder klicke Speichern.","Tippe einen Dateinamen.","Klicke auf „Speichern“."]},
+  s15:{head:"Drucken", lead:"Zum <b>Ausdrucken</b> öffnest du die Druckansicht (<b>Strg+P</b>). Dort siehst du eine <b>Vorschau</b>, wie das Blatt aussehen wird, und kannst die Anzahl der Kopien wählen.",
+    points:[{ic:"🖨️",txt:"<b>Strg+P</b> öffnet die Druckansicht."},
+      {ic:"👀",txt:"Die <b>Vorschau</b> zeigt das fertige Blatt."},
+      {ic:"✅",txt:"Mit <b>Drucken</b> startet der Ausdruck."}],
+    steps:["Öffne die Druckansicht (Strg+P).","Schau dir die Vorschau an.","Klicke auf „Drucken“."]},
+  s16:{head:"Rechtschreibung", lead:"Word markiert falsch geschriebene Wörter mit einer <b>roten Wellenlinie</b>. Mit einem <b>Rechtsklick</b> auf das Wort bekommst du <b>Vorschläge</b> und kannst die richtige Schreibweise wählen.",
+    points:[{ic:"〰️",txt:"<b>Rote Wellenlinie</b> = vermutlich falsch geschrieben."},
+      {ic:"🖱️",txt:"<b>Rechtsklick</b> auf das Wort öffnet Vorschläge."},
+      {ic:"✅",txt:"Den richtigen Vorschlag <b>anklicken</b> – fertig."}],
+    steps:["Suche das rot unterringelte Wort.","Mach einen Rechtsklick darauf.","Wähle die richtige Schreibweise."]},
+  project:{head:"Projekt: Steckbrief", lead:"Jetzt bist du dran! Du erstellst einen kleinen <b>Steckbrief</b> und wendest alles an, was du gelernt hast. Arbeite die <b>Checkliste</b> oben Schritt für Schritt ab.",
+    points:[{ic:"🅷",txt:"Eine <b>Überschrift</b> setzen."},
+      {ic:"𝐁",txt:"Etwas <b>fett</b> hervorheben."},
+      {ic:"•",txt:"Eine <b>Liste</b> und ein <b>Bild</b> einfügen."}],
+    steps:["Schau auf die Checkliste oben.","Erledige jede Aufgabe mit dem Menüband.","Wenn alle Haken gesetzt sind, ist der Steckbrief fertig."]},
+  exam:{head:"Die Prüfung", lead:"Zum Schluss zeigst du, was du kannst! In der <b>Prüfung</b> kommen mehrere Aufgaben <b>hintereinander</b> – ganz <b>ohne Erklärung</b>. Schaffst du alle, bekommst du deinen <b>Word-Führerschein</b>!",
+    points:[{ic:"🎯",txt:"Mehrere Aufgaben nacheinander."},
+      {ic:"🧠",txt:"Du erinnerst dich an die gelernten Schritte."},
+      {ic:"🏆",txt:"Am Ende wartet deine <b>Urkunde</b>."}],
+    steps:["Lies jede Aufgabe genau.","Nutze das passende Werkzeug im Menüband.","Schaffe alle Aufgaben für die Urkunde."]},
   s5:{head:"Fett · Kursiv · Unterstrichen", lead:"Mit den Knöpfen <b>F</b>, <b>K</b> und <b>U</b> im Menüband machst du Text <b>auffälliger</b>. Wichtig ist die Reihenfolge: <b>zuerst markieren</b>, was du ändern willst – <b>dann</b> auf den Knopf klicken.",
     points:[{ic:"🖱️",txt:"<b>Erst das Wort anklicken</b> (markieren)."},
       {ic:"𝐁",txt:"<b>F</b> = Fett, <b>K</b> = Kursiv, <b>U</b> = Unterstrichen."},
@@ -1179,6 +1233,247 @@ SCREENS.s13=(stage)=>{
     sel.classList.remove("heading"); sfx.step();
   });
   setHint("Klicke die obere Zeile <b>Meine Sommerferien</b> an.","");
+};
+
+/* ---- Station 14: Speichern ---- */
+SCREENS.s14=(stage)=>{
+  if(stationIntro("s14",stage))return;
+  const st=STATIONS.find(s=>s.id==="s14");
+  setInstruction(`Station ${stationNumber("s14")} · ${st.title}`,"Speichere das Dokument: Gib ihm einen Namen und klicke „Speichern“.");
+  const bar=document.createElement("div");
+  bar.style.cssText="display:flex;justify-content:center;margin:0 0 12px;";
+  bar.innerHTML='<button class="rb-btn" id="saveBtn" title="Speichern (Strg+S)" style="height:38px;font-size:1.0rem;">💾 Speichern</button>';
+  stage.appendChild(bar);
+  const w=buildWord(stage,{tab:"start",fname:"Dokument1 – Word"});
+  w.page.tabIndex=0;
+  w.page.innerHTML='<div class="docline" data-line="title" style="font-size:1.4rem;font-weight:700;color:var(--word-deep)">Mein Steckbrief</div><div>Name: Alex</div><div>Alter: 9 Jahre</div>';
+  const dlg=document.createElement("div");dlg.className="wdialog";dlg.style.display="none";
+  dlg.innerHTML=`
+    <div class="wdialog-head">Speichern unter</div>
+    <label>Dateiname:<input type="text" id="fileInp" placeholder="z. B. Steckbrief" autocomplete="off"></label>
+    <label>Speicherort:
+      <select class="rb-sel" id="locSel" style="width:100%;height:32px;margin-top:3px;">
+        <option>Dieser PC</option><option>Desktop</option><option>Dokumente</option>
+      </select>
+    </label>
+    <div class="wdialog-btns">
+      <button class="btn btn-ghost btn-small" id="saveClose">Abbrechen</button>
+      <button class="btn btn-primary btn-small" id="saveOk">Speichern</button>
+    </div>`;
+  stage.appendChild(dlg);
+  function openSave(){ dlg.style.display="block"; $("#fileInp",dlg).focus(); setHint("Tippe einen Dateinamen und klicke „Speichern“.",""); }
+  $("#saveBtn",bar).onclick=openSave;
+  $("#saveClose",dlg).onclick=()=>dlg.style.display="none";
+  w.page.addEventListener("keydown",e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){ e.preventDefault(); openSave(); } });
+  $("#saveOk",dlg).onclick=()=>{
+    const name=$("#fileInp",dlg).value.trim();
+    if(name.length<2){ setHint("Gib der Datei zuerst einen Namen.","warn"); return; }
+    w.setStatus("Gespeichert ✓",null);
+    $(".fname",w.wrap).textContent=name+" – Word";
+    dlg.style.display="none"; sfx.good(); mascotReact("happy");
+    completeStation("s14","Gespeichert als „"+name+"“! 💾");
+  };
+  setHint("Klicke auf <b>💾 Speichern</b> (oder drücke Strg+S).","");
+};
+
+/* ---- Station 15: Drucken ---- */
+SCREENS.s15=(stage)=>{
+  if(stationIntro("s15",stage))return;
+  const st=STATIONS.find(s=>s.id==="s15");
+  setInstruction(`Station ${stationNumber("s15")} · ${st.title}`,"Öffne die Druckansicht und klicke auf „Drucken“.");
+  const bar=document.createElement("div");
+  bar.style.cssText="display:flex;justify-content:center;margin:0 0 12px;";
+  bar.innerHTML='<button class="rb-btn" id="printBtn" title="Drucken (Strg+P)" style="height:38px;font-size:1.0rem;">🖨️ Drucken</button>';
+  stage.appendChild(bar);
+  const w=buildWord(stage,{tab:"start",fname:"Steckbrief – Word"});
+  w.page.tabIndex=0;
+  w.page.innerHTML='<div style="font-size:1.4rem;font-weight:700;color:var(--word-deep)">Mein Steckbrief</div><div>Name: Alex</div><div>Hobby: Fußball</div>';
+  const dlg=document.createElement("div");dlg.className="wdialog";dlg.style.display="none";dlg.style.width="min(420px,94vw)";
+  dlg.innerHTML=`
+    <div class="wdialog-head">Drucken</div>
+    <div style="display:flex;gap:16px;align-items:flex-start;">
+      <div style="flex:none;">
+        <label>Kopien:<input type="number" id="copies" value="1" min="1" max="9" style="width:70px;"></label>
+        <button class="btn btn-primary btn-small" id="printOk" style="margin-top:6px;">🖨️ Drucken</button>
+        <button class="btn btn-ghost btn-small" id="printClose" style="margin-top:6px;">Abbrechen</button>
+      </div>
+      <div style="flex:1;background:#e7ebf2;padding:10px;border-radius:8px;text-align:center;">
+        <div style="background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);padding:14px;font-size:.62rem;text-align:left;line-height:1.5;">
+          <div style="font-weight:700;color:var(--word-deep)">Mein Steckbrief</div>Name: Alex<br>Hobby: Fußball</div>
+        <div style="font-size:.72rem;color:var(--ink-soft);margin-top:6px;">Vorschau · Seite 1 von 1</div>
+      </div>
+    </div>`;
+  stage.appendChild(dlg);
+  function openPrint(){ dlg.style.display="block"; setHint("Schau dir die Vorschau an und klicke „Drucken“.",""); }
+  $("#printBtn",bar).onclick=openPrint;
+  $("#printClose",dlg).onclick=()=>dlg.style.display="none";
+  w.page.addEventListener("keydown",e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="p"){ e.preventDefault(); openPrint(); } });
+  $("#printOk",dlg).onclick=()=>{ dlg.style.display="none"; sfx.good(); mascotReact("happy"); completeStation("s15","Ab in den Drucker! 🖨️"); };
+  setHint("Klicke auf <b>🖨️ Drucken</b> (oder drücke Strg+P).","");
+};
+
+/* ---- Station 16: Rechtschreibung ---- */
+SCREENS.s16=(stage)=>{
+  if(stationIntro("s16",stage))return;
+  const st=STATIONS.find(s=>s.id==="s16");
+  setInstruction(`Station ${stationNumber("s16")} · ${st.title}`,"Rechtsklick auf das rot unterringelte Wort – wähle die richtige Schreibweise.");
+  const w=buildWord(stage,{tab:"start",fname:"Text – Word"});
+  w.page.innerHTML='Wir bauen ein großes <span class="spell" data-correct="Haus">Hauz</span> aus Holz.';
+  const wrong=$(".spell",w.page);
+  const menu=document.createElement("div");menu.className="spellmenu";menu.style.display="none";
+  menu.innerHTML=`
+    <div class="mi sug" data-pick="Haus">Haus</div>
+    <div class="mi sug" data-pick="Hals">Hals</div>
+    <div class="mi sug" data-pick="Haut">Haut</div>
+    <div class="sep"></div>
+    <div class="mi" data-pick="">Ignorieren</div>`;
+  stage.appendChild(menu);
+  function hide(){ menu.style.display="none"; }
+  wrong.addEventListener("contextmenu",e=>{
+    e.preventDefault();
+    menu.style.display="block";
+    const x=Math.min(e.clientX,innerWidth-menu.offsetWidth-6), y=Math.min(e.clientY,innerHeight-menu.offsetHeight-6);
+    menu.style.left=x+"px"; menu.style.top=y+"px";
+    setHint("Wähle die richtige Schreibweise aus dem Menü.","");
+  });
+  $$(".mi",menu).forEach(mi=>mi.addEventListener("click",()=>{
+    const pick=mi.dataset.pick; hide();
+    if(pick==="" ){ setHint("Das Wort ist wirklich falsch – versuch einen Vorschlag.","warn"); return; }
+    if(pick===wrong.dataset.correct){
+      wrong.textContent=pick; wrong.classList.remove("spell"); sfx.good(); mascotReact("happy");
+      completeStation("s16","Richtig geschrieben! ✅");
+    } else { setHint("Hmm, das passt noch nicht. Welches Wort heißt „Gebäude“?","warn"); }
+  }));
+  // Menü schließen bei Klick daneben; Listener räumt sich selbst auf, sobald die Station weg ist
+  const offClick=ev=>{
+    if(!menu.isConnected){ document.removeEventListener("click",offClick); return; }
+    if(!menu.contains(ev.target)) hide();
+  };
+  document.addEventListener("click",offClick);
+  setHint("Mach einen <b>Rechtsklick</b> auf das rote Wort <b>Hauz</b>.","");
+};
+
+/* ---- Projekt: Steckbrief (Pflicht) ---- */
+SCREENS.project=(stage)=>{
+  if(stationIntro("project",stage))return;
+  setInstruction("Projekt · Steckbrief","Wende alles an, was du gelernt hast! Erfülle die vier Aufgaben in der Checkliste.");
+  const steps=[
+    {key:"head", label:'Titel „Steckbrief“ als Überschrift 1'},
+    {key:"bold", label:'Den Namen „Max“ fett machen'},
+    {key:"list", label:'Die Hobbys als Aufzählung'},
+    {key:"img",  label:'Ein Bild einfügen'}
+  ];
+  const cl=document.createElement("div");cl.className="checklist";
+  cl.innerHTML='<h4>📋 Deine Aufgaben</h4>'+steps.map(s=>`<div class="cl-item" data-key="${s.key}"><span class="cl-box">○</span>${s.label}</div>`).join("");
+  stage.appendChild(cl);
+  const w=buildWord(stage,{tab:"start",styles:true,tools:["bold"],lists:true,insertTools:["image"],fname:"Steckbrief – Word"});
+  w.page.innerHTML=`
+    <div class="docline" data-line="title">Steckbrief</div>
+    <div>Mein Name ist <span class="tok" data-word="max">Max</span>.</div>
+    <div>Meine Hobbys:</div>
+    <div class="doclist" data-type="none"><div class="li">Lesen</div><div class="li">Fußball</div></div>`;
+  const doneSteps={};
+  function tick(key,msg){
+    if(doneSteps[key])return; doneSteps[key]=true;
+    const item=cl.querySelector(`.cl-item[data-key="${key}"]`); item.classList.add("ok"); item.querySelector(".cl-box").textContent="✓";
+    sfx.good(); mascotReact("happy"); setHint(msg,"good");
+    if(steps.every(s=>doneSteps[s.key])) later(()=>completeStation("project","Steckbrief fertig – klasse Arbeit! 📝"),600);
+  }
+  let selLine=null, selTok=null;
+  $$(".docline",w.page).forEach(l=>l.addEventListener("click",()=>{ if(selLine)selLine.classList.remove("sel"); selLine=l; l.classList.add("sel"); sfx.step(); }));
+  const tok=$(".tok",w.page);
+  tok.addEventListener("click",()=>{ if(selTok)selTok.classList.remove("sel"); selTok=tok; tok.classList.add("sel"); sfx.step(); });
+  const list=$(".doclist",w.page);
+  w.ribbonBtn("style-h1").addEventListener("click",()=>{
+    if(!selLine){ setHint("Klicke zuerst die Titelzeile an.","warn"); return; }
+    selLine.classList.add("heading"); if(selLine.dataset.line==="title") tick("head","Überschrift gesetzt! ✓");
+  });
+  w.ribbonBtn("bold").addEventListener("click",()=>{
+    if(!selTok){ setHint("Klicke zuerst den Namen <b>Max</b> an.","warn"); return; }
+    selTok.classList.toggle("bold"); if(selTok.classList.contains("bold")) tick("bold","Name ist fett! ✓");
+  });
+  w.ribbonBtn("bullet").addEventListener("click",()=>{
+    list.dataset.type = list.dataset.type==="bullet"?"none":"bullet";
+    w.ribbonBtn("bullet").classList.toggle("active",list.dataset.type==="bullet");
+    if(list.dataset.type==="bullet") tick("list","Aufzählung erstellt! ✓");
+  });
+  const dlg=document.createElement("div");dlg.className="wdialog";dlg.style.display="none";
+  dlg.innerHTML='<div class="wdialog-head">Bild einfügen</div><div class="wgallery"><button data-img="🐶">🐶</button><button data-img="⚽">⚽</button><button data-img="📚">📚</button></div><div class="wdialog-btns"><button class="btn btn-ghost btn-small" id="pjImgClose">Abbrechen</button></div>';
+  stage.appendChild(dlg);
+  w.ribbonBtn("image").addEventListener("click",()=>{ dlg.style.display="block"; });
+  $("#pjImgClose",dlg).onclick=()=>dlg.style.display="none";
+  $$(".wgallery button",dlg).forEach(b=>b.addEventListener("click",()=>{
+    const img=document.createElement("div");img.className="docimg";img.textContent=b.dataset.img;
+    w.page.appendChild(img); dlg.style.display="none"; tick("img","Bild eingefügt! ✓");
+  }));
+  setHint("Arbeite die Checkliste oben ab – nutze das Menüband.","");
+};
+
+/* ---- Prüfung ---- */
+SCREENS.exam=(stage)=>{
+  if(stationIntro("exam",stage))return;
+  setInstruction("🏆 Prüfung","Mehrere Aufgaben nacheinander – ohne Erklärung. Schaffst du alle?");
+  const w=buildWord(stage,{tab:"start",styles:true,tools:["bold"],lists:true,fname:"Prüfung – Word"});
+  w.page.innerHTML=`
+    <div class="docline" data-line="title">Mein Lieblingstier</div>
+    <div>Das ist <span class="tok" data-word="wichtig">wichtig</span>!</div>
+    <div class="doclist" data-type="none"><div class="li">Hund</div><div class="li">Katze</div></div>`;
+  const TASKS=[
+    {label:'Mach das Wort <b>wichtig</b> <b>fett</b>.'},
+    {label:'Mach aus der Tierliste eine <b>Aufzählung</b>.'},
+    {label:'Gib der Titelzeile die Formatvorlage <b>Überschrift 1</b>.'}
+  ];
+  let ti=0;
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Prüfung"); setHint("👉 "+TASKS[ti].label,""); }
+  function advance(){
+    sfx.good(); mascotReact("happy");
+    if(ti<TASKS.length-1){ ti++; setTask(); }
+    else completeStation("exam","Prüfung bestanden! 🏆");
+  }
+  let selLine=null, selTok=null;
+  $$(".docline",w.page).forEach(l=>l.addEventListener("click",()=>{ if(selLine)selLine.classList.remove("sel"); selLine=l; l.classList.add("sel"); sfx.step(); }));
+  const tok=$(".tok",w.page);
+  tok.addEventListener("click",()=>{ if(selTok)selTok.classList.remove("sel"); selTok=tok; tok.classList.add("sel"); sfx.step(); });
+  const list=$(".doclist",w.page);
+  w.ribbonBtn("bold").addEventListener("click",()=>{
+    if(!selTok){ setHint("Klicke zuerst das Wort an.","warn"); return; }
+    selTok.classList.toggle("bold");
+    if(ti===0 && selTok.classList.contains("bold")) advance();
+  });
+  w.ribbonBtn("bullet").addEventListener("click",()=>{
+    list.dataset.type = list.dataset.type==="bullet"?"none":"bullet";
+    w.ribbonBtn("bullet").classList.toggle("active",list.dataset.type==="bullet");
+    if(ti===1 && list.dataset.type==="bullet") advance();
+  });
+  w.ribbonBtn("number").addEventListener("click",()=>{}); // (nur bullet zählt)
+  w.ribbonBtn("style-h1").addEventListener("click",()=>{
+    if(!selLine){ setHint("Klicke zuerst eine Zeile an.","warn"); return; }
+    selLine.classList.add("heading");
+    if(ti===2 && selLine.dataset.line==="title") advance();
+  });
+  w.ribbonBtn("style-normal").addEventListener("click",()=>{ if(selLine)selLine.classList.remove("heading"); });
+  setTask();
+};
+
+/* ---- Urkunde ---- */
+SCREENS.exam_done=(stage)=>{
+  setInstruction("🎉 Geschafft!","Du hast alle Stationen gemeistert. Hier ist deine Urkunde!");
+  setHint("Trage deinen Namen ein und drucke die Urkunde aus.","good");
+  const badges=Object.keys(state.badges).filter(b=>BADGES[b]);
+  const u=document.createElement("div");u.className="urkunde";
+  u.innerHTML=`
+    <div class="seal">🏆</div>
+    <h1>Word-Führerschein</h1>
+    <div class="sub">Diese Urkunde bestätigt, dass</div>
+    <div class="nameline"><input type="text" id="urName" placeholder="Dein Name" aria-label="Dein Name"></div>
+    <div class="sub">die Grundlagen von Microsoft Word sicher beherrscht.</div>
+    <div class="stats"><span>⭐ ${state.xp} XP</span><span>🪙 ${state.coins}</span><span>Level ${state.level} · ${LEVELS[state.level-1].title}</span></div>
+    <div class="badgewrap">${badges.map(b=>`<span class="bdg">${BADGES[b].icon} ${BADGES[b].title}</span>`).join("")||'<span class="sub">—</span>'}</div>`;
+  stage.appendChild(u);
+  showReplay(false);
+  showNext(true,"🖨️ Urkunde drucken");
+  $("#nextBtn").onclick=()=>window.print();
+  showSkip(true,()=>go("start")); $("#skipBtn").textContent="Zur Startseite";
 };
 
 /* ---- Platzhalter für noch nicht umgesetzte Stationen ---- */

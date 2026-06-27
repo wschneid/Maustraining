@@ -178,6 +178,11 @@ Sackgasse – Lernende können eine Station auch überspringen.
 
 ## 8. Roadmap / Meilensteine
 
+> **Umsetzungsstand (2026-06-27): vollständig umgesetzt.** Alle Phasen 0–5 sind in
+> `word-fuehrerschein.html` realisiert: Grundgerüst + Fake-Word-Oberfläche, alle 16
+> Stationen, das Pflicht-Projekt „Steckbrief" und die Prüfung mit druckbarer Urkunde.
+> Jede Station wurde headless mit Chromium auf Lösbarkeit und JS-Fehlerfreiheit getestet.
+
 **Phase 0 – Gerüst (Grundlage für alles)**
 - Datei `word-fuehrerschein.html` anlegen, Kopf/Footer/Drawer/HUD aus bestehendem
   Trainer übernehmen, Word-Farbschema setzen.
