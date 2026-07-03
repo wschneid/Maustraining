@@ -8,6 +8,23 @@ Stil und mit derselben Technik wie die vorhandenen Trainer
 
 ---
 
+## ✅ Festgelegte Entscheidungen (Stand 2026-07-03)
+
+- **Phase 0 ist umgesetzt** (Commit: sichtbare Zweiteilung Teil 1 / Teil 2): `part`-Feld in
+  `STATIONS`, Teil-Überschriften in der Fortschrittsleiste, Übergangs-Screen „Teil 1 geschafft".
+- **Umlaute in lustigen Texten:** **erlaubt** (ä/ö/ü/ß). Die Bildschirm-/echte Tastatur
+  hat diese Tasten bereits – echte Reime/Zungenbrecher sind damit möglich.
+- **Teil-1-Zwischenprüfung:** **Pflicht-Station** am Ende von Teil 1, belohnt mit dem
+  Abzeichen **„Tasten-Kenner"**. Gibt Teil 1 einen klaren Abschluss.
+- **Fortschritt speichern:** **`localStorage` ergänzen – vorerst nur im Tastatur-Trainer**
+  (Kind kann Teil 1 beenden, pausieren und später bei Teil 2 weitermachen). Eine spätere
+  Vereinheitlichung für alle drei Trainer bleibt möglich, ist aber nicht Teil dieses Vorhabens.
+- **Zusätzliche Reihen-Stationen (Teil 2):** **obere Reihe** (q w e r t z u i o p) und
+  **untere Reihe** (y x c v b n m) – zusammen mit der Grundreihe ein vollständiger Lehrgang.
+  Keine eigene Zahlen-/Satzzeichen-Station in diesem Umfang.
+
+---
+
 ## 0. Wichtiger Ausgangspunkt: der Trainer existiert schon
 
 Die Datei **`tastatur-fuehrerschein.html`** ist bereits vorhanden und läuft
@@ -158,36 +175,33 @@ Abschnitt 6).
 - Maskottchen „Codi", Sound-/Toast-Feedback, Bonus-Elemente wie gehabt.
 
 ### Roadmap
-- **Phase 0 – Teil-Struktur:** `part`-Feld, Teil-Überschriften im Drawer/der
-  Fortschrittsleiste, Übergangs-Screen. Kein neuer Inhalt, nur Gliederung.
+- **Phase 0 – Teil-Struktur:** `part`-Feld, Teil-Überschriften in der
+  Fortschrittsleiste, Übergangs-Screen. Kein neuer Inhalt, nur Gliederung. **✅ erledigt.**
 - **Phase 1 – Teil 1 vervollständigen:** Stationen `karrows`, `kfix`, `kcombo`
-  ergänzen; optional `exam1`-Zwischenprüfung + Abzeichen.
-- **Phase 2 – Teil 2 erweitern:** Stationen `ktop`, `kbottom`; **lustige Texte**
-  als neuer Inhaltsvorrat einbauen und in `kwords`/`ksentence`/`kraindrop`
-  verwenden.
+  ergänzen; **Pflicht-Zwischenprüfung `exam1` + Abzeichen „Tasten-Kenner"**.
+- **Phase 2 – Teil 2 erweitern:** Stationen `ktop` (obere Reihe) und `kbottom`
+  (untere Reihe); **lustige Texte** (mit Umlauten) als neuer Inhaltsvorrat, in
+  `kwords`/`ksentence`/`kraindrop` verwenden. Zusätzlich `localStorage` für den
+  Fortschritt ergänzen.
 - **Phase 3 – Abschluss & Feinschliff:** Prüfung/Urkunde auf beide Teile
-  ausweiten, neue Abzeichen verknüpfen, Hilfetexte, Schultest.
+  ausweiten, Abzeichen „Finger-Akrobat" verknüpfen, Hilfetexte, Schultest.
 
 ---
 
-## 6. Offene Fragen (für Abstimmung)
+## 6. Geklärte Fragen (Stand 2026-07-03)
 
-1. **Umlaute in lustigen Texten:** erlauben (näher am echten Deutsch) oder wie
-   bisher vermeiden („schlaeft")? (Empfehlung: für Teil 2 einen kleinen
-   Umlaut-Übungsschritt ergänzen, sonst umlautfrei bleiben.)
-2. **Teil-1-Zwischenprüfung** (`exam1`): eigene Pflicht-Station vor Teil 2 oder
-   optionaler Bonus? (Empfehlung: kurze Pflicht, motiviert durch Abzeichen.)
-3. **Fortschritt speichern** (`localStorage`): Die vorhandenen Trainer speichern
-   den Fortschritt nur im Speicher. Soll das Kind Teil 1 beenden, pausieren und
-   später bei Teil 2 weitermachen können? (Wie im Word-Plan offen; idealerweise
-   für alle drei Trainer einheitlich.)
-4. **Umfang der neuen Reihen-Stationen:** reichen obere + untere Reihe, oder auch
-   eine eigene Station für Zahlenreihe/Satzzeichen?
+1. **Umlaute in lustigen Texten:** **erlaubt** – echte Reime/Zungenbrecher mit
+   ä/ö/ü/ß sind möglich.
+2. **Teil-1-Zwischenprüfung** (`exam1`): **Pflicht-Station** vor Teil 2, belohnt
+   mit Abzeichen „Tasten-Kenner".
+3. **Fortschritt speichern** (`localStorage`): **ja, vorerst nur im
+   Tastatur-Trainer**; spätere Vereinheitlichung für alle drei Trainer möglich.
+4. **Umfang der neuen Reihen-Stationen:** **obere + untere Reihe** – keine eigene
+   Zahlen-/Satzzeichen-Station in diesem Umfang.
 
 ---
 
 ### Nächster Schritt
-Nach Freigabe dieses Plans (insbesondere Abschnitt 6) kann mit **Phase 0**
-begonnen werden: Teil-Struktur in `STATIONS` und sichtbare Zweiteilung im
-Drawer/der Fortschrittsleiste – danach Phase 1 und 2 als getrennte PRs, wie beim
-Word-Trainer.
+Phase 0 ist umgesetzt. Als Nächstes folgt **Phase 1** (neue Teil-1-Stationen
+`karrows`, `kfix`, `kcombo` + Pflicht-Zwischenprüfung `exam1`) als eigener PR,
+danach Phase 2 und 3 – jeweils getrennt, wie beim Word-Trainer.
