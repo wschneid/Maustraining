@@ -670,6 +670,7 @@ const BADGES = {
   racer:         {icon:"🏁", title:"Tipp-Renner"},
   flawless:      {icon:"💎", title:"Fehlerfrei"},
   streak5:       {icon:"🔥", title:"5er-Serie"},
+  finger_akrobat:{icon:"🤹", title:"Finger-Akrobat"},
   halfway:       {icon:"🌟", title:"Halbzeit-Star"},
   champion:      {icon:"🏆", title:"Tastatur-Champion"}
 };
@@ -746,8 +747,9 @@ function checkStationBadges(id){
   if(id==="kraindrop")unlock("rain_hero");
   if(id==="kreflex")unlock("speed_typer");
   if(id==="krace")unlock("racer");
+  if(id==="krace")unlock("finger_akrobat");
   if(id==="exam")unlock("champion");
-  if(Object.keys(state.done).length>=6)unlock("halfway");
+  if(Object.keys(state.done).length>=8)unlock("halfway");
 }
 
 /* ---- Anzeige ---- */
@@ -1500,27 +1502,41 @@ SCREENS.krace=(stage)=>{
 
 /* ---------- Prüfung ---------- */
 SCREENS.exam=(stage)=>{
-  setInstruction("Prüfung 🏆","Zeig, was du kannst: eine Taste finden, ein Wort tippen und einen Satz schreiben!");
+  setInstruction("Prüfung 🏆","Beide Teile zusammen: eine Taste finden, groß schreiben, ein Wort und einen lustigen Satz tippen!");
   showSkip(false);
   const wrap=mk("examwrap");
   const desk=mk("examdesk");
   const list=mk("checklist",`<h3>Deine Aufgaben</h3><ol>
-    <li id="ex1">Eine leuchtende Taste drücken</li>
-    <li id="ex2">Ein Wort fehlerfrei tippen</li>
-    <li id="ex3">Einen Satz tippen</li></ol>`);
+    <li id="ex1">Teil 1: Eine leuchtende Taste drücken</li>
+    <li id="ex2">Teil 1: Einen GROSSEN Buchstaben tippen</li>
+    <li id="ex3">Teil 2: Ein Wort fehlerfrei tippen</li>
+    <li id="ex4">Teil 2: Einen lustigen Satz tippen</li></ol>`);
   wrap.appendChild(desk); wrap.appendChild(list); stage.appendChild(wrap);
-  let step=1, fault=false;
-  function activate(n){ for(let i=1;i<=3;i++){ const li=$("#ex"+i); li.classList.toggle("active",i===n); li.classList.toggle("done",i<n); } step=n; }
+  let fault=false;
+  function activate(n){ for(let i=1;i<=4;i++){ const li=$("#ex"+i); li.classList.toggle("active",i===n); li.classList.toggle("done",i<n); } }
 
   function stepKey(){
     desk.innerHTML="";
     const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
     const target=["a","s","d","f","j","k","l","e","r","u"][ (Math.random()*10)|0 ];
     kb.highlight([target]);
-    setHint(`Schritt 1: Drücke die leuchtende Taste <b>${target.toUpperCase()}</b>.`,"");
+    setHint(`Aufgabe 1: Drücke die leuchtende Taste <b>${target.toUpperCase()}</b>.`,"");
     setKeyHandler(e=>{ const ch=getChar(e); if(ch==null)return; kb.press(ch);
-      if(ch.toLowerCase()===target){ kb.flash(target,true);sfx.good();activate(2);stepWord(); }
+      if(ch.toLowerCase()===target){ kb.flash(target,true);sfx.good();activate(2);stepShift(); }
       else { kb.flash(ch,false);sfx.soft();fault=true; setHint(`Gesucht: <b>${target.toUpperCase()}</b>.`,"warn"); } });
+  }
+  function stepShift(){
+    desk.innerHTML="";
+    const box=mk("typebox"); desk.appendChild(box);
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
+    const target=["a","s","d","f","e","r","m","t"][ (Math.random()*8)|0 ];
+    box.innerHTML=`<div class="bigchar">${target.toUpperCase()}</div><div class="statbar">Tippe ein großes <b>${target.toUpperCase()}</b></div>`;
+    kb.highlight([target,"Shift"]);
+    setHint("Aufgabe 2: Umschalt ⇧ halten und die Taste drücken.","");
+    setKeyHandler(e=>{ if(e.key==="Shift")return; const ch=getChar(e); if(ch==null)return; kb.press(ch);
+      if(ch===target.toUpperCase()){ kb.flash(target,true);sfx.good();activate(3);stepWord(); }
+      else if(ch.toLowerCase()===target){ kb.flash(ch,false);sfx.soft();fault=true; setHint("Fast – halte <b>Umschalt ⇧</b> dabei gedrückt.","warn"); }
+      else { kb.flash(ch,false);sfx.soft();fault=true; setHint(`Gesucht: großes <b>${target.toUpperCase()}</b>.`,"warn"); } });
   }
   function stepWord(){
     desk.innerHTML="";
@@ -1528,19 +1544,19 @@ SCREENS.exam=(stage)=>{
     const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
     const word=WORDS[(Math.random()*WORDS.length)|0];
     const typer=buildTyper(box,word,{kb,onChar:(idx,err)=>{if(err)fault=true;},
-      onDone:()=>{ sfx.good();kb.clearHighlight();activate(3);stepSentence(); }});
-    setHint("Schritt 2: Tippe das Wort ab.","");
+      onDone:()=>{ sfx.good();kb.clearHighlight();activate(4);stepSentence(); }});
+    setHint("Aufgabe 3: Tippe das Wort ab.","");
     setKeyHandler(e=>typer.feed(e));
   }
   function stepSentence(){
     desk.innerHTML="";
     const box=mk("typebox"); desk.appendChild(box);
     const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
-    const text=SENTENCES[(Math.random()*SENTENCES.length)|0];
+    const text=FUNNY_SENTENCES[(Math.random()*FUNNY_SENTENCES.length)|0];
     const typer=buildTyper(box,text,{kb,onChar:(idx,err)=>{if(err)fault=true;},
-      onDone:()=>{ kb.clearHighlight(); $("#ex3").classList.add("done"); $("#ex3").classList.remove("active");
+      onDone:()=>{ kb.clearHighlight(); $("#ex4").classList.add("done"); $("#ex4").classList.remove("active");
         completeStation("exam","Prüfung mit Bravour bestanden! 🏆",{perfect:!fault}); }});
-    setHint("Schritt 3: Tippe den ganzen Satz.","");
+    setHint("Aufgabe 4: Tippe den ganzen lustigen Satz.","");
     setKeyHandler(e=>typer.feed(e));
   }
   activate(1); stepKey();
@@ -1551,8 +1567,8 @@ SCREENS.exam_done=(stage)=>{
   setInstruction("Geschafft! 🎉",`${state.mascotName}: „Riesenklasse! Du hast alle Stationen gemeistert. Trage deinen Namen ein und drucke deine Urkunde aus."`);
   setHint("Trage deinen Namen ein und klicke auf „Drucken“.","good");
   const today=new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"long",year:"numeric"});
-  const skills=STATIONS.filter(s=>s.id!=="start").map(s=>[s.icon,s.short]);
-  const skillBadges=skills.map(s=>`<span class="badge">${s[0]} ${s[1]}</span>`).join("");
+  const labelStyle="font-size:.8rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin:14px 0 6px;";
+  const partBadges=p=>STATIONS.filter(s=>s.part===p).map(s=>`<span class="badge">${s.icon} ${s.short}</span>`).join("");
   const earned=Object.keys(state.badges).filter(id=>BADGES[id]);
   const achBadges=earned.length
     ? earned.map(id=>`<span class="badge ach">${BADGES[id].icon} ${BADGES[id].title}</span>`).join("")
@@ -1560,11 +1576,14 @@ SCREENS.exam_done=(stage)=>{
   const {title}=levelForXp(state.xp);
   stage.innerHTML=`<div class="urkunde" id="urkunde"><div class="seal">🏅</div>
     <h1>Tastatur-Führerschein</h1>
-    <div class="sub">Diese Urkunde bestätigt, dass die Tastatur sicher bedient werden kann.</div>
+    <div class="sub">Diese Urkunde bestätigt: <b>Teil 1 – die wichtigsten Tasten</b> und <b>Teil 2 – das Zehn-Finger-Tippen</b> wurden gemeistert.</div>
     <div class="nameline"><input id="nameInput" type="text" placeholder="Dein Name" aria-label="Name"><div class="cap">Name</div>
       <div class="privacy-note">Wird nur für die Urkunde verwendet – nicht gespeichert oder gesendet.</div></div>
-    <div class="badges">${skillBadges}</div>
-    <div style="font-size:.8rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin:14px 0 6px;">Gesammelte Abzeichen</div>
+    <div style="${labelStyle}">🔑 Teil 1 · Tasten-Schule</div>
+    <div class="badges">${partBadges(1)}</div>
+    <div style="${labelStyle}">🖐️ Teil 2 · Zehn-Finger-Training</div>
+    <div class="badges">${partBadges(2)}</div>
+    <div style="${labelStyle}">Gesammelte Abzeichen</div>
     <div class="badges">${achBadges}</div>
     <div class="foot"><span>Ausgestellt am ${today}</span><span>${title} · ${state.xp} XP · 🪙 ${state.coins}</span></div></div>`;
   showReplay(false);showSkip(false);showNext(true,"🖨️ Drucken");$("#nextBtn").onclick=()=>window.print();

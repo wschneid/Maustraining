@@ -176,15 +176,18 @@ Abschnitt 6).
 
 ### Roadmap
 - **Phase 0 – Teil-Struktur:** `part`-Feld, Teil-Überschriften in der
-  Fortschrittsleiste, Übergangs-Screen. Kein neuer Inhalt, nur Gliederung. **✅ erledigt.**
+  Fortschrittsleiste, Übergangs-Screen. **✅ erledigt.**
 - **Phase 1 – Teil 1 vervollständigen:** Stationen `karrows`, `kfix`, `kcombo`
-  ergänzen; **Pflicht-Zwischenprüfung `exam1` + Abzeichen „Tasten-Kenner"**.
+  + Pflicht-Zwischenprüfung `exam1` + Abzeichen „Tasten-Kenner". **✅ erledigt.**
 - **Phase 2 – Teil 2 erweitern:** Stationen `ktop` (obere Reihe) und `kbottom`
-  (untere Reihe); **lustige Texte** (mit Umlauten) als neuer Inhaltsvorrat, in
-  `kwords`/`ksentence`/`kraindrop` verwenden. Zusätzlich `localStorage` für den
-  Fortschritt ergänzen.
-- **Phase 3 – Abschluss & Feinschliff:** Prüfung/Urkunde auf beide Teile
-  ausweiten, Abzeichen „Finger-Akrobat" verknüpfen, Hilfetexte, Schultest.
+  (untere Reihe); **lustige Texte** (mit Umlauten) in `kwords`/`ksentence`/`kraindrop`;
+  `localStorage` für den Fortschritt. **✅ erledigt.**
+- **Phase 3 – Abschluss & Feinschliff:** Abschlussprüfung auf **vier Aufgaben aus
+  beiden Teilen** erweitert (Taste finden, Großbuchstabe, Wort, lustiger Satz),
+  Urkunde weist beide Teile getrennt aus, Abzeichen „Finger-Akrobat" für den
+  Abschluss von Teil 2. **✅ erledigt.**
+- **Offen (optional):** Schultest mit echten Kindern, Touch-Bedienung,
+  `localStorage` später für alle drei Trainer vereinheitlichen.
 
 ---
 
@@ -201,7 +204,9 @@ Abschnitt 6).
 
 ---
 
-### Nächster Schritt
-Phase 0 ist umgesetzt. Als Nächstes folgt **Phase 1** (neue Teil-1-Stationen
-`karrows`, `kfix`, `kcombo` + Pflicht-Zwischenprüfung `exam1`) als eigener PR,
-danach Phase 2 und 3 – jeweils getrennt, wie beim Word-Trainer.
+### Stand
+Alle geplanten Phasen (0–3) sind umgesetzt: Der Tastatur-Führerschein ist in
+**Teil 1 (Tasten-Schule)** und **Teil 2 (Zehn-Finger-Training)** gegliedert, hat
+neue Stationen für beide Teile, lustige Texte mit Umlauten, gespeicherten
+Fortschritt (`localStorage`), eine zweiteilige Abschlussprüfung und eine Urkunde,
+die beide Teile ausweist. Offen bleiben nur die optionalen Punkte oben.
