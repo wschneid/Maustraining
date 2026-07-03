@@ -374,6 +374,8 @@ const STATIONS = [
   {id:"kcombo",    short:"Kombi",        icon:"🎹", part:1, title:"Kombi-Tasten",     desc:"Strg + C · V · Z"},
   {id:"exam1",     short:"Teil-1-Prüfung",icon:"🥇",part:1, title:"Teil-1-Prüfung",   desc:"Die Tasten sitzen!"},
   {id:"khome",     short:"Grundreihe",   icon:"🖐️", part:2, title:"Grundreihe",       desc:"a s d f · j k l ö"},
+  {id:"ktop",      short:"Obere Reihe",  icon:"⬆️", part:2, title:"Obere Reihe",      desc:"q w e r t z u i o p"},
+  {id:"kbottom",   short:"Untere Reihe", icon:"⬇️", part:2, title:"Untere Reihe",     desc:"y x c v b n m"},
   {id:"kfingers",  short:"Finger",       icon:"✋", part:2, title:"Finger-Training",  desc:"Den richtigen Finger nehmen"},
   {id:"kwords",    short:"Wörter",       icon:"📝", part:2, title:"Wörter tippen",    desc:"Ganze Wörter abtippen"},
   {id:"ksentence", short:"Sätze",        icon:"📚", part:2, title:"Sätze tippen",     desc:"Tempo & Genauigkeit"},
@@ -404,6 +406,21 @@ const dCount = (base,min=2) => Math.max(min, Math.round(base*diff().count));
 const WORDS_EASY = ["und","der","die","das","ist","auf","ufo","oma","opa","ball","haus","maus","baum","fisch","hund","katze","sonne","blume","apfel","gelb","rot","tor","see","eis"];
 const WORDS = ["schule","freude","spielen","lesen","tippen","computer","tastatur","banane","fahrrad","wolke","garten","kuchen","musik","tiger","sommer","winter","fenster","blume","drache","raupe"];
 const SENTENCES = ["Die Katze schlaeft.","Der Hund bellt laut.","Wir lernen tippen.","Die Sonne scheint hell.","Mein Ball ist rot.","Ich mag den Sommer.","Das Auto faehrt schnell."];
+
+/* Lustige Texte für Teil 2 – Umlaute sind hier erlaubt (Entscheidung 2026-07-03) */
+const FUNNY_WORDS = ["quatsch","kaugummi","niesen","kichern","pupsen","schnattern","krokodil","zauberei","waldmaus","kringel","juchhu","hokuspokus","wackelzahn","möhre","püree","käfer","füße","löwenzahn","brüllaffe","zappelig"];
+const FUNNY_SENTENCES = [
+  "Opa tanzt mit der Giraffe Polka.",
+  "Der Frosch fährt Fahrrad zum Mond.",
+  "Meine Oma niest wie ein Elefant.",
+  "Fischers Fritz fischt frische Fische.",
+  "Ein Käfer kitzelt das Krokodil.",
+  "Die Maus im Haus macht laut Applaus.",
+  "Der Löwe pupst und alle lachen.",
+  "Blaue Bären backen bunte Brötchen.",
+  "Zehn zappelige Zebras zählen Zwetschgen.",
+  "Mein Pinguin spielt Trööt auf der Tröte."
+];
 
 /* ============================================================
    Wesentliche Funktions- & Steuertasten (für Lehr-Tour + Quiz)
@@ -556,6 +573,25 @@ const state = Object.assign({
   reduced: matchMedia("(prefers-reduced-motion:reduce)").matches
 }, defaultGamify());
 
+/* ---- Fortschritt speichern (nur lokal im Browser) ---- */
+const SAVE_KEY = "tastatur-fuehrerschein-v1";
+const SAVE_FIELDS = ["current","done","sound","difficulty","fingers","xp","level","coins","badges","stats"];
+function saveState(){
+  try{
+    const data={}; SAVE_FIELDS.forEach(k=>data[k]=state[k]);
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  }catch(e){/* localStorage nicht verfügbar – dann eben ohne Speichern */}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY); if(!raw) return false;
+    const data=JSON.parse(raw); if(!data||typeof data!=="object") return false;
+    SAVE_FIELDS.forEach(k=>{ if(data[k]!==undefined) state[k]=data[k]; });
+    return true;
+  }catch(e){ return false; }
+}
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+
 let _raf=null, _timers=[];
 function stopLoop(){ if(_raf){cancelAnimationFrame(_raf);_raf=null;} _timers.forEach(clearTimeout);_timers.forEach(clearInterval);_timers=[]; }
 function later(fn,ms){ const t=setTimeout(fn,ms);_timers.push(t);return t; }
@@ -625,6 +661,8 @@ const BADGES = {
   combo_pro:     {icon:"🎹", title:"Kombi-Kenner"},
   key_master:    {icon:"🔑", title:"Tasten-Kenner"},
   home_row:      {icon:"🖐️", title:"Grundreihen-Held"},
+  top_row:       {icon:"⤴️", title:"Obere-Reihen-Held"},
+  bottom_row:    {icon:"⤵️", title:"Untere-Reihen-Held"},
   word_wizard:   {icon:"📝", title:"Wort-Zauberer"},
   sentence_star: {icon:"📚", title:"Satz-Star"},
   rain_hero:     {icon:"🌧️", title:"Regen-Held"},
@@ -672,13 +710,14 @@ function awardXP(n,reason){
   refreshHUD();floatXP(n);
   if(lv>before){ sfx.win();mascotReact("level");
     toast(`🎉 <b>Level ${lv}!</b><br>${state.mascotName}: „Stark – du bist jetzt <b>${title}</b>!"`,"good"); }
+  saveState();
   return lv>before;
 }
 function unlock(id){
   if(state.badges[id]||!BADGES[id])return false;
   state.badges[id]=true;const b=BADGES[id];
   sfx.good();toast(`Abzeichen freigeschaltet:<br><b>${b.icon} ${b.title}</b>`,"good");
-  state.xp+=15;state.coins+=15;refreshHUD();
+  state.xp+=15;state.coins+=15;refreshHUD();saveState();
   return true;
 }
 /* Zeit-Bonus ohne Bestrafung: nur bei Erfolg Extra-XP. */
@@ -700,6 +739,8 @@ function checkStationBadges(id){
   if(id==="kcombo")unlock("combo_pro");
   if(id==="exam1")unlock("key_master");
   if(id==="khome")unlock("home_row");
+  if(id==="ktop")unlock("top_row");
+  if(id==="kbottom")unlock("bottom_row");
   if(id==="kwords")unlock("word_wizard");
   if(id==="ksentence")unlock("sentence_star");
   if(id==="kraindrop")unlock("rain_hero");
@@ -742,12 +783,13 @@ function refreshProgress(){
     b.classList.toggle("done",!!state.done[id]);b.classList.toggle("active",state.current===id);
     b.querySelector(".dot").textContent=state.done[id]?"✓":STATIONS.find(s=>s.id===id).icon;});
 }
-function markDone(id){ state.done[id]=true; refreshProgress(); }
+function markDone(id){ state.done[id]=true; refreshProgress(); saveState(); }
 
 /* ---- Router ---- */
 function go(id){
   stopLoop(); _keyHandler=null;
   state.current=id;
+  saveState();
   document.body.dataset.screen=id;
   const stage=$("#stage");stage.innerHTML="";
   setHint("","");showNext(false);showReplay(false);showSkip(false);setCounter(null);
@@ -1201,6 +1243,7 @@ SCREENS.khome=(stage)=>{
   const SEQ=["a","s","d","f","j","k","l","ö"]; let idx=0,fault=false;
   setCounter(`0/${SEQ.length}`,"Tasten");
   function ask(){
+    if(idx>=SEQ.length) return;
     kb.clearHighlight();
     const t=SEQ[idx]; kb.highlight([t]);
     setHint(`Drücke <b>${t.toUpperCase()}</b> mit dem <b style="color:${fingerColor(t)}">${fingerName(t)}</b>.`,"");
@@ -1218,6 +1261,38 @@ SCREENS.khome=(stage)=>{
   });
   ask();
 };
+
+/* ---------- Reihen-Training (obere/untere Reihe) ---------- */
+function rowDrillScreen(id, seq, intro, doneMsg){
+  return (stage)=>{
+    const st=STATIONS.find(s=>s.id===id); const N=stationNumber(id);
+    setInstruction(`Station ${N} · ${st.title} ${st.icon}`, intro);
+    const legend=mk(null,fingerLegend()); stage.appendChild(legend);
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:true}); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+    let idx=0,fault=false;
+    setCounter(`0/${seq.length}`,"Tasten");
+    function ask(){ if(idx>=seq.length) return; kb.clearHighlight(); const t=seq[idx]; kb.highlight([t]);
+      setHint(`Drücke <b>${t.toUpperCase()}</b> mit dem <b style="color:${fingerColor(t)}">${fingerName(t)}</b>.`,""); }
+    setKeyHandler(e=>{
+      const ch=getChar(e); if(ch==null) return; kb.press(ch); const t=seq[idx];
+      if(ch.toLowerCase()===t){
+        kb.flash(t,true);sfx.good();idx++;registerAttempt(true);
+        setCounter(`${idx}/${seq.length}`,"Tasten");
+        if(idx>=seq.length){ kb.clearHighlight(); completeStation(id,doneMsg,{perfect:!fault}); }
+        else { setHint("Richtig! 👍","good"); later(ask,320); }
+      } else { kb.flash(ch,false);sfx.soft();fault=true; setHint(`Nimm die Taste <b>${t.toUpperCase()}</b> (${fingerName(t)}).`,"warn"); }
+    });
+    ask();
+  };
+}
+SCREENS.ktop = rowDrillScreen("ktop",
+  ["q","w","e","r","t","z","u","i","o","p","ü"],
+  "Die Reihe <b>über</b> der Grundreihe. Strecke die Finger kurz nach oben und kehre danach wieder auf die Grundreihe zurück.",
+  "Obere Reihe geschafft – super! ⬆️🎉");
+SCREENS.kbottom = rowDrillScreen("kbottom",
+  ["y","x","c","v","b","n","m"],
+  "Die Reihe <b>unter</b> der Grundreihe. Die Finger tippen kurz nach unten und kommen dann wieder zur Grundreihe zurück.",
+  "Untere Reihe sitzt – klasse! ⬇️🎉");
 
 /* ---------- Finger-Training ---------- */
 SCREENS.kfingers=(stage)=>{
@@ -1251,10 +1326,11 @@ SCREENS.kfingers=(stage)=>{
 /* ---------- Wörter tippen ---------- */
 SCREENS.kwords=(stage)=>{
   const N=stationNumber("kwords");
-  setInstruction(`Station ${N} · Wörter tippen 📝`,"Tippe das Wort Buchstabe für Buchstabe. Die nächste Taste leuchtet auf.");
+  setInstruction(`Station ${N} · Wörter tippen 📝`,"Tippe das Wort Buchstabe für Buchstabe – auch ein paar <b>lustige</b> sind dabei! Die nächste Taste leuchtet auf.");
   const box=mk("typebox"); stage.appendChild(box);
   const kbHost=mk("kbwrap"); const kb=buildKeyboard(); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
-  const POOL=shuffle((state.difficulty==="schwer"?WORDS:WORDS_EASY.concat(WORDS.slice(0,6))).slice());
+  const base=(state.difficulty==="schwer"?WORDS:WORDS_EASY.concat(WORDS.slice(0,6)));
+  const POOL=shuffle(base.concat(FUNNY_WORDS));
   const TOTAL=dCount(5,4); let i=0,fault=false;
   setCounter(`0/${TOTAL}`,"Wörter");
   function nextWord(){
@@ -1275,11 +1351,11 @@ SCREENS.kwords=(stage)=>{
 /* ---------- Sätze tippen ---------- */
 SCREENS.ksentence=(stage)=>{
   const N=stationNumber("ksentence");
-  setInstruction(`Station ${N} · Sätze tippen 📚`,"Jetzt ganze Sätze – mit <b>Leertaste</b> und Punkt. Wie schnell und genau schaffst du es?");
+  setInstruction(`Station ${N} · Sätze tippen 📚`,"Jetzt ganze Sätze – und zwar <b>lustige</b>! Mit <b>Leertaste</b>, Umlauten und Punkt. Wie schnell und genau schaffst du es?");
   const box=mk("typebox"); stage.appendChild(box);
   const stat=mk("statbar"); stat.style.marginTop="6px"; box.appendChild(stat);
   const kbHost=mk("kbwrap"); const kb=buildKeyboard(); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
-  const POOL=shuffle(SENTENCES.slice());
+  const POOL=shuffle(FUNNY_SENTENCES.concat(SENTENCES));
   const TOTAL=dCount(3,2); let i=0,fault=false;
   setCounter(`0/${TOTAL}`,"Sätze");
   function nextSentence(){
@@ -1312,7 +1388,7 @@ SCREENS.kraindrop=(stage)=>{
   const bottom=mk("rainbottom",`<span>Du tippst:</span> <span class="raininput" id="rainBuf">…</span>`);
   field.appendChild(bottom); stage.appendChild(field);
   const D=diff();
-  const POOL=(state.difficulty==="schwer"?WORDS:WORDS_EASY).slice();
+  const POOL=(state.difficulty==="schwer"?WORDS:WORDS_EASY).concat(FUNNY_WORDS);
   const TOTAL=dCount(7,5);
   let drops=[],cleared=0,spawned=0,locked=null,last=0,spawnAcc=1e9;
   setCounter(`0/${TOTAL}`,"geschafft");
@@ -1498,16 +1574,22 @@ SCREENS.exam_done=(stage)=>{
 $("#gearBtn").addEventListener("click",()=>{$("#overlay").style.display="flex";});
 $("#closeSet").addEventListener("click",()=>{$("#overlay").style.display="none";});
 $("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay")$("#overlay").style.display="none";});
-$("#soundChk").addEventListener("change",e=>{state.sound=e.target.checked;if(state.sound){if(audioCtx)audioCtx.resume&&audioCtx.resume();sfx.step();}});
-$("#fingerChk").addEventListener("change",e=>{ state.fingers=e.target.checked; go(state.current); });
-$("#diffSel").addEventListener("change",e=>{ state.difficulty=e.target.value; $("#overlay").style.display="none"; go(state.current); });
+$("#soundChk").addEventListener("change",e=>{state.sound=e.target.checked;saveState();if(state.sound){if(audioCtx)audioCtx.resume&&audioCtx.resume();sfx.step();}});
+$("#fingerChk").addEventListener("change",e=>{ state.fingers=e.target.checked; saveState(); go(state.current); });
+$("#diffSel").addEventListener("change",e=>{ state.difficulty=e.target.value; saveState(); $("#overlay").style.display="none"; go(state.current); });
 $("#resetBtn").addEventListener("click",()=>{
-  state.done={};Object.assign(state,defaultGamify());
+  clearSave();
+  state.done={};Object.assign(state,defaultGamify());state.current="start";
   refreshProgress();refreshHUD();$("#overlay").style.display="none";go("start");
 });
 
+/* Gespeicherten Fortschritt laden und Einstellungen im Menü spiegeln */
+const _resumed = loadState();
+$("#soundChk").checked = state.sound;
+$("#fingerChk").checked = state.fingers;
+$("#diffSel").value = state.difficulty;
 buildProgress();refreshHUD();
-go("start");
+go(_resumed && state.current ? state.current : "start");
 </script>
 </body>
 </html>
