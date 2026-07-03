@@ -200,6 +200,27 @@
   .checklist li.done{color:var(--success);}
   .checklist li.done::before{content:"✓";background:var(--success);border-color:var(--success);color:#fff;}
 
+  /* ===== Pfeiltasten-Reise ===== */
+  .arrowgrid{display:grid;gap:8px;justify-content:center;margin:6px auto;}
+  .gridcell{width:56px;height:56px;border-radius:12px;background:var(--ocean-pale);border:2px solid var(--line);
+    display:grid;place-items:center;font-size:1.9rem;transition:.12s;}
+  .gridcell.goal{border-color:var(--hint);background:var(--hint-soft);}
+  .gridcell.mouse{border-color:var(--ocean-bright);background:#fff;box-shadow:0 4px 12px rgba(19,184,212,.3);}
+
+  /* ===== Korrigier-Werkstatt ===== */
+  .fixword{display:flex;align-items:center;gap:2px;font-size:2rem;font-weight:800;color:var(--ocean-deep);min-height:56px;}
+  .fixch{padding:2px 3px;border-radius:6px;transition:.12s;}
+  .fixch.wrong{background:#fde7e7;color:#c23b3b;}
+  .fixch.gone{opacity:0;width:0;padding:0;}
+  .caret{width:3px;align-self:stretch;margin:3px 1px;background:var(--ocean-mid);border-radius:2px;animation:caretblink 1s step-end infinite;}
+  @keyframes caretblink{50%{opacity:0;}}
+
+  /* ===== Kombi-Tasten ===== */
+  .combodoc{background:#fff;border:2px solid var(--line);border-radius:12px;padding:18px 22px;min-width:220px;min-height:64px;
+    display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:var(--ocean-deep);}
+  .combochip{background:var(--ocean-pale);border:2px solid var(--ocean-bright);border-radius:9px;padding:4px 12px;}
+  .comboclip{font-size:.85rem;color:var(--ink-soft);margin-top:8px;min-height:1.2em;}
+
   /* ===== Urkunde ===== */
   .urkunde{background:#fff;border:3px double var(--ocean-mid);border-radius:14px;padding:34px 30px;text-align:center;max-width:640px;margin:0 auto;}
   .urkunde .seal{font-size:3rem;}
@@ -348,6 +369,10 @@ const STATIONS = [
   {id:"kquiz",     short:"Tasten-Quiz",  icon:"❓", part:1, title:"Tasten-Quiz",      desc:"Benennen & Funktion erklären"},
   {id:"kfind",     short:"Tasten",       icon:"🔎", part:1, title:"Tasten finden",    desc:"Die leuchtende Taste drücken"},
   {id:"kshift",    short:"Groß",         icon:"⬆️", part:1, title:"Großbuchstaben",   desc:"Mit Umschalt groß tippen"},
+  {id:"karrows",   short:"Pfeile",       icon:"🕹️", part:1, title:"Pfeiltasten-Reise",desc:"Mit den Pfeilen navigieren"},
+  {id:"kfix",      short:"Korrigieren",  icon:"⌫", part:1, title:"Korrigier-Werkstatt",desc:"Rücktaste & Entf-Taste"},
+  {id:"kcombo",    short:"Kombi",        icon:"🎹", part:1, title:"Kombi-Tasten",     desc:"Strg + C · V · Z"},
+  {id:"exam1",     short:"Teil-1-Prüfung",icon:"🥇",part:1, title:"Teil-1-Prüfung",   desc:"Die Tasten sitzen!"},
   {id:"khome",     short:"Grundreihe",   icon:"🖐️", part:2, title:"Grundreihe",       desc:"a s d f · j k l ö"},
   {id:"kfingers",  short:"Finger",       icon:"✋", part:2, title:"Finger-Training",  desc:"Den richtigen Finger nehmen"},
   {id:"kwords",    short:"Wörter",       icon:"📝", part:2, title:"Wörter tippen",    desc:"Ganze Wörter abtippen"},
@@ -357,7 +382,9 @@ const STATIONS = [
   {id:"krace",     short:"Rennen",       icon:"🏁", part:2, title:"Tipp-Rennen",      desc:"Wörter im Wettlauf"},
   {id:"exam",      short:"Prüfung",      icon:"🏆", title:"Prüfung",          desc:"Alles zusammen!"}
 ];
-const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam").findIndex(s=>s.id===id)+1;
+/* Nummerierung zählt nur echte Übungsstationen – die Prüfungen bleiben aussen vor */
+const isExamId = id => id==="exam" || id==="exam1";
+const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&!isExamId(s.id)).findIndex(s=>s.id===id)+1;
 /* Erste/letzte echte Station eines Teils (für Überschriften & Übergang) */
 const firstOfPart = p => (STATIONS.find(s=>s.part===p)||{}).id;
 const lastOfPart  = p => { const l=STATIONS.filter(s=>s.part===p); return l.length?l[l.length-1].id:undefined; };
@@ -592,8 +619,11 @@ function levelForXp(xp){ let lv=1,t=LEVELS[0].title; LEVELS.forEach((l,i)=>{ if(
 
 const BADGES = {
   first_key:     {icon:"👆", title:"Erste Taste"},
-  key_master:    {icon:"🔑", title:"Tasten-Kenner"},
+  quiz_ace:      {icon:"❓", title:"Quiz-Ass"},
   shift_pro:     {icon:"⬆️", title:"Groß & Klein"},
+  corrector:     {icon:"⌫", title:"Fehler-Jäger"},
+  combo_pro:     {icon:"🎹", title:"Kombi-Kenner"},
+  key_master:    {icon:"🔑", title:"Tasten-Kenner"},
   home_row:      {icon:"🖐️", title:"Grundreihen-Held"},
   word_wizard:   {icon:"📝", title:"Wort-Zauberer"},
   sentence_star: {icon:"📚", title:"Satz-Star"},
@@ -664,8 +694,11 @@ function registerAttempt(ok){
 }
 function checkStationBadges(id){
   unlock("first_key");
-  if(id==="kquiz")unlock("key_master");
+  if(id==="kquiz")unlock("quiz_ace");
   if(id==="kshift")unlock("shift_pro");
+  if(id==="kfix")unlock("corrector");
+  if(id==="kcombo")unlock("combo_pro");
+  if(id==="exam1")unlock("key_master");
   if(id==="khome")unlock("home_row");
   if(id==="kwords")unlock("word_wizard");
   if(id==="ksentence")unlock("sentence_star");
@@ -719,7 +752,7 @@ function go(id){
   const stage=$("#stage");stage.innerHTML="";
   setHint("","");showNext(false);showReplay(false);showSkip(false);setCounter(null);
   refreshProgress();refreshHUD();
-  if(id!=="start" && id!=="exam_done" && id!=="exam" && id!=="teil2start"){ showSkip(true,()=>go(nextStationId())); }
+  if(id!=="start" && id!=="exam_done" && !isExamId(id) && id!=="teil2start"){ showSkip(true,()=>go(nextStationId())); }
   (SCREENS[id]||SCREENS.start)(stage);
   $("main").scrollTop=0;
 }
@@ -728,7 +761,7 @@ function completeStation(id,msg,opts){
   const isNew=!state.done[id];
   markDone(id);setHint(msg||"Super gemacht! 🎉","good");sfx.win();showSkip(false);
   if(isNew){
-    awardXP(id==="exam"?50:20,"station");
+    awardXP(id==="exam"?50:(id==="exam1"?35:20),"station");
     registerAttempt(true);
     if(opts&&opts.perfect){ state.stats.perfectStations[id]=true; unlock("flawless"); }
     checkStationBadges(id);
@@ -964,6 +997,196 @@ SCREENS.kshift=(stage)=>{
     }
   });
   pick();
+};
+
+/* ---------- Pfeiltasten-Reise ---------- */
+SCREENS.karrows=(stage)=>{
+  const N=stationNumber("karrows");
+  setInstruction(`Station ${N} · Pfeiltasten-Reise 🕹️`,
+    "Führe die Maus 🐭 mit den <b>Pfeiltasten</b> zum Käse 🧀. <b>▲</b> hoch, <b>▼</b> runter, <b>◀</b> links, <b>▶</b> rechts.");
+  const COLS=5, ROWS=3;
+  const grid=mk("arrowgrid"); grid.style.gridTemplateColumns=`repeat(${COLS},56px)`;
+  const cells=[]; for(let i=0;i<COLS*ROWS;i++){ const c=mk("gridcell"); grid.appendChild(c); cells.push(c); }
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard();
+  stage.appendChild(grid); stage.appendChild(kbHost); kbHost.appendChild(kb.el);
+  kb.highlight(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"]);
+  const TOTAL=dCount(4,3); let done=0, fault=false, mouse={x:0,y:0}, goal={x:0,y:0};
+  const idx=(x,y)=>y*COLS+x;
+  function render(){
+    cells.forEach(c=>{c.className="gridcell";c.textContent="";});
+    cells[idx(goal.x,goal.y)].classList.add("goal"); cells[idx(goal.x,goal.y)].textContent="🧀";
+    cells[idx(mouse.x,mouse.y)].classList.add("mouse"); cells[idx(mouse.x,mouse.y)].textContent="🐭";
+  }
+  function newRound(){
+    do{ mouse={x:(Math.random()*COLS)|0,y:(Math.random()*ROWS)|0}; goal={x:(Math.random()*COLS)|0,y:(Math.random()*ROWS)|0}; }
+    while(mouse.x===goal.x && mouse.y===goal.y);
+    render(); setHint("Steuere die Maus mit den Pfeiltasten zum Käse.","");
+  }
+  setCounter(`0/${TOTAL}`,"Käse");
+  setKeyHandler(e=>{
+    const k=e.key; if(!k||k.indexOf("Arrow")!==0) return;
+    let nx=mouse.x, ny=mouse.y;
+    if(k==="ArrowUp")ny--; else if(k==="ArrowDown")ny++; else if(k==="ArrowLeft")nx--; else if(k==="ArrowRight")nx++;
+    if(nx<0||nx>=COLS||ny<0||ny>=ROWS){ kb.flash(k,false); sfx.soft(); fault=true; setHint("Dort ist der Rand! Wähle eine andere Richtung.","warn"); return; }
+    kb.flash(k,true); mouse={x:nx,y:ny}; sfx.step(); render();
+    if(mouse.x===goal.x && mouse.y===goal.y){
+      sfx.good(); done++; registerAttempt(true); setCounter(`${done}/${TOTAL}`,"Käse");
+      if(done>=TOTAL){ kb.clearHighlight(); completeStation("karrows","Klasse gesteuert – die Pfeiltasten sitzen! 🕹️🎉",{perfect:!fault}); }
+      else { setHint("Mmmh, Käse! 🧀 Auf zur nächsten Runde.","good"); later(newRound,650); }
+    }
+  });
+  newRound();
+};
+
+/* ---------- Korrigier-Werkstatt (Rücktaste vs. Entf) ---------- */
+SCREENS.kfix=(stage)=>{
+  const N=stationNumber("kfix");
+  setInstruction(`Station ${N} · Korrigier-Werkstatt ⌫`,
+    "In jedes Wort hat sich ein <b>falscher Buchstabe</b> (rot) geschlichen. Der blinkende Strich ist der Cursor: "+
+    "die <b>Rücktaste ⌫</b> löscht <u>links</u>, die <b>Entf</b>-Taste löscht <u>rechts</u> davon. Weg mit dem roten Buchstaben!");
+  const box=mk("typebox"); const line=mk("fixword"); box.appendChild(line);
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard();
+  stage.appendChild(box); stage.appendChild(kbHost); kbHost.appendChild(kb.el);
+  const POOL=["hallo","maus","tastatur","freude","schule","banane","fahrrad","sonne","apfel","tiger","blume","garten"];
+  const LETTERS="abdefghiklmnorstu".split("");
+  const TOTAL=dCount(6,5); let done=0, fault=false, chars=[], wrongIdx=-1, cursor=0, useBack=true;
+  function render(){
+    line.innerHTML="";
+    chars.forEach((ch,i)=>{
+      if(i===cursor) line.appendChild(mk("caret"));
+      const s=document.createElement("span"); s.className="fixch"+(i===wrongIdx?" wrong":""); s.textContent=ch;
+      line.appendChild(s);
+    });
+    if(cursor===chars.length) line.appendChild(mk("caret"));
+  }
+  function newRound(){
+    const w=POOL[(Math.random()*POOL.length)|0].split("");
+    const pos=(Math.random()*(w.length+1))|0;
+    w.splice(pos,0,LETTERS[(Math.random()*LETTERS.length)|0]);
+    chars=w; wrongIdx=pos; useBack=Math.random()<0.5; cursor= useBack? wrongIdx+1 : wrongIdx;
+    kb.clearHighlight(); kb.highlight([useBack?"Backspace":"Delete"]);
+    render();
+    setHint(useBack
+      ? "Der rote Buchstabe steht <b>links</b> vom Cursor → drücke die <b>Rücktaste ⌫</b>."
+      : "Der rote Buchstabe steht <b>rechts</b> vom Cursor → drücke die <b>Entf</b>-Taste.","");
+  }
+  function success(){
+    kb.flash(useBack?"Backspace":"Delete",true);
+    chars.splice(wrongIdx,1); if(cursor>wrongIdx)cursor--; wrongIdx=-1; render();
+    sfx.good(); done++; registerAttempt(true); setCounter(`${done}/${TOTAL}`,"geschafft");
+    if(done>=TOTAL){ kb.clearHighlight(); completeStation("kfix","Alle Fehler gejagt – saubere Arbeit! ⌫🎉",{perfect:!fault}); }
+    else { setHint("Richtig repariert! 👍","good"); later(newRound,650); }
+  }
+  function fail(msg){ sfx.soft(); fault=true; setHint(msg,"warn"); }
+  setCounter(`0/${TOTAL}`,"geschafft");
+  setKeyHandler(e=>{
+    const tok=specialToken(e);
+    if(tok==="Backspace"){ if(useBack && cursor-1===wrongIdx) success(); else { kb.flash("Backspace",false); fail("Die <b>Rücktaste ⌫</b> löscht <u>links</u> vom Cursor – hier passt sie nicht."); } }
+    else if(tok==="Delete"){ if(!useBack && cursor===wrongIdx) success(); else { kb.flash("Delete",false); fail("Die <b>Entf</b>-Taste löscht <u>rechts</u> vom Cursor – hier passt sie nicht."); } }
+    else if(tok || getChar(e)!=null){ fail("Nutze die <b>Rücktaste ⌫</b> oder die <b>Entf</b>-Taste."); }
+  });
+  newRound();
+};
+
+/* ---------- Kombi-Tasten (Strg + C · V · Z) ---------- */
+SCREENS.kcombo=(stage)=>{
+  const N=stationNumber("kcombo");
+  setInstruction(`Station ${N} · Kombi-Tasten 🎹`,
+    "<b>Strg</b> ist eine Kombi-Taste: Strg gedrückt halten und dazu eine Taste. "+
+    "<b>Strg + C</b> kopiert, <b>Strg + V</b> fügt ein, <b>Strg + Z</b> macht rückgängig.");
+  const box=mk("typebox"); const doc=mk("combodoc"); const clip=mk("comboclip"); box.appendChild(doc); box.appendChild(clip);
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard();
+  stage.appendChild(box); stage.appendChild(kbHost); kbHost.appendChild(kb.el);
+  const WORD="Katze";
+  const TASKS=[
+    {key:"c",instr:`Kopiere das Wort <b>${WORD}</b>: halte <b>Strg</b> und drücke <b>C</b>.`},
+    {key:"v",instr:"Füge das Wort ein: <b>Strg + V</b>."},
+    {key:"z",instr:"Ups, zu viel! Mach es rückgängig: <b>Strg + Z</b>."},
+    {key:"c",instr:"Nochmal – kopiere das Wort: <b>Strg + C</b>."},
+    {key:"v",instr:"Und wieder einfügen: <b>Strg + V</b>."}
+  ];
+  let i=0, fault=false, clipboard="", words=[WORD], history=[];
+  function renderDoc(){
+    doc.innerHTML = words.length ? words.map(w=>`<span class="combochip">${w}</span>`).join("") : '<span style="color:var(--ink-soft);font-weight:400;">(leer)</span>';
+    clip.textContent = "Zwischenablage: " + (clipboard||"leer");
+  }
+  function apply(key){
+    if(key==="c"){ clipboard=words[words.length-1]||WORD; }
+    else if(key==="v"){ history.push(words.slice()); words=words.concat(clipboard||WORD); }
+    else if(key==="z"){ if(history.length) words=history.pop(); }
+    renderDoc();
+  }
+  function show(){ const t=TASKS[i]; kb.clearHighlight(); kb.highlight(["Control",t.key]); setHint(t.instr,""); }
+  setCounter(`0/${TASKS.length}`,"Aufgaben");
+  setKeyHandler(e=>{
+    if(e.key==="Control")return;
+    const combo=(e.ctrlKey||e.metaKey), key=(e.key||"").toLowerCase();
+    if(combo && ["c","v","z","x"].includes(key)) e.preventDefault();
+    if(!combo){ if(getChar(e)){ sfx.soft(); fault=true; setHint("Fast! Du musst dabei <b>Strg</b> gedrückt halten.","warn"); } return; }
+    const t=TASKS[i];
+    if(key===t.key){
+      kb.flash(t.key,true); sfx.good(); apply(t.key); i++;
+      registerAttempt(true); setCounter(`${i}/${TASKS.length}`,"Aufgaben");
+      if(i>=TASKS.length){ kb.clearHighlight(); completeStation("kcombo","Stark! Strg + C, V und Z beherrschst du jetzt. 🎹🎉",{perfect:!fault}); }
+      else { setHint("Super! 👍","good"); later(show,750); }
+    } else if(["c","v","z"].includes(key)){
+      kb.flash(key,false); sfx.soft(); fault=true; setHint(`Noch nicht – gesucht ist <b>Strg + ${t.key.toUpperCase()}</b>.`,"warn");
+    }
+  });
+  renderDoc(); show();
+};
+
+/* ---------- Teil-1-Prüfung ---------- */
+SCREENS.exam1=(stage)=>{
+  setInstruction("Teil-1-Prüfung 🥇","Zeig, dass die Tasten sitzen: eine Taste finden, groß schreiben und eine Kombi drücken!");
+  showSkip(false);
+  const wrap=mk("examwrap"); const desk=mk("examdesk");
+  const list=mk("checklist",`<h3>Deine Aufgaben</h3><ol>
+    <li id="e1a">Eine leuchtende Taste drücken</li>
+    <li id="e1b">Einen GROSSEN Buchstaben tippen</li>
+    <li id="e1c">Strg + C drücken</li></ol>`);
+  wrap.appendChild(desk); wrap.appendChild(list); stage.appendChild(wrap);
+  let fault=false;
+  function activate(n){ ["e1a","e1b","e1c"].forEach((id,i)=>{const li=$("#"+id);li.classList.toggle("active",i===n-1);li.classList.toggle("done",i<n-1);}); }
+  function stepKey(){
+    desk.innerHTML="";
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
+    const target=["a","s","d","f","j","k","l","e","r","u"][(Math.random()*10)|0];
+    kb.highlight([target]); setHint(`Aufgabe 1: Drücke die leuchtende Taste <b>${target.toUpperCase()}</b>.`,"");
+    setKeyHandler(e=>{ const ch=getChar(e); if(ch==null)return; kb.press(ch);
+      if(ch.toLowerCase()===target){ kb.flash(target,true);sfx.good();activate(2);stepShift(); }
+      else { kb.flash(ch,false);sfx.soft();fault=true;setHint(`Gesucht: <b>${target.toUpperCase()}</b>.`,"warn"); } });
+  }
+  function stepShift(){
+    desk.innerHTML="";
+    const box=mk("typebox"); desk.appendChild(box);
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
+    const target=["a","s","d","f","e","r","m","t"][(Math.random()*8)|0];
+    box.innerHTML=`<div class="bigchar">${target.toUpperCase()}</div><div class="statbar">Tippe ein großes <b>${target.toUpperCase()}</b></div>`;
+    kb.highlight([target,"Shift"]);
+    setHint("Aufgabe 2: Umschalt ⇧ halten und die Taste drücken.","");
+    setKeyHandler(e=>{ if(e.key==="Shift")return; const ch=getChar(e); if(ch==null)return; kb.press(ch);
+      if(ch===target.toUpperCase()){ kb.flash(target,true);sfx.good();activate(3);stepCombo(); }
+      else if(ch.toLowerCase()===target){ kb.flash(ch,false);sfx.soft();fault=true;setHint("Fast – halte <b>Umschalt ⇧</b> dabei gedrückt.","warn"); }
+      else { kb.flash(ch,false);sfx.soft();fault=true;setHint(`Gesucht: großes <b>${target.toUpperCase()}</b>.`,"warn"); } });
+  }
+  function stepCombo(){
+    desk.innerHTML="";
+    const box=mk("typebox"); box.appendChild(mk("combodoc",`<span class="combochip">Katze</span>`)); desk.appendChild(box);
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
+    kb.highlight(["Control","c"]);
+    setHint("Aufgabe 3: Kopiere das Wort mit <b>Strg + C</b>.","");
+    setKeyHandler(e=>{
+      if(e.key==="Control")return;
+      const combo=(e.ctrlKey||e.metaKey), key=(e.key||"").toLowerCase();
+      if(combo && ["c","v","z","x"].includes(key)) e.preventDefault();
+      if(!combo){ if(getChar(e)){ sfx.soft();fault=true;setHint("Halte dabei <b>Strg</b> gedrückt.","warn"); } return; }
+      if(key==="c"){ kb.flash("c",true);sfx.good();$("#e1c").classList.add("done");$("#e1c").classList.remove("active");
+        completeStation("exam1","Teil 1 bestanden – die Tasten sitzen! 🥇🎉",{perfect:!fault}); }
+      else { kb.flash(key,false);sfx.soft();fault=true;setHint("Noch nicht – gesucht ist <b>Strg + C</b>.","warn"); }
+    });
+  }
+  activate(1); stepKey();
 };
 
 /* ---------- Grundreihe ---------- */
