@@ -31,6 +31,13 @@
   .stamp.done{background:#fff;color:var(--ocean-deep);border-color:#fff;font-weight:600;}
   .stamp.done .dot{background:var(--success);color:#fff;}
   .stamp.active{outline:2px solid #fff;outline-offset:1px;}
+  /* Teil-Überschrift in der Fortschrittsleiste: erzwingt einen Zeilenumbruch */
+  .part-head{flex-basis:100%;display:flex;align-items:center;justify-content:center;gap:6px;
+    margin:4px 0 1px;font-size:.7rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+    color:#fff;opacity:.9;}
+  .part-head .dot{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.25);
+    display:grid;place-items:center;font-size:.72rem;line-height:1;}
+  .part-head:first-of-type{margin-top:0;}
   .gear{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:40px;height:40px;
     border-radius:10px;font-size:1.2rem;cursor:pointer;display:grid;place-items:center;}
   .gear:hover{background:rgba(255,255,255,.28);}
@@ -328,22 +335,32 @@ const shuffle = a=>{for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|
 /* ============================================================
    Stationen
    ============================================================ */
+/* Teile: 1 = Tasten-Schule (Funktionstasten kennen & üben),
+          2 = Zehn-Finger-Training (Tippen üben).
+   Start und Prüfung sind teilübergreifend (kein part). */
+const PARTS = {
+  1: {label:"Teil 1 · Tasten-Schule",       icon:"🔑"},
+  2: {label:"Teil 2 · Zehn-Finger-Training", icon:"🖐️"}
+};
 const STATIONS = [
   {id:"start",     short:"Start",        icon:"⌨️"},
-  {id:"klesson",   short:"Tasten-Schule",icon:"🔑", title:"Die wichtigen Tasten", desc:"Funktionstasten kennenlernen"},
-  {id:"kquiz",     short:"Tasten-Quiz",  icon:"❓", title:"Tasten-Quiz",      desc:"Benennen & Funktion erklären"},
-  {id:"kfind",     short:"Tasten",       icon:"🔎", title:"Tasten finden",    desc:"Die leuchtende Taste drücken"},
-  {id:"kshift",    short:"Groß",         icon:"⬆️", title:"Großbuchstaben",   desc:"Mit Umschalt groß tippen"},
-  {id:"khome",     short:"Grundreihe",   icon:"🖐️", title:"Grundreihe",       desc:"a s d f · j k l ö"},
-  {id:"kfingers",  short:"Finger",       icon:"✋", title:"Finger-Training",  desc:"Den richtigen Finger nehmen"},
-  {id:"kwords",    short:"Wörter",       icon:"📝", title:"Wörter tippen",    desc:"Ganze Wörter abtippen"},
-  {id:"ksentence", short:"Sätze",        icon:"📚", title:"Sätze tippen",     desc:"Tempo & Genauigkeit"},
-  {id:"kraindrop", short:"Wortregen",    icon:"🌧️", title:"Wortregen",        desc:"Fallende Wörter abtippen"},
-  {id:"kreflex",   short:"Blitz",        icon:"⚡", title:"Blitz-Taste",      desc:"So schnell wie möglich"},
-  {id:"krace",     short:"Rennen",       icon:"🏁", title:"Tipp-Rennen",      desc:"Wörter im Wettlauf"},
+  {id:"klesson",   short:"Tasten-Schule",icon:"🔑", part:1, title:"Die wichtigen Tasten", desc:"Funktionstasten kennenlernen"},
+  {id:"kquiz",     short:"Tasten-Quiz",  icon:"❓", part:1, title:"Tasten-Quiz",      desc:"Benennen & Funktion erklären"},
+  {id:"kfind",     short:"Tasten",       icon:"🔎", part:1, title:"Tasten finden",    desc:"Die leuchtende Taste drücken"},
+  {id:"kshift",    short:"Groß",         icon:"⬆️", part:1, title:"Großbuchstaben",   desc:"Mit Umschalt groß tippen"},
+  {id:"khome",     short:"Grundreihe",   icon:"🖐️", part:2, title:"Grundreihe",       desc:"a s d f · j k l ö"},
+  {id:"kfingers",  short:"Finger",       icon:"✋", part:2, title:"Finger-Training",  desc:"Den richtigen Finger nehmen"},
+  {id:"kwords",    short:"Wörter",       icon:"📝", part:2, title:"Wörter tippen",    desc:"Ganze Wörter abtippen"},
+  {id:"ksentence", short:"Sätze",        icon:"📚", part:2, title:"Sätze tippen",     desc:"Tempo & Genauigkeit"},
+  {id:"kraindrop", short:"Wortregen",    icon:"🌧️", part:2, title:"Wortregen",        desc:"Fallende Wörter abtippen"},
+  {id:"kreflex",   short:"Blitz",        icon:"⚡", part:2, title:"Blitz-Taste",      desc:"So schnell wie möglich"},
+  {id:"krace",     short:"Rennen",       icon:"🏁", part:2, title:"Tipp-Rennen",      desc:"Wörter im Wettlauf"},
   {id:"exam",      short:"Prüfung",      icon:"🏆", title:"Prüfung",          desc:"Alles zusammen!"}
 ];
 const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam").findIndex(s=>s.id===id)+1;
+/* Erste/letzte echte Station eines Teils (für Überschriften & Übergang) */
+const firstOfPart = p => (STATIONS.find(s=>s.part===p)||{}).id;
+const lastOfPart  = p => { const l=STATIONS.filter(s=>s.part===p); return l.length?l[l.length-1].id:undefined; };
 
 /* Spielstufen: skalieren Anzahl, Zeitfenster und Wortregen-Tempo */
 const DIFF = {
@@ -674,7 +691,14 @@ function showSkip(show,fn){ const b=$("#skipBtn"); b.style.display=show?"":"none
 /* ---- Fortschritt ---- */
 function buildProgress(){
   const nav=$("#progress");nav.innerHTML="";
+  let lastPart=null;
   STATIONS.forEach(st=>{ if(st.id==="start")return;
+    if(st.part && st.part!==lastPart){
+      lastPart=st.part;
+      const h=document.createElement("span");h.className="part-head";
+      h.innerHTML=`<span class="dot">${PARTS[st.part].icon}</span>${PARTS[st.part].label}`;
+      nav.appendChild(h);
+    }
     const b=document.createElement("button");b.className="stamp";b.dataset.id=st.id;
     b.innerHTML=`<span class="dot">${st.icon}</span>${st.short}`;
     b.addEventListener("click",()=>go(st.id));nav.appendChild(b);
@@ -695,7 +719,7 @@ function go(id){
   const stage=$("#stage");stage.innerHTML="";
   setHint("","");showNext(false);showReplay(false);showSkip(false);setCounter(null);
   refreshProgress();refreshHUD();
-  if(id!=="start" && id!=="exam_done" && id!=="exam"){ showSkip(true,()=>go(nextStationId())); }
+  if(id!=="start" && id!=="exam_done" && id!=="exam" && id!=="teil2start"){ showSkip(true,()=>go(nextStationId())); }
   (SCREENS[id]||SCREENS.start)(stage);
   $("main").scrollTop=0;
 }
@@ -711,6 +735,7 @@ function completeStation(id,msg,opts){
   }
   const next=nextStationId();showReplay(true);
   if(id==="exam"){ showNext(true,"Urkunde anzeigen 🏆"); $("#nextBtn").onclick=()=>go("exam_done"); }
+  else if(id===lastOfPart(1)){ showNext(true,"Teil 1 geschafft – weiter ›"); $("#nextBtn").onclick=()=>go("teil2start"); }
   else{ showNext(true,"Weiter zu „"+STATIONS.find(s=>s.id===next).short+"“ ›"); $("#nextBtn").onclick=()=>go(next); }
 }
 $("#replayBtn").addEventListener("click",()=>go(state.current));
@@ -749,6 +774,36 @@ SCREENS.start=(stage)=>{
   wrap.appendChild(btn);
   stage.appendChild(wrap);
   btn.addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go("klesson"); });
+};
+
+/* ---------- Übergang: Teil 1 → Teil 2 ---------- */
+SCREENS.teil2start=(stage)=>{
+  setInstruction("Teil 1 geschafft! 🎉",
+    "Du kennst jetzt die wichtigsten Tasten und ihre Aufgaben. <b>Weiter geht’s mit Teil 2:</b> dem Zehn-Finger-Training.");
+  setHint("Klicke auf „Los geht’s“, wenn du bereit bist.","good");
+  sfx.win();
+  const wrap=mk("start");
+  wrap.innerHTML=`<div class="big">🖐️</div>
+    <h1>Teil 2 · Zehn-Finger-Training</h1>
+    <p class="lead">Super, den ersten Teil hast du gemeistert! Jetzt lernst du, mit <b>allen zehn Fingern</b> zu tippen –
+    von der <b>Grundreihe</b> über einzelne Finger bis zu ganzen <b>Wörtern und Sätzen</b>. Am Ende wartet die große Prüfung
+    und deine <b>Urkunde</b>.</p>
+    <div class="hand-guide">
+      <h2>🖐️ Kurz zur Erinnerung</h2>
+      <ol>
+        <li>Linke Finger auf <b>a&nbsp;s&nbsp;d&nbsp;f</b>, rechte Finger auf <b>j&nbsp;k&nbsp;l&nbsp;ö</b>.</li>
+        <li>Auf <b>F</b> und <b>J</b> ertastest du die kleinen Erhebungen – so findest du die Grundreihe ohne hinzusehen.</li>
+        <li>Jeder Finger kehrt nach dem Tippen in die Grundreihe zurück.</li>
+      </ol>
+    </div>`;
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:true});
+  kb.highlight(["a","s","d","f","j","k","l","ö"]); kbHost.appendChild(kb.el);
+  wrap.appendChild(kbHost);
+  const btn=document.createElement("button");btn.className="btn btn-primary";
+  btn.style.cssText="font-size:1.1rem;padding:13px 34px;margin-top:18px;";btn.textContent="Los geht’s ›";
+  wrap.appendChild(btn);
+  stage.appendChild(wrap);
+  btn.addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go(firstOfPart(2)); });
 };
 
 /* ---------- Tasten finden ---------- */
