@@ -205,3 +205,24 @@ Abschnitt 6).
 Phase 0 ist umgesetzt. Als Nächstes folgt **Phase 1** (neue Teil-1-Stationen
 `karrows`, `kfix`, `kcombo` + Pflicht-Zwischenprüfung `exam1`) als eigener PR,
 danach Phase 2 und 3 – jeweils getrennt, wie beim Word-Trainer.
+
+---
+
+## 7. Nachtrag (Stand 2026-07-23): Erweiterung umgesetzt
+
+Über die ursprünglichen Phasen hinaus wurde der Trainer erweitert:
+
+- **Mehr Übungen (Teil 2):** neue Stationen **Obere Reihe** (`ktop`,
+  q w e r t z u i o p), **Untere Reihe** (`kbottom`, y x c v b n m) und
+  **Zahlen & Satzzeichen** (`knumbers`, Zahlenreihe 1–0 · Punkt/Komma). Die
+  Reihen-Stationen nutzen den gemeinsamen Helfer `rowDrill()`. Damit ist der
+  Zehn-Finger-Lehrgang **Grundreihe → obere → untere Reihe** vollständig.
+- **Lustige Texte:** neue Inhaltsvorräte `FUNNY_WORDS` und `FUNNY_SENTENCES`
+  (mit Umlauten), gemischt in `kwords`, `ksentence` und `kraindrop`.
+- **Neue Abzeichen:** `toprow_hero`, `bottomrow_hero`, `number_pro`.
+- **Lernzettel:** druckbare Bildschirmseite `SCREENS.lernzettel` (Tasten-Tabelle
+  aus `FUNC_KEYS`, Finger-Tastatur, Kombi-Tasten, Merksätze), erreichbar über
+  die Urkunden-Seite; nutzt die vorhandenen `@media print`-Regeln.
+- **Klausur-Datei:** neue eigenständige Datei **`tastatur-klausur.html`** mit
+  unbeschrifteter QWERTZ-Tastatur zum Ausfüllen, Umschalter „Lösung anzeigen“
+  und „Finger-Farben“, Name-/Klasse-/Datum-Feldern, druckoptimiert (Querformat).

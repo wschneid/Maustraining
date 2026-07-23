@@ -239,6 +239,22 @@
 
   .infobox{background:var(--hint-soft);border:1px solid #f0d9b8;border-radius:10px;padding:11px 13px;font-size:.84rem;color:#8a5616;line-height:1.45;}
 
+  /* ===== Lernzettel (druckbar) ===== */
+  .lernzettel{background:#fff;border:2px solid var(--ocean-mid);border-radius:14px;padding:22px 24px;max-width:820px;margin:0 auto;text-align:left;}
+  .lernzettel h1{font-family:Georgia,serif;color:var(--ocean-deep);font-size:1.5rem;margin:0 0 2px;text-align:center;}
+  .lernzettel .lz-sub{text-align:center;color:var(--ink-soft);font-size:.85rem;margin-bottom:16px;}
+  .lernzettel h2{color:var(--ocean-mid);font-size:1.02rem;margin:16px 0 8px;border-bottom:2px solid var(--line);padding-bottom:3px;}
+  .lernzettel table{width:100%;border-collapse:collapse;font-size:.82rem;}
+  .lernzettel td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:top;}
+  .lernzettel td.sym{font-size:1.05rem;text-align:center;width:44px;font-weight:700;color:var(--ocean-deep);}
+  .lernzettel td.nm{font-weight:600;color:var(--ocean-deep);width:150px;}
+  .lernzettel .lz-combos{display:flex;flex-wrap:wrap;gap:8px;}
+  .lernzettel .lz-combo{background:var(--hint-soft);border:1px solid #f0d9b8;border-radius:10px;padding:6px 11px;font-size:.82rem;color:#8a5616;}
+  .lernzettel .lz-combo b{color:var(--ocean-deep);}
+  .lernzettel .lz-tips{margin:6px 0 0;padding-left:20px;font-size:.84rem;line-height:1.55;}
+  .lernzettel .lz-kb{display:flex;justify-content:center;margin:6px 0;}
+  .lernzettel .fingerlegend{margin-top:8px;}
+
   .overlay{position:fixed;inset:0;background:rgba(10,40,53,.45);z-index:80;display:none;align-items:center;justify-content:center;padding:18px;}
   .panel{background:#fff;border-radius:16px;width:min(440px,100%);box-shadow:0 24px 60px rgba(0,0,0,.3);overflow:hidden;}
   .panel header{background:var(--ocean-mid);color:#fff;padding:14px 20px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
@@ -271,6 +287,9 @@
     .urkunde{border-color:#000;max-width:100%;}
     .urkunde .nameline input{border-bottom:1px solid #000;}
     .urkunde .nameline .privacy-note{display:none!important;}
+    .lernzettel{border-color:#000;max-width:100%;padding:0;}
+    .lernzettel h2{border-bottom-color:#000;}
+    .lernzettel .lz-combo{border-color:#000;}
   }
 </style>
 </head>
@@ -374,7 +393,10 @@ const STATIONS = [
   {id:"kcombo",    short:"Kombi",        icon:"🎹", part:1, title:"Kombi-Tasten",     desc:"Strg + C · V · Z"},
   {id:"exam1",     short:"Teil-1-Prüfung",icon:"🥇",part:1, title:"Teil-1-Prüfung",   desc:"Die Tasten sitzen!"},
   {id:"khome",     short:"Grundreihe",   icon:"🖐️", part:2, title:"Grundreihe",       desc:"a s d f · j k l ö"},
+  {id:"ktop",      short:"Obere Reihe",  icon:"⬆️", part:2, title:"Obere Reihe",      desc:"q w e r t z u i o p"},
+  {id:"kbottom",   short:"Untere Reihe", icon:"⬇️", part:2, title:"Untere Reihe",     desc:"y x c v b n m"},
   {id:"kfingers",  short:"Finger",       icon:"✋", part:2, title:"Finger-Training",  desc:"Den richtigen Finger nehmen"},
+  {id:"knumbers",  short:"Zahlen",       icon:"🔢", part:2, title:"Zahlen & Zeichen", desc:"Zahlenreihe & Satzzeichen"},
   {id:"kwords",    short:"Wörter",       icon:"📝", part:2, title:"Wörter tippen",    desc:"Ganze Wörter abtippen"},
   {id:"ksentence", short:"Sätze",        icon:"📚", part:2, title:"Sätze tippen",     desc:"Tempo & Genauigkeit"},
   {id:"kraindrop", short:"Wortregen",    icon:"🌧️", part:2, title:"Wortregen",        desc:"Fallende Wörter abtippen"},
@@ -404,6 +426,19 @@ const dCount = (base,min=2) => Math.max(min, Math.round(base*diff().count));
 const WORDS_EASY = ["und","der","die","das","ist","auf","ufo","oma","opa","ball","haus","maus","baum","fisch","hund","katze","sonne","blume","apfel","gelb","rot","tor","see","eis"];
 const WORDS = ["schule","freude","spielen","lesen","tippen","computer","tastatur","banane","fahrrad","wolke","garten","kuchen","musik","tiger","sommer","winter","fenster","blume","drache","raupe"];
 const SENTENCES = ["Die Katze schlaeft.","Der Hund bellt laut.","Wir lernen tippen.","Die Sonne scheint hell.","Mein Ball ist rot.","Ich mag den Sommer.","Das Auto faehrt schnell."];
+/* Lustige Texte – hier sind Umlaute (ä ö ü ß) ausdrücklich erlaubt. */
+const FUNNY_WORDS = ["quatschkopf","giraffe","pupsdrache","möhre","kokosnuss","zappelzahn","brummbär","schnickschnack","kuddelmuddel","krötenkönig","waldschrat","zwergnase","pusteblume","schlingel","murmeltier","wackelpudding","süßkram","flauschball"];
+const FUNNY_SENTENCES = [
+  "Opa tanzt mit der Giraffe Polka.",
+  "Der Frosch fährt Fahrrad zum Mond.",
+  "Maus im Haus, Laus im Kraus.",
+  "Fischers Fritz fischt frische Fische.",
+  "Zehn zahme Ziegen ziehen zehn Zentner Zucker.",
+  "Ein müder Bär malt bunte Bilder.",
+  "Blaukraut bleibt Blaukraut und Brautkleid bleibt Brautkleid.",
+  "Der Igel isst im Iglu eine Erdbeere.",
+  "Süße Schnecken schlürfen Schokolade."
+];
 
 /* ============================================================
    Wesentliche Funktions- & Steuertasten (für Lehr-Tour + Quiz)
@@ -625,6 +660,9 @@ const BADGES = {
   combo_pro:     {icon:"🎹", title:"Kombi-Kenner"},
   key_master:    {icon:"🔑", title:"Tasten-Kenner"},
   home_row:      {icon:"🖐️", title:"Grundreihen-Held"},
+  toprow_hero:   {icon:"⬆️", title:"Obere-Reihe-Held"},
+  bottomrow_hero:{icon:"⬇️", title:"Untere-Reihe-Held"},
+  number_pro:    {icon:"🔢", title:"Zahlen-Kenner"},
   word_wizard:   {icon:"📝", title:"Wort-Zauberer"},
   sentence_star: {icon:"📚", title:"Satz-Star"},
   rain_hero:     {icon:"🌧️", title:"Regen-Held"},
@@ -700,6 +738,9 @@ function checkStationBadges(id){
   if(id==="kcombo")unlock("combo_pro");
   if(id==="exam1")unlock("key_master");
   if(id==="khome")unlock("home_row");
+  if(id==="ktop")unlock("toprow_hero");
+  if(id==="kbottom")unlock("bottomrow_hero");
+  if(id==="knumbers")unlock("number_pro");
   if(id==="kwords")unlock("word_wizard");
   if(id==="ksentence")unlock("sentence_star");
   if(id==="kraindrop")unlock("rain_hero");
@@ -719,7 +760,7 @@ function setHint(html,mood){
 function setCounter(num,label){ const c=$("#counter"); if(num==null){c.style.display="none";return;} c.style.display="";$("#cNum").textContent=num;$("#cLab").textContent=label||"Aufgabe"; }
 function showNext(show,label="Weiter"){ const b=$("#nextBtn"); b.style.display=show?"":"none"; b.textContent=label; }
 function showReplay(show){ $("#replayBtn").style.display=show?"":"none"; }
-function showSkip(show,fn){ const b=$("#skipBtn"); b.style.display=show?"":"none"; b.onclick=fn||null; }
+function showSkip(show,fn,label="Überspringen"){ const b=$("#skipBtn"); b.style.display=show?"":"none"; b.onclick=fn||null; b.textContent=label; }
 
 /* ---- Fortschritt ---- */
 function buildProgress(){
@@ -1219,6 +1260,41 @@ SCREENS.khome=(stage)=>{
   ask();
 };
 
+/* ---------- Reihen-Drill (obere / untere Reihe) ---------- */
+function rowDrill(id,seq,titleIcon,titleTxt,introTxt,doneMsg){
+  return (stage)=>{
+    const N=stationNumber(id);
+    setInstruction(`Station ${N} · ${titleTxt} ${titleIcon}`,introTxt);
+    const legend=mk(null,fingerLegend()); stage.appendChild(legend);
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:true}); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+    let idx=0,fault=false;
+    setCounter(`0/${seq.length}`,"Tasten");
+    function ask(){
+      if(idx>=seq.length) return; /* letzte Taste bereits geschafft (verzögerter Aufruf) */
+      kb.clearHighlight(); const t=seq[idx]; kb.highlight([t]);
+      setHint(`Drücke <b>${t.toUpperCase()}</b> mit dem <b style="color:${fingerColor(t)}">${fingerName(t)}</b>.`,"");
+    }
+    setKeyHandler(e=>{
+      if(idx>=seq.length) return; /* Station schon geschafft – weitere Tasten ignorieren */
+      const ch=getChar(e); if(ch==null) return;
+      kb.press(ch); const t=seq[idx];
+      if(ch.toLowerCase()===t){
+        kb.flash(t,true);sfx.good();idx++;registerAttempt(true);
+        setCounter(`${idx}/${seq.length}`,"Tasten");
+        if(idx>=seq.length){ kb.clearHighlight(); completeStation(id,doneMsg,{perfect:!fault}); }
+        else { setHint("Richtig! 👍","good"); later(ask,320); }
+      } else { kb.flash(ch,false);sfx.soft();fault=true; setHint(`Nimm die Taste <b>${t.toUpperCase()}</b>.`,"warn"); }
+    });
+    ask();
+  };
+}
+SCREENS.ktop=rowDrill("ktop",["q","w","e","r","t","z","u","i","o","p"],"⬆️","Obere Reihe",
+  "Über der Grundreihe liegt die <b>obere Reihe</b>. Für jede Taste hebt der passende Finger kurz nach oben. Drücke sie der Reihe nach.",
+  "Die ganze obere Reihe – super gemacht! ⬆️🎉");
+SCREENS.kbottom=rowDrill("kbottom",["y","x","c","v","b","n","m"],"⬇️","Untere Reihe",
+  "Unter der Grundreihe liegt die <b>untere Reihe</b>. Für jede Taste geht der passende Finger kurz nach unten. Drücke sie der Reihe nach.",
+  "Die ganze untere Reihe – klasse! ⬇️🎉");
+
 /* ---------- Finger-Training ---------- */
 SCREENS.kfingers=(stage)=>{
   const N=stationNumber("kfingers");
@@ -1248,13 +1324,51 @@ SCREENS.kfingers=(stage)=>{
   pick();
 };
 
+/* ---------- Zahlen & Satzzeichen ---------- */
+SCREENS.knumbers=(stage)=>{
+  const N=stationNumber("knumbers");
+  setInstruction(`Station ${N} · Zahlen & Zeichen 🔢`,
+    "Ganz oben liegt die <b>Zahlenreihe</b> (1 bis 0). Unten findest du <b>Punkt</b> und <b>Komma</b>. Drücke die leuchtende Taste!");
+  const info=mk("infobox",`Für ein <b>!</b> hältst du <b>Umschalt ⇧</b> und drückst die <b>1</b>. Für ein <b>?</b> ist es <b>Umschalt ⇧ + ß</b>.`);
+  info.style.maxWidth="640px";info.style.margin="0 auto 6px";stage.appendChild(info);
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard();
+  kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+  const POOL=["1","2","3","4","5","6","7","8","9","0",".",",","-"];
+  const NAMES={".":"Punkt",",":"Komma","-":"Bindestrich"};
+  const TOTAL=dCount(8,6); let done=0,target=null,fault=false;
+  setCounter(`0/${TOTAL}`,"gefunden");
+  function pick(){
+    kb.clearHighlight();
+    target=POOL[(Math.random()*POOL.length)|0];
+    kb.highlight([target]);
+    const name=NAMES[target];
+    setHint(`Drücke die Taste <b>${target}</b>${name?` (${name})`:""}.`,"");
+  }
+  setKeyHandler(e=>{
+    const ch=getChar(e); if(ch==null) return;
+    kb.press(ch);
+    if(ch===target){
+      kb.flash(target,true);sfx.good();done++;registerAttempt(true);
+      setCounter(`${done}/${TOTAL}`,"gefunden");
+      if(done>=TOTAL){ kb.clearHighlight(); completeStation("knumbers","Zahlen und Zeichen sitzen – super! 🔢🎉",{perfect:!fault}); }
+      else { setHint("Richtig! 👍","good"); later(pick,420); }
+    } else {
+      kb.flash(ch,false);sfx.soft();registerAttempt(false);fault=true;
+      setHint(`Das war <b>${ch}</b>. Suche die orange Taste <b>${target}</b>.`,"warn");
+    }
+  });
+  pick();
+};
+
 /* ---------- Wörter tippen ---------- */
 SCREENS.kwords=(stage)=>{
   const N=stationNumber("kwords");
   setInstruction(`Station ${N} · Wörter tippen 📝`,"Tippe das Wort Buchstabe für Buchstabe. Die nächste Taste leuchtet auf.");
   const box=mk("typebox"); stage.appendChild(box);
   const kbHost=mk("kbwrap"); const kb=buildKeyboard(); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
-  const POOL=shuffle((state.difficulty==="schwer"?WORDS:WORDS_EASY.concat(WORDS.slice(0,6))).slice());
+  const POOL=shuffle((state.difficulty==="schwer"
+    ? WORDS.concat(FUNNY_WORDS)
+    : WORDS_EASY.concat(WORDS.slice(0,4), FUNNY_WORDS.slice(0,6))).slice());
   const TOTAL=dCount(5,4); let i=0,fault=false;
   setCounter(`0/${TOTAL}`,"Wörter");
   function nextWord(){
@@ -1279,7 +1393,7 @@ SCREENS.ksentence=(stage)=>{
   const box=mk("typebox"); stage.appendChild(box);
   const stat=mk("statbar"); stat.style.marginTop="6px"; box.appendChild(stat);
   const kbHost=mk("kbwrap"); const kb=buildKeyboard(); kbHost.appendChild(kb.el); stage.appendChild(kbHost);
-  const POOL=shuffle(SENTENCES.slice());
+  const POOL=shuffle(SENTENCES.concat(FUNNY_SENTENCES));
   const TOTAL=dCount(3,2); let i=0,fault=false;
   setCounter(`0/${TOTAL}`,"Sätze");
   function nextSentence(){
@@ -1312,7 +1426,8 @@ SCREENS.kraindrop=(stage)=>{
   const bottom=mk("rainbottom",`<span>Du tippst:</span> <span class="raininput" id="rainBuf">…</span>`);
   field.appendChild(bottom); stage.appendChild(field);
   const D=diff();
-  const POOL=(state.difficulty==="schwer"?WORDS:WORDS_EASY).slice();
+  const FUNNY_SHORT=FUNNY_WORDS.filter(w=>w.length<=8); /* im Regen nur kurze Quatschwörter */
+  const POOL=(state.difficulty==="schwer"?WORDS.concat(FUNNY_SHORT):WORDS_EASY.concat(FUNNY_SHORT)).slice();
   const TOTAL=dCount(7,5);
   let drops=[],cleared=0,spawned=0,locked=null,last=0,spawnAcc=1e9;
   setCounter(`0/${TOTAL}`,"geschafft");
@@ -1491,7 +1606,47 @@ SCREENS.exam_done=(stage)=>{
     <div style="font-size:.8rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin:14px 0 6px;">Gesammelte Abzeichen</div>
     <div class="badges">${achBadges}</div>
     <div class="foot"><span>Ausgestellt am ${today}</span><span>${title} · ${state.xp} XP · 🪙 ${state.coins}</span></div></div>`;
-  showReplay(false);showSkip(false);showNext(true,"🖨️ Drucken");$("#nextBtn").onclick=()=>window.print();
+  showReplay(false);showSkip(true,()=>go("lernzettel"),"📄 Lernzettel");showNext(true,"🖨️ Drucken");$("#nextBtn").onclick=()=>window.print();
+};
+
+/* ---------- Lernzettel (druckbare Zusammenfassung) ---------- */
+SCREENS.lernzettel=(stage)=>{
+  setInstruction("Dein Lernzettel 📄",
+    `${state.mascotName}: „Hier steht alles Wichtige auf einen Blick. Drucke ihn aus und leg ihn neben die Tastatur!"`);
+  setHint("Zum Ausdrucken auf „🖨️ Drucken“ klicken.","");
+  const keyRows=FUNC_KEYS.map(k=>{
+    const what=k.what.replace(/<[^>]+>/g,""); /* HTML-Auszeichnung für die Tabelle entfernen */
+    return `<tr><td class="sym">${k.sym}</td><td class="nm">${k.name}</td><td>${what}</td></tr>`;
+  }).join("");
+  const z=mk("lernzettel","");
+  z.innerHTML=`<h1>Tastatur-Lernzettel</h1>
+    <div class="lz-sub">⌨️ Die wichtigsten Tasten, die Grundreihe und die Finger – zum Nachschlagen</div>
+    <h2>🔑 Die wichtigen Tasten</h2>
+    <table><tbody>${keyRows}</tbody></table>
+    <h2>🎹 Praktische Tasten-Kombis</h2>
+    <div class="lz-combos">
+      <span class="lz-combo"><b>Strg + C</b> · Kopieren</span>
+      <span class="lz-combo"><b>Strg + V</b> · Einfügen</span>
+      <span class="lz-combo"><b>Strg + Z</b> · Rückgängig</span>
+      <span class="lz-combo"><b>Umschalt ⇧ + Buchstabe</b> · GROSS schreiben</span>
+    </div>
+    <h2>🖐️ Grundreihe & Finger</h2>
+    <div class="lz-kb" id="lzKb"></div>
+    <div id="lzLegend"></div>
+    <h2>💡 So tippst du gut</h2>
+    <ul class="lz-tips">
+      <li>Finger locker auf die <b>Grundreihe</b> legen: links <b>a s d f</b>, rechts <b>j k l ö</b>.</li>
+      <li>Auf <b>F</b> und <b>J</b> sind kleine Erhebungen – so findest du die Grundreihe ohne Hinsehen.</li>
+      <li>Schau auf den <b>Bildschirm</b>, nicht auf die Tasten.</li>
+      <li>Jeder Finger hat seine eigenen Tasten – die Farben zeigen, welcher.</li>
+      <li>Lieber <b>langsam und richtig</b> als schnell und mit Fehlern.</li>
+    </ul>`;
+  stage.appendChild(z);
+  const kb=buildKeyboard({fingers:true}); $("#lzKb",z).appendChild(kb.el);
+  $("#lzLegend",z).innerHTML=fingerLegend();
+  showReplay(false);
+  showSkip(true,()=>go("exam_done"),"← Zurück");
+  showNext(true,"🖨️ Drucken");$("#nextBtn").onclick=()=>window.print();
 };
 
 /* ---------- Einstellungen ---------- */
