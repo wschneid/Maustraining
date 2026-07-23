@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tastatur-Klausur · Unbeschriftete Tastatur</title>
+<style>
+  :root{
+    --ocean-deep:#0a4d68; --ocean-mid:#088395; --ocean-bright:#13b8d4; --ocean-pale:#e6f3f7;
+    --bg:#f1f7fa; --card:#fff; --ink:#143540; --ink-soft:#4a6670; --line:#d4e6ec;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);
+    -webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 16px;}
+  .sheet{max-width:960px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;
+    box-shadow:0 10px 30px rgba(10,77,104,.12);padding:26px 30px;}
+
+  .sheet h1{font-family:Georgia,serif;color:var(--ocean-deep);font-size:1.6rem;margin:0 0 4px;}
+  .sheet .sub{color:var(--ink-soft);font-size:.92rem;margin-bottom:16px;}
+
+  .meta{display:flex;flex-wrap:wrap;gap:22px;margin-bottom:16px;font-size:.9rem;color:var(--ink-soft);}
+  .meta .fld{display:flex;align-items:flex-end;gap:8px;}
+  .meta .fld .lbl{font-weight:600;color:var(--ocean-deep);white-space:nowrap;}
+  .meta .fld .line{border-bottom:1.5px solid var(--ink-soft);min-width:150px;height:1.2em;}
+  .meta .fld.klasse .line{min-width:90px;}
+  .meta .fld.datum .line{min-width:110px;}
+
+  .aufgabe{background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:12px 16px;
+    font-size:.95rem;color:var(--ink);margin-bottom:18px;}
+  .aufgabe b{color:var(--ocean-deep);}
+  .points{float:right;font-size:.82rem;color:var(--ink-soft);border:1px solid var(--line);border-radius:8px;padding:2px 8px;background:#fff;}
+
+  /* ===== Tastatur (Arbeitsblatt: helle Fläche, gut beschreibbar) ===== */
+  .kbwrap{width:100%;overflow-x:auto;display:flex;justify-content:center;}
+  .keyboard{display:inline-flex;flex-direction:column;gap:8px;align-items:center;padding:16px;border-radius:14px;
+    background:#eef4f7;border:2px solid var(--ocean-mid);}
+  .krow{display:flex;gap:8px;justify-content:center;}
+  .key{position:relative;min-width:50px;height:52px;border-radius:8px;background:#fff;color:#143540;display:grid;place-items:center;
+    font-size:1rem;font-weight:600;border:1.6px solid #9db6c0;user-select:none;padding:0 6px;}
+  .key.special{font-size:.72rem;color:#4a6670;background:#f3f7f9;}
+  .key .fb{position:absolute;top:5px;left:50%;transform:translateX(-50%);width:62%;height:5px;border-radius:2px;background:var(--fc,transparent);}
+  .key.bump::after{content:"";position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:12px;height:3px;border-radius:2px;background:#9bb4bd;}
+  /* leere Tasten: Beschriftung ausblenden, aber Form/Breite behalten */
+  body:not(.solution) .key .kl{visibility:hidden;}
+  body:not(.fingers) .key .fb{display:none;}
+
+  .fingerlegend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 2px;}
+  .fingerlegend .fl{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:20px;padding:3px 9px;}
+  .fingerlegend .sw{width:12px;height:12px;border-radius:50%;}
+  body:not(.fingers) .fingerlegend{display:none;}
+
+  .controls{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);}
+  .controls label{display:flex;align-items:center;gap:8px;font-size:.92rem;color:var(--ink);cursor:pointer;}
+  .controls input[type=checkbox]{width:18px;height:18px;accent-color:var(--ocean-mid);}
+  .btn{font-family:inherit;font-size:.95rem;font-weight:600;border-radius:10px;padding:9px 16px;cursor:pointer;border:0;
+    background:var(--ocean-mid);color:#fff;margin-left:auto;}
+  .btn:hover{background:var(--ocean-deep);}
+  .hint{font-size:.82rem;color:var(--ink-soft);margin-top:10px;}
+  .solnote{display:none;font-size:.82rem;color:#8a5616;background:#fdf3e3;border:1px solid #f0d9b8;border-radius:8px;padding:6px 12px;margin-top:12px;}
+  body.solution .solnote{display:block;}
+
+  @media print{
+    @page{size:landscape;margin:12mm;}
+    body{background:#fff;padding:0;}
+    .sheet{border:0;box-shadow:none;border-radius:0;padding:0;max-width:100%;}
+    .controls,.hint{display:none!important;}
+    .keyboard{background:#fff;border-color:#000;}
+    .key{border-color:#000;}
+    .key.special{background:#fff;}
+    .meta .fld .line{border-bottom-color:#000;}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <h1>⌨️ Die Tastatur – Klausuraufgabe</h1>
+  <div class="sub">Unbeschriftete QWERTZ-Tastatur zum Ausfüllen</div>
+
+  <div class="meta">
+    <div class="fld"><span class="lbl">Name:</span><span class="line"></span></div>
+    <div class="fld klasse"><span class="lbl">Klasse:</span><span class="line"></span></div>
+    <div class="fld datum"><span class="lbl">Datum:</span><span class="line"></span></div>
+  </div>
+
+  <div class="aufgabe"><span class="points">___ / ___ P.</span>
+    <b>Aufgabe:</b> Beschrifte die Tastatur. Schreibe in jede Taste den passenden
+    <b>Buchstaben</b> bzw. das passende <b>Zeichen</b>. Trage bei den grauen Tasten die
+    Namen der Funktionstasten ein (z.&nbsp;B. Leertaste, Enter, Umschalt).</div>
+
+  <div class="kbwrap"><div class="keyboard" id="keyboard" aria-label="Unbeschriftete Tastatur"></div></div>
+  <div class="fingerlegend" id="legend"></div>
+
+  <div class="solnote">✔️ <b>Lösungsansicht</b> – so sieht die fertig beschriftete Tastatur aus. Zum Drucken der leeren Aufgabe „Lösung anzeigen“ wieder abschalten.</div>
+
+  <div class="controls">
+    <label><input type="checkbox" id="solChk"> Lösung anzeigen</label>
+    <label><input type="checkbox" id="fingerChk"> Finger-Farben anzeigen</label>
+    <button class="btn" id="printBtn">🖨️ Drucken</button>
+  </div>
+  <div class="hint">Tipp: Zum Ausdrucken das <b>Querformat</b> wählen – dann passt die Tastatur sauber auf eine Seite.
+    Die leere Version dient als Klausur, die Lösungsansicht als Musterlösung für die Lehrkraft.</div>
+</div>
+
+<script>
+/* ============================================================
+   Bildschirm-Tastatur (QWERTZ) – identische Struktur wie im
+   Tastatur-Führerschein, damit Aufgabe und Trainer zusammenpassen.
+   ============================================================ */
+const FINGERS = {
+  lp:{c:"#e76f51", n:"linker kleiner Finger"},
+  lr:{c:"#e89c3f", n:"linker Ringfinger"},
+  lm:{c:"#d9bb2f", n:"linker Mittelfinger"},
+  li:{c:"#5bb98c", n:"linker Zeigefinger"},
+  ri:{c:"#13b8d4", n:"rechter Zeigefinger"},
+  rm:{c:"#4c8be9", n:"rechter Mittelfinger"},
+  rr:{c:"#8b6fe9", n:"rechter Ringfinger"},
+  rp:{c:"#e76fb0", n:"rechter kleiner Finger"},
+  th:{c:"#9bb4bd", n:"Daumen"}
+};
+const KEY_ROWS = [
+  [{k:"Escape",lbl:"Esc",w:1.3,f:"lp",special:true},{k:"^",f:"lp"},{k:"1",f:"lp"},{k:"2",f:"lr"},{k:"3",f:"lm"},{k:"4",f:"li"},{k:"5",f:"li"},{k:"6",f:"ri"},{k:"7",f:"ri"},{k:"8",f:"rm"},{k:"9",f:"rr"},{k:"0",f:"rp"},{k:"ß",f:"rp"},{k:"´",f:"rp"},{k:"Backspace",lbl:"⌫",w:2,f:"rp",special:true},{k:"Delete",lbl:"Entf",w:1.3,f:"rp",special:true}],
+  [{k:"Tab",lbl:"⇥",w:1.5,f:"lp",special:true},{k:"q",f:"lp"},{k:"w",f:"lr"},{k:"e",f:"lm"},{k:"r",f:"li"},{k:"t",f:"li"},{k:"z",f:"ri"},{k:"u",f:"ri"},{k:"i",f:"rm"},{k:"o",f:"rr"},{k:"p",f:"rp"},{k:"ü",f:"rp"},{k:"+",f:"rp"}],
+  [{k:"CapsLock",lbl:"⇪",w:1.8,f:"lp",special:true},{k:"a",f:"lp",home:true},{k:"s",f:"lr",home:true},{k:"d",f:"lm",home:true},{k:"f",f:"li",home:true,bump:true},{k:"g",f:"li"},{k:"h",f:"ri"},{k:"j",f:"ri",home:true,bump:true},{k:"k",f:"rm",home:true},{k:"l",f:"rr",home:true},{k:"ö",f:"rp",home:true},{k:"ä",f:"rp",home:true},{k:"#",f:"rp"},{k:"Enter",lbl:"⏎",w:1.7,f:"rp",special:true}],
+  [{k:"Shift",lbl:"⇧",w:2,f:"lp",special:true},{k:"<",f:"lp"},{k:"y",f:"lp"},{k:"x",f:"lr"},{k:"c",f:"lm"},{k:"v",f:"li"},{k:"b",f:"li"},{k:"n",f:"ri"},{k:"m",f:"ri"},{k:",",f:"rm"},{k:".",f:"rr"},{k:"-",f:"rp"},{k:"Shift",lbl:"⇧",w:2.4,f:"rp",special:true}],
+  [{k:"Control",lbl:"Strg",w:1.6,f:"lp",special:true},{k:"Meta",lbl:"⊞",w:1.3,f:"lp",special:true},{k:"Alt",lbl:"Alt",w:1.3,f:"th",special:true},{k:"Space",lbl:"Leertaste",w:6,f:"th",special:true},{k:"AltGraph",lbl:"Alt Gr",w:1.4,f:"th",special:true},{k:"Control",lbl:"Strg",w:1.6,f:"rp",special:true}],
+  [{k:"ArrowUp",lbl:"▲",w:1.3,f:"ri",special:true}],
+  [{k:"ArrowLeft",lbl:"◀",w:1.3,f:"ri",special:true},{k:"ArrowDown",lbl:"▼",w:1.3,f:"ri",special:true},{k:"ArrowRight",lbl:"▶",w:1.3,f:"ri",special:true}]
+];
+const isLetter = c => /^[a-zäöü]$/i.test(c);
+
+function buildKeyboard(){
+  const el=document.getElementById("keyboard");
+  el.innerHTML="";
+  KEY_ROWS.forEach(row=>{
+    const r=document.createElement("div"); r.className="krow";
+    row.forEach(k=>{
+      const b=document.createElement("div");
+      b.className="key"+(k.special?" special":"")+(k.bump?" bump":"");
+      if(k.w){ b.style.flex="0 0 auto"; b.style.minWidth=(k.w*50)+"px"; }
+      const f=FINGERS[k.f]; if(f) b.style.setProperty("--fc", f.c);
+      const lbl=k.lbl || (isLetter(k.k)?k.k.toUpperCase():k.k);
+      b.innerHTML=`<span class="fb"></span><span class="kl">${lbl}</span>`;
+      r.appendChild(b);
+    });
+    el.appendChild(r);
+  });
+}
+function buildLegend(){
+  const order=["lp","lr","lm","li","ri","rm","rr","rp"];
+  document.getElementById("legend").innerHTML=
+    order.map(f=>`<span class="fl"><span class="sw" style="background:${FINGERS[f].c}"></span>${FINGERS[f].n}</span>`).join("");
+}
+buildKeyboard();
+buildLegend();
+
+document.getElementById("solChk").addEventListener("change",e=>{
+  document.body.classList.toggle("solution", e.target.checked);
+});
+document.getElementById("fingerChk").addEventListener("change",e=>{
+  document.body.classList.toggle("fingers", e.target.checked);
+});
+document.getElementById("printBtn").addEventListener("click",()=>window.print());
+</script>
+</body>
+</html>
