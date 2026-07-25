@@ -153,7 +153,12 @@
   .ppt-body{display:flex;background:#eae6e2;max-height:400px;}
   .ppt-rail{flex:none;width:118px;background:#f3efec;border-right:1px solid var(--ribbon-line);padding:10px 8px;
     display:flex;flex-direction:column;gap:9px;overflow-y:auto;}
-  .ppt-thumb{display:flex;gap:6px;align-items:center;cursor:pointer;}
+  .ppt-thumb{display:flex;flex-direction:column;gap:2px;cursor:pointer;}
+  .ppt-thumb-row{display:flex;gap:6px;align-items:center;}
+  .ppt-thumb.dragging{opacity:.4;}
+  .ppt-thumb.dragover .ppt-thumb-mini{box-shadow:0 -3px 0 var(--ppt);}
+  .ppt-thumb-name{font-size:.6rem;color:var(--ink-soft);text-align:center;line-height:1.15;padding-left:16px;}
+  .ppt-thumb.active .ppt-thumb-name{color:var(--ppt-deep);font-weight:600;}
   .ppt-thumb-n{font-size:.72rem;color:var(--ink-soft);width:12px;text-align:right;}
   .ppt-thumb-mini{flex:1;height:44px;background:#fff;border:1px solid var(--line);border-radius:3px;position:relative;overflow:hidden;}
   .ppt-thumb.active .ppt-thumb-mini{border-color:var(--ppt-bright);box-shadow:0 0 0 2px var(--ppt-bright);}
@@ -190,6 +195,48 @@
 
   .ppt-status{display:flex;align-items:center;gap:14px;background:var(--ppt);color:#fff;font-size:.74rem;padding:4px 14px;}
   .ppt-status .right{margin-left:auto;}
+
+  /* Formen */
+  .ppt-shape{position:absolute;width:90px;height:58px;background:#9aa4b0;border:1px solid rgba(0,0,0,.15);cursor:pointer;}
+  .shape-rechteck{border-radius:6px;}
+  .shape-kreis{border-radius:50%;width:66px;height:66px;}
+  .shape-dreieck{width:0;height:0;background:transparent!important;border:none!important;
+    border-left:38px solid transparent;border-right:38px solid transparent;border-bottom:64px solid #9aa4b0;}
+  /* SmartArt */
+  .smartart{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .smart-box{background:var(--ppt-pale);border:2px solid var(--ppt-bright);border-radius:8px;padding:8px 10px;min-width:72px;
+    text-align:center;font-size:.9rem;font-weight:600;color:var(--ppt-deep);outline:none;}
+  .smart-box:empty:before{content:attr(data-ph);color:#b3aca6;font-weight:400;font-style:italic;}
+  .smart-box:focus{box-shadow:0 0 0 2px var(--ppt-bright);}
+  .smart-arrow{color:var(--ppt);font-size:1.3rem;font-weight:800;}
+  /* Aufzählungs-Widget */
+  .bullet-box{font-size:1rem;color:var(--ink);display:flex;flex-direction:column;gap:4px;flex:1;cursor:default;}
+  .bullet-line{padding:2px 6px;border-radius:4px;cursor:pointer;}
+  .bullet-line.sel{background:var(--ppt-pale);box-shadow:inset 3px 0 0 var(--ppt-bright);}
+  .bullet-box.bulleted .bullet-line::before{content:"•  ";color:var(--ppt);font-weight:700;}
+  .bullet-line.indent{margin-left:28px;}
+  .bullet-box.bulleted .bullet-line.indent::before{content:"–  ";}
+  /* Master-Elemente */
+  .master-el{position:absolute;color:var(--ink-soft);}
+  .master-num{right:12px;bottom:8px;font-size:.72rem;}
+  .master-logo{right:12px;top:8px;font-size:1.2rem;}
+  .tmini-num{position:absolute;right:3px;bottom:2px;font-size:.5rem;color:var(--ink-soft);}
+  .tmini-logo{position:absolute;right:3px;top:2px;font-size:.6rem;}
+  /* Präsentationsmodus */
+  .present-overlay{position:fixed;inset:0;z-index:80;background:#0d0d10;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:8px;}
+  .present-slide{width:min(90vw,880px);aspect-ratio:16/9;background:linear-gradient(160deg,#16324d,#0f2236);border-radius:10px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px;text-align:center;
+    color:#fff;box-shadow:0 24px 70px rgba(0,0,0,.6);}
+  .present-slide h2{font-size:2.4rem;margin:0;}
+  .present-slide p{font-size:1.2rem;opacity:.85;margin:0;}
+  .present-nav{margin-top:16px;display:flex;gap:14px;align-items:center;}
+  .present-nav button{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;
+    padding:8px 18px;font-size:1rem;cursor:pointer;font-family:inherit;}
+  .present-nav button:hover{background:rgba(255,255,255,.26);}
+  .present-close{position:fixed;top:16px;right:20px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);
+    color:#fff;border-radius:8px;width:40px;height:40px;font-size:1.2rem;cursor:pointer;}
+  .present-count{position:fixed;bottom:16px;left:20px;color:#fff;font-size:.82rem;opacity:.7;}
 
   /* Dialog (Layout-, Bild-, Design-Auswahl) */
   .pdialog-back{position:fixed;inset:0;background:rgba(40,20,10,.45);z-index:74;display:grid;place-items:center;padding:18px;}
@@ -292,7 +339,7 @@
 </main>
 
 <footer class="sitefooter">
-  <p>© 2026 Wolfgang Schneider · <b>Präsentationsführerschein</b> (im Aufbau · Stationen 1–7 spielbar)</p>
+  <p>© 2026 Wolfgang Schneider · <b>Präsentationsführerschein</b> · 17 Stationen</p>
   <p>Lizenz: <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>.
      Microsoft PowerPoint ist eine Marke der Microsoft Corp.; diese Übung ist eine eigenständige Nachbildung zu Lernzwecken.</p>
 </footer>
@@ -331,22 +378,29 @@ const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
    Stationen
    ============================================================ */
 const STATIONS = [
-  {id:"start", short:"Start",       icon:"🏁"},
-  {id:"s1",    short:"Folien",      icon:"🗂️", title:"Folien anlegen",       desc:"Neue Folien einfügen & ordnen"},
-  {id:"s2",    short:"Layout",      icon:"▤",  title:"Folienlayout",         desc:"Passendes Layout wählen"},
-  {id:"s3",    short:"Textfeld",    icon:"🔤", title:"Textfelder",           desc:"Textfeld einfügen & beschriften"},
-  {id:"s4",    short:"Bild",        icon:"🖼️", title:"Bilder einfügen",      desc:"Bild auswählen & platzieren"},
-  {id:"s5",    short:"Typografie",  icon:"✒️", title:"Typografie",           desc:"Schrift lesbar & sinnvoll wählen"},
-  {id:"s6",    short:"Design",      icon:"🎨", title:"Design-Grundlagen",    desc:"Farbe, Kontrast & Klarheit"},
-  {id:"s7",    short:"Animation",   icon:"✨", title:"Animationen & Effekte",desc:"Objekte gezielt animieren"},
-  {id:"s8",    short:"Übergänge",   icon:"🔀", title:"Folienübergänge",      desc:"Übergang zwischen Folien"},
-  {id:"s9",    short:"Aufzählung",  icon:"•",  title:"Aufzählungen",         desc:"Gliederungsebenen & Bullets"},
-  {id:"s10",   short:"Präsentieren",icon:"▶️", title:"Bildschirmpräsentation",desc:"Vortrag starten & navigieren"}
+  {id:"start",    short:"Start",       icon:"🏁"},
+  {id:"s1",       short:"Folien",      icon:"🗂️", title:"Folien anlegen",          desc:"Neue Folien einfügen"},
+  {id:"s2",       short:"Layout",      icon:"▤",  title:"Folienlayout",            desc:"Passendes Layout wählen"},
+  {id:"sorder",   short:"Ordnen",      icon:"↕️", title:"Folien ordnen",           desc:"Reihenfolge der Folien ändern"},
+  {id:"s3",       short:"Textfeld",    icon:"🔤", title:"Textfelder",              desc:"Textfeld einfügen & beschriften"},
+  {id:"s9",       short:"Aufzählung",  icon:"•",  title:"Aufzählungen",            desc:"Stichpunkte & Gliederungsebenen"},
+  {id:"s4",       short:"Bild",        icon:"🖼️", title:"Bilder einfügen",         desc:"Bild auswählen & platzieren"},
+  {id:"sshapes",  short:"Formen",      icon:"⬜", title:"Formen einfügen",         desc:"Formen platzieren & einfärben"},
+  {id:"salign",   short:"Anordnen",    icon:"📐", title:"Objekte anordnen",        desc:"Ausrichten & zentrieren"},
+  {id:"ssmart",   short:"SmartArt",    icon:"📈", title:"SmartArt & Diagramm",     desc:"Grafik statt Textwüste"},
+  {id:"s5",       short:"Typografie",  icon:"✒️", title:"Typografie",              desc:"Schrift lesbar & sinnvoll wählen"},
+  {id:"s6",       short:"Design",      icon:"🎨", title:"Design-Grundlagen",       desc:"Farbe, Kontrast & Klarheit"},
+  {id:"scontrast",short:"Kontrast",    icon:"🌗", title:"Farben & Kontrast",       desc:"Lesbare Kombinationen erkennen"},
+  {id:"smaster",  short:"Master",      icon:"🧩", title:"Master & Einheitlichkeit",desc:"Ein Element auf allen Folien"},
+  {id:"s7",       short:"Animation",   icon:"✨", title:"Animationen & Effekte",   desc:"Objekte gezielt animieren"},
+  {id:"s8",       short:"Übergänge",   icon:"🔀", title:"Folienübergänge",         desc:"Übergang zwischen Folien"},
+  {id:"sthread",  short:"Roter Faden", icon:"🧭", title:"Abschnitte & roter Faden",desc:"Folien sinnvoll anordnen"},
+  {id:"s10",      short:"Präsentieren",icon:"▶️", title:"Bildschirmpräsentation",  desc:"Vortrag starten & navigieren"}
 ];
 const PLAYABLE = STATIONS.filter(s=>s.id!=="start");
 const stationNumber = id => PLAYABLE.findIndex(s=>s.id===id)+1;
-/* Stationen, die bereits voll spielbar sind: */
-const IMPLEMENTED = ["s1","s2","s3","s4","s5","s6","s7"];
+/* Stationen, die voll spielbar sind (alle): */
+const IMPLEMENTED = ["s1","s2","sorder","s3","s9","s4","sshapes","salign","ssmart","s5","s6","scontrast","smaster","s7","s8","sthread","s10"];
 
 /* ============================================================
    Zustand & Gamification (analog Word-/Maus-Trainer)
@@ -382,7 +436,12 @@ const BADGES={
   layout:{icon:"▤",title:"Layout-Kenner"}, textbox:{icon:"🔤",title:"Textfeld-Profi"},
   image_pro:{icon:"🖼️",title:"Bilder-Profi"}, typo:{icon:"✒️",title:"Typo-Auge"},
   design:{icon:"🎨",title:"Design-Auge"}, anim:{icon:"✨",title:"Animations-Regisseur"},
-  halfway:{icon:"🌟",title:"Halbzeit-Star"}
+  order_pro:{icon:"↕️",title:"Ordnungs-Profi"}, bullet_pro:{icon:"•",title:"Gliederungs-Profi"},
+  shaper:{icon:"⬜",title:"Formen-Künstler"}, aligner:{icon:"📐",title:"Ausrichtungs-Profi"},
+  smart:{icon:"📈",title:"SmartArt-Macher"}, contrast:{icon:"🌗",title:"Kontrast-Wächter"},
+  master:{icon:"🧩",title:"Master-Baumeister"}, transition:{icon:"🔀",title:"Übergangs-Regisseur"},
+  presenter:{icon:"▶️",title:"Vortrags-Profi"},
+  halfway:{icon:"🌟",title:"Halbzeit-Star"}, champion:{icon:"🏆",title:"Präsentations-Champion"}
 };
 
 function toast(html,mood){
@@ -427,12 +486,23 @@ function checkStationBadges(id){
   unlock("first_step");
   if(id==="s1")unlock("slides");
   if(id==="s2")unlock("layout");
+  if(id==="sorder")unlock("order_pro");
   if(id==="s3")unlock("textbox");
+  if(id==="s9")unlock("bullet_pro");
   if(id==="s4")unlock("image_pro");
+  if(id==="sshapes")unlock("shaper");
+  if(id==="salign")unlock("aligner");
+  if(id==="ssmart")unlock("smart");
   if(id==="s5")unlock("typo");
   if(id==="s6")unlock("design");
+  if(id==="scontrast")unlock("contrast");
+  if(id==="smaster")unlock("master");
   if(id==="s7")unlock("anim");
-  if(Object.keys(state.done).length>=5)unlock("halfway");
+  if(id==="s8")unlock("transition");
+  if(id==="s10")unlock("presenter");
+  const total=PLAYABLE.length,done=Object.keys(state.done).length;
+  if(done>=Math.ceil(total/2))unlock("halfway");
+  if(done>=total)unlock("champion");
 }
 
 /* ---- Anzeige-Helfer ---- */
@@ -529,7 +599,57 @@ const INTROS={
     points:[{ic:"🎯",txt:"Erst ein <b>Objekt anklicken</b>, dann Effekt wählen."},
       {ic:"✨",txt:"<b>Eingangseffekte</b> lassen etwas erscheinen (z. B. Einfliegen)."},
       {ic:"🧘",txt:"Sparsam einsetzen – <b>eine</b> klare Animation reicht meist."}],
-    steps:["Klicke ein Objekt auf der Folie an.","Wähle im Menüband einen Animationseffekt.","Sieh dir die Vorschau der Animation an."]}
+    steps:["Klicke ein Objekt auf der Folie an.","Wähle im Menüband einen Animationseffekt.","Sieh dir die Vorschau der Animation an."]},
+  sorder:{head:"Folien ordnen", lead:"Die <b>Reihenfolge</b> der Folien bestimmt den Ablauf des Vortrags. In der <b>Folienleiste</b> links ziehst du eine Folie einfach an eine neue Position – so bringst du sie in die richtige Ordnung.",
+    points:[{ic:"🖱️",txt:"Folie in der Leiste <b>anfassen und ziehen</b> (Drag & Drop)."},
+      {ic:"1️⃣",txt:"Die <b>Titelfolie</b> gehört immer an den <b>Anfang</b>."},
+      {ic:"🔢",txt:"Die Nummern links zeigen die aktuelle Reihenfolge."}],
+    steps:["Fasse die gewünschte Folie in der linken Leiste an.","Ziehe sie an die richtige Position.","Lass los – die Nummern passen sich an."]},
+  s9:{head:"Aufzählungen & Gliederung", lead:"Auf Folien gehören <b>Stichpunkte</b>, keine ganzen Sätze. Eine <b>Aufzählung</b> setzt vor jede Zeile einen Punkt. Mit <b>Tiefer stufen</b> (Einrücken) machst du aus einer Zeile einen <b>Unterpunkt</b>.",
+    points:[{ic:"•",txt:"<b>Aufzählung</b> gliedert Zeilen mit Punkten."},
+      {ic:"⇥",txt:"<b>Tiefer stufen</b> rückt eine Zeile als Unterpunkt ein."},
+      {ic:"✂️",txt:"Kurz halten: <b>Stichworte statt Sätze</b>."}],
+    steps:["Klicke auf <b>Aufzählung</b>, um Punkte zu setzen.","Klicke die Zeile an, die ein Unterpunkt werden soll.","Rücke sie mit <b>⇥ Tiefer</b> ein."]},
+  sshapes:{head:"Formen einfügen", lead:"Mit <b>Formen</b> (Rechteck, Kreis, Pfeil) hebst du etwas hervor oder verbindest Inhalte. Über <b>Einfügen → Formen</b> wählst du eine Form und gibst ihr anschließend eine <b>Farbe</b>.",
+    points:[{ic:"⬜",txt:"Form über <b>Einfügen → Formen</b> auswählen."},
+      {ic:"🎨",txt:"Danach eine <b>Füllfarbe</b> geben."},
+      {ic:"🎯",txt:"Formen gezielt einsetzen – nicht überladen."}],
+    steps:["Öffne <b>Formen</b> im Register Einfügen.","Wähle eine Form aus.","Gib ihr eine Farbe."]},
+  salign:{head:"Objekte anordnen & ausrichten", lead:"Sauber <b>ausgerichtete</b> Objekte wirken ordentlich. PowerPoint hilft dir dabei: Mit <b>Zentrieren</b> bringst du mehrere Objekte auf eine gemeinsame Linie – das schafft Ruhe im Bild.",
+    points:[{ic:"📐",txt:"<b>Ausrichten</b> ordnet Objekte an einer Linie an."},
+      {ic:"↔️",txt:"<b>Horizontal zentrieren</b> = mittig übereinander."},
+      {ic:"🧘",txt:"Gleiche Abstände und Kanten wirken professionell."}],
+    steps:["Sieh dir die versetzten Formen an.","Klicke auf <b>Zentrieren</b>.","Die Objekte richten sich mittig aus."]},
+  ssmart:{head:"SmartArt & Diagramm", lead:"Eine <b>SmartArt-Grafik</b> zeigt Abläufe oder Zusammenhänge anschaulich – viel besser als eine lange Textwüste. Über <b>Einfügen → SmartArt</b> fügst du z. B. einen <b>Prozess</b> mit mehreren Schritten ein.",
+    points:[{ic:"📈",txt:"<b>SmartArt</b> macht aus Text eine Grafik."},
+      {ic:"➡️",txt:"Ein <b>Prozess</b> zeigt Schritte mit Pfeilen."},
+      {ic:"✍️",txt:"In die Kästchen schreibst du kurze Begriffe."}],
+    steps:["Öffne <b>SmartArt</b> im Register Einfügen.","Wähle eine Prozess-Grafik.","Beschrifte die Schritte der Reihe nach."]},
+  scontrast:{head:"Farben & Kontrast", lead:"<b>Kontrast</b> entscheidet über die Lesbarkeit: Schrift und Hintergrund müssen sich deutlich unterscheiden. Helle Schrift auf hellem Grund (oder dunkel auf dunkel) ist kaum zu lesen – auch wenn es „schön“ aussieht.",
+    points:[{ic:"🌗",txt:"<b>Starker Kontrast</b> = gut lesbar (z. B. Weiß auf Dunkelblau)."},
+      {ic:"🚫",txt:"Ähnliche Farben (Gelb auf Gelb) sind <b>schlecht</b> lesbar."},
+      {ic:"👀",txt:"Denke an die <b>letzte Reihe</b> im Raum."}],
+    steps:["Sieh dir die Farbkombinationen an.","Prüfe, welche sich gut abhebt.","Wähle eine <b>gut lesbare</b> Kombination."]},
+  smaster:{head:"Master & Einheitlichkeit", lead:"Der <b>Folienmaster</b> ist die Vorlage für <b>alle</b> Folien. Was du dort einstellst – etwa eine <b>Seitenzahl</b> oder ein Logo – erscheint automatisch auf jeder Folie. Das sorgt für ein <b>einheitliches</b> Aussehen.",
+    points:[{ic:"🧩",txt:"Der <b>Master</b> gilt für alle Folien gleichzeitig."},
+      {ic:"🔢",txt:"Einmal eingestellt – z. B. die <b>Seitenzahl</b> – überall sichtbar."},
+      {ic:"🔁",txt:"Spart Arbeit und hält alles <b>einheitlich</b>."}],
+    steps:["Öffne den <b>Folienmaster</b>.","Aktiviere die <b>Seitenzahl</b> für alle Folien.","Übernimm – die Zahl erscheint auf jeder Folie."]},
+  s8:{head:"Folienübergänge", lead:"Ein <b>Übergang</b> ist der Effekt beim <b>Wechsel</b> von einer Folie zur nächsten (nicht zu verwechseln mit Animationen für Objekte). Dezente Übergänge wie <b>Verblassen</b> wirken ruhig und professionell.",
+    points:[{ic:"🔀",txt:"Übergang = Effekt beim <b>Folienwechsel</b>."},
+      {ic:"🍃",txt:"<b>Verblassen</b> ist dezent und angenehm."},
+      {ic:"🧘",txt:"Nicht auf jeder Folie einen anderen – das wirkt unruhig."}],
+    steps:["Öffne das Register <b>Übergänge</b>.","Wähle einen dezenten Übergang.","Er gilt für den Wechsel zu dieser Folie."]},
+  sthread:{head:"Abschnitte & roter Faden", lead:"Eine gute Präsentation hat einen <b>roten Faden</b>: eine klare, logische Reihenfolge. Bewährt ist der Aufbau <b>Titel → Gliederung → Inhalt → Fazit</b>. Ordne die Folien so, dass der Vortrag Sinn ergibt.",
+    points:[{ic:"🧭",txt:"<b>Roter Faden</b>: eine nachvollziehbare Reihenfolge."},
+      {ic:"🏗️",txt:"Bewährt: <b>Titel → Gliederung → Inhalt → Fazit</b>."},
+      {ic:"🖱️",txt:"Ziehe die Folien in der Leiste in die richtige Ordnung."}],
+    steps:["Sieh dir die vier Folien an.","Überlege die sinnvolle Reihenfolge.","Ziehe sie in die richtige Ordnung."]},
+  s10:{head:"Bildschirmpräsentation", lead:"Zum Vortragen startest du die <b>Bildschirmpräsentation</b> – die Folien füllen dann den ganzen Bildschirm. Mit den <b>Pfeiltasten</b> (oder Klick) blätterst du weiter, mit <b>Esc</b> beendest du sie.",
+    points:[{ic:"▶️",txt:"<b>Von Beginn</b> startet die Präsentation (Taste F5)."},
+      {ic:"➡️",txt:"<b>Pfeil rechts</b> oder Klick: eine Folie weiter."},
+      {ic:"⎋",txt:"<b>Esc</b> beendet die Präsentation."}],
+    steps:["Klicke auf <b>Von Beginn</b>.","Blättere mit <b>→</b> bis zur letzten Folie.","Beende mit <b>Esc</b>."]}
 };
 let _introSkip=null;
 function stationIntro(id,stage){
@@ -608,8 +728,47 @@ function buildPowerPoint(stage, opts={}){
       <div class="rb-row">
         ${insertTools.includes("textbox")?`<button class="rb-btn rb-big" data-tool="textbox" title="Textfeld einfügen">🔤<span>Textfeld</span></button>`:""}
         ${insertTools.includes("image")?`<button class="rb-btn rb-big" data-tool="image" title="Bilder einfügen">🖼️<span>Bilder</span></button>`:""}
+        ${insertTools.includes("shape")?`<button class="rb-btn rb-big" data-tool="shape" title="Formen einfügen">⬜<span>Formen</span></button>`:""}
+        ${insertTools.includes("smartart")?`<button class="rb-btn rb-big" data-tool="smartart" title="SmartArt einfügen">📈<span>SmartArt</span></button>`:""}
       </div>
       <div class="rb-label">Einfügen</div>
+    </div>` : "";
+  const listGroup = opts.lists ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn" data-tool="bullet" title="Aufzählung">• ☰</button>
+        <button class="rb-btn" data-tool="demote" title="Tiefer stufen (einrücken)">⇥</button>
+      </div>
+      <div class="rb-label">Absatz</div>
+    </div>` : "";
+  const arrangeGroup = opts.arrange ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn rb-big" data-tool="align-center" title="Horizontal zentrieren">↔️<span>Zentrieren</span></button>
+      </div>
+      <div class="rb-label">Anordnen</div>
+    </div>` : "";
+  const TRANS=[{id:"verblassen",label:"Verblassen"},{id:"schieben",label:"Schieben"},{id:"wischen",label:"Wischen"}];
+  const transGroup = opts.trans ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        ${TRANS.map(t=>`<button class="rb-btn" data-tool="trans" data-trans="${t.id}" title="${t.label}">${t.label}</button>`).join("")}
+      </div>
+      <div class="rb-label">Übergang zu dieser Folie</div>
+    </div>` : "";
+  const masterGroup = opts.master ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn rb-big" data-tool="master" title="Folienmaster">🧩<span>Folienmaster</span></button>
+      </div>
+      <div class="rb-label">Master</div>
+    </div>` : "";
+  const presentGroup = opts.present ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn rb-big" data-tool="present" title="Bildschirmpräsentation (F5)">▶️<span>Von Beginn</span></button>
+      </div>
+      <div class="rb-label">Präsentation</div>
     </div>` : "";
   const fonts=["Calibri","Arial","Georgia","Comic Sans MS"];
   const sizes=[16,20,24,28,32,40,54,66];
@@ -651,7 +810,7 @@ function buildPowerPoint(stage, opts={}){
       <button class="ppt-tab${tab==="uebergaenge"?" active":""}" data-tab="uebergaenge">Übergänge</button>
       <button class="ppt-tab${tab==="animationen"?" active":""}" data-tab="animationen">Animationen</button>
     </div>
-    <div class="ribbon">${slideGroup}${layoutGroup}${insertGroup}${fontGroup}${designGroup}${animGroup}</div>
+    <div class="ribbon">${slideGroup}${layoutGroup}${insertGroup}${listGroup}${arrangeGroup}${fontGroup}${designGroup}${animGroup}${transGroup}${masterGroup}${presentGroup}</div>
     <div class="ppt-body">
       <div class="ppt-rail"></div>
       <div class="ppt-stage-wrap"><div class="ppt-slide"></div></div>
@@ -661,9 +820,13 @@ function buildPowerPoint(stage, opts={}){
 
   const rail=$(".ppt-rail",wrap);
   const slideEl=$(".ppt-slide",wrap);
-  let slides=[{layout:opts.layout||"title"}];
+  let slides = opts.initialSlides
+    ? opts.initialSlides.map(s=>({layout:s.layout||"titleContent",name:s.name,sub:s.sub}))
+    : [{layout:opts.layout||"title"}];
   let active=0;
   let selected=null;
+  let dragFrom=null;
+  const master={pageNumber:false,logo:null};
 
   function selectObj(el){
     if(selected)selected.classList.remove("objsel");
@@ -676,26 +839,71 @@ function buildPowerPoint(stage, opts={}){
     ).join("");
   }
   function wireSlide(){
-    $$(".ppt-box, .ppt-img, .ppt-obj",slideEl).forEach(el=>{
+    $$(".ppt-box, .ppt-img, .ppt-obj, .ppt-shape",slideEl).forEach(el=>{
       el.addEventListener("mousedown",()=>selectObj(el));
     });
   }
   function renderSlide(){
     selected=null;
     slideEl.innerHTML=slideInnerHTML(slides[active].layout);
+    if(master.pageNumber){ const n=document.createElement("div");n.className="master-el master-num";n.textContent=active+1;slideEl.appendChild(n); }
+    if(master.logo){ const l=document.createElement("div");l.className="master-el master-logo";l.textContent=master.logo;slideEl.appendChild(l); }
     wireSlide();
+  }
+  function moveSlide(from,to){
+    if(from==null||to==null||from===to)return;
+    const [m]=slides.splice(from,1);slides.splice(to,0,m);active=to;
+    renderRail();renderSlide();setStatus();
+    if(opts.onReorder)opts.onReorder(slides.map(s=>s.name));
   }
   function renderRail(){
     rail.innerHTML=slides.map((s,i)=>
-      `<div class="ppt-thumb${i===active?" active":""}" data-i="${i}">
-         <span class="ppt-thumb-n">${i+1}</span>
-         <div class="ppt-thumb-mini ly-${s.layout}"></div>
+      `<div class="ppt-thumb${i===active?" active":""}" data-i="${i}" ${opts.reorder?'draggable="true"':''}>
+         <div class="ppt-thumb-row"><span class="ppt-thumb-n">${i+1}</span>
+           <div class="ppt-thumb-mini ly-${s.layout}">${master.pageNumber?`<span class="tmini-num">${i+1}</span>`:""}${master.logo?`<span class="tmini-logo">${master.logo}</span>`:""}</div>
+         </div>
+         ${s.name?`<div class="ppt-thumb-name">${s.name}</div>`:""}
        </div>`).join("");
-    $$(".ppt-thumb",rail).forEach(t=>t.onclick=()=>{active=+t.dataset.i;renderRail();renderSlide();setStatus();});
+    $$(".ppt-thumb",rail).forEach(t=>{
+      t.addEventListener("click",()=>{active=+t.dataset.i;renderRail();renderSlide();setStatus();});
+      if(opts.reorder){
+        t.addEventListener("dragstart",()=>{dragFrom=+t.dataset.i;t.classList.add("dragging");});
+        t.addEventListener("dragend",()=>{t.classList.remove("dragging");$$(".ppt-thumb",rail).forEach(x=>x.classList.remove("dragover"));});
+        t.addEventListener("dragover",e=>{e.preventDefault();t.classList.add("dragover");});
+        t.addEventListener("dragleave",()=>t.classList.remove("dragover"));
+        t.addEventListener("drop",e=>{e.preventDefault();moveSlide(dragFrom,+t.dataset.i);dragFrom=null;});
+      }
+    });
   }
   function setStatus(l,r){
     $("#pStatusL",wrap).textContent = l!=null?l:`Folie ${active+1} von ${slides.length}`;
     if(r!=null)$("#pStatusR",wrap).textContent=r;
+  }
+  function presentRun(onEnd){
+    let idx=0,reachedEnd=false;
+    const ov=document.createElement("div");ov.className="present-overlay";
+    ov.innerHTML=`<button class="present-close" title="Beenden (Esc)">✕</button>
+      <div class="present-slide"></div>
+      <div class="present-nav"><button data-p="prev">‹ Zurück</button><button data-p="next">Weiter ›</button></div>
+      <div class="present-count"></div>`;
+    document.body.appendChild(ov);
+    const box=$(".present-slide",ov),count=$(".present-count",ov);
+    function draw(){ const s=slides[idx];
+      box.innerHTML=`<h2>${s.name||("Folie "+(idx+1))}</h2>${s.sub?`<p>${s.sub}</p>`:""}`;
+      count.textContent=`Folie ${idx+1} von ${slides.length}`;
+      if(idx===slides.length-1 && !reachedEnd){ reachedEnd=true; if(onEnd)onEnd(); } }
+    function next(){ if(idx<slides.length-1){idx++;draw();} }
+    function prev(){ if(idx>0){idx--;draw();} }
+    function close(){ document.removeEventListener("keydown",key); ov.remove(); }
+    function key(e){ if(e.key==="ArrowRight"||e.key===" "||e.key==="Enter"){e.preventDefault();next();}
+      else if(e.key==="ArrowLeft"){prev();} else if(e.key==="Escape"){close();} }
+    $(".present-close",ov).onclick=close;
+    ov.querySelector('[data-p="next"]').onclick=next;
+    ov.querySelector('[data-p="prev"]').onclick=prev;
+    box.onclick=next;
+    document.addEventListener("keydown",key);
+    draw();
+    return {close};
   }
   renderRail();renderSlide();
 
@@ -744,6 +952,38 @@ function buildPowerPoint(stage, opts={}){
       slideEl.style.background=d.bg;
       $$(".ppt-box",slideEl).forEach(b=>{ b.style.color=d.fg; });
     },
+    addShape(kind,color){
+      const s=document.createElement("div");s.className="ppt-shape shape-"+kind;
+      const idx=$$(".ppt-shape",slideEl).length;
+      s.style.left=(40+idx*120)+"px";s.style.top=(70+idx*30)+"px";
+      if(color){ if(kind==="dreieck")s.style.borderBottomColor=color; else s.style.background=color; }
+      slideEl.appendChild(s);
+      s.addEventListener("mousedown",()=>selectObj(s));
+      selectObj(s);return s;
+    },
+    colorSelected(color){
+      const sel=selected;if(!sel||!sel.classList.contains("ppt-shape"))return false;
+      if(sel.classList.contains("shape-dreieck"))sel.style.borderBottomColor=color; else sel.style.background=color;
+      sel.dataset.colored="1";return true;
+    },
+    shapes:()=>$$(".ppt-shape",slideEl),
+    alignCenterH(){ $$(".ppt-shape",slideEl).forEach(s=>{ s.style.left="50%";s.style.transform="translateX(-50%)"; }); },
+    addSmartArt(placeholders){
+      const sa=document.createElement("div");sa.className="smartart";
+      placeholders.forEach((ph,i)=>{
+        if(i){ const ar=document.createElement("span");ar.className="smart-arrow";ar.textContent="→";sa.appendChild(ar); }
+        const b=document.createElement("div");b.className="smart-box";b.dataset.ph=ph;
+        b.setAttribute("contenteditable","true");b.setAttribute("spellcheck","false");
+        b.addEventListener("mousedown",e=>{e.stopPropagation();selectObj(b);});
+        sa.appendChild(b);
+      });
+      slideEl.appendChild(sa);
+      return $$(".smart-box",sa);
+    },
+    setMaster(m){ Object.assign(master,m);renderRail();renderSlide();setStatus(); },
+    getMaster:()=>master,
+    getOrder:()=>slides.map(s=>s.name),
+    startPresent(onEnd){ return presentRun(onEnd); },
     setStatus
   };
 }
@@ -761,8 +1001,9 @@ SCREENS.start=(stage)=>{
   hero.innerHTML=`
     <div class="doc-emoji">📊</div>
     <h1>Präsentationsführerschein</h1>
-    <p>Du übst die wichtigsten PowerPoint-Handgriffe: <b>Folien anlegen, Layouts, Textfelder, Bilder,
-       Typografie, Design und Animationen</b> – an einer nachgebauten PowerPoint-Oberfläche.</p>
+    <p>Du übst in <b>17 Stationen</b> die wichtigsten PowerPoint-Handgriffe: <b>Folien & Layouts, Textfelder,
+       Bilder, Formen, SmartArt, Typografie, Design, Animationen, Übergänge</b> und das <b>Präsentieren</b> –
+       an einer nachgebauten PowerPoint-Oberfläche.</p>
     <p style="font-size:.88rem;opacity:.85">Tipp: Über das ☰-Menü oben links springst du zwischen den Stationen.</p>`;
   stage.appendChild(hero);
   const first=PLAYABLE[0].id;
@@ -1001,6 +1242,281 @@ SCREENS.s7=(stage)=>{
   });
   setCounter("1/1","Aufgabe");
   setHint("👉 Klicke das <b>🪐 Bild</b> an und wähle oben einen Effekt (z. B. <b>Einfliegen</b>).","");
+};
+
+/* ---- Station: Folien ordnen (sorder) ---- */
+SCREENS.sorder=(stage)=>{
+  if(stationIntro("sorder",stage))return;
+  const st=STATIONS.find(s=>s.id==="sorder");
+  setInstruction(`Station ${stationNumber("sorder")} · ${st.title}`,"Ziehe die Folien in der Leiste links in die richtige Reihenfolge – die Titelfolie gehört nach vorne.");
+  let done=false;
+  const w=buildPowerPoint(stage,{tab:"start",reorder:true,fname:"Ausflug – PowerPoint",
+    initialSlides:[
+      {layout:"titleContent",name:"Inhalt"},
+      {layout:"title",name:"Titel"},
+      {layout:"titleContent",name:"Fazit"}
+    ],
+    onReorder:(order)=>{
+      if(done)return;
+      if(order[0]==="Titel"){ done=true; completeStation("sorder","Titelfolie nach vorn – gut geordnet! ↕️"); }
+      else setHint("Die <b>Titelfolie</b> muss ganz oben (Position 1) stehen. Ziehe sie nach oben.","warn");
+    }});
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Ziehe die Folie <b>„Titel“</b> an die <b>erste</b> Stelle.","");
+};
+
+/* ---- Station: Aufzählungen & Gliederung (s9) ---- */
+SCREENS.s9=(stage)=>{
+  if(stationIntro("s9",stage))return;
+  const st=STATIONS.find(s=>s.id==="s9");
+  setInstruction(`Station ${stationNumber("s9")} · ${st.title}`,"Mach aus den Zeilen eine Aufzählung und rücke den Unterpunkt eine Ebene tiefer.");
+  const w=buildPowerPoint(stage,{tab:"start",layout:"titleContent",lists:true,fname:"Tiere – PowerPoint"});
+  w.setBox("title","Haustiere");
+  const content=$('.ppt-box[data-role="content"]',w.slideEl);
+  content.innerHTML="";content.classList.add("bullet-box");content.removeAttribute("contenteditable");
+  const LINES=["Hund","Katze","… auch der Wellensittich"];
+  let sel=null,done=false;
+  LINES.forEach((t,i)=>{
+    const li=document.createElement("div");li.className="bullet-line";li.textContent=t;li.dataset.i=i;
+    li.onclick=()=>{ $$(".bullet-line",content).forEach(x=>x.classList.remove("sel"));li.classList.add("sel");sel=li;
+      setHint("Zeile markiert. Jetzt mit <b>⇥ Tiefer</b> einrücken.",""); };
+    content.appendChild(li);
+  });
+  function check(){
+    if(done)return;
+    const bulleted=content.classList.contains("bulleted");
+    const indented=$$(".bullet-line.indent",content).length;
+    if(bulleted && indented===1){ done=true; completeStation("s9","Übersichtlich gegliedert! •"); }
+  }
+  w.ribbonBtn("bullet").onclick=()=>{ content.classList.toggle("bulleted");sfx.step();
+    if(content.classList.contains("bulleted"))setHint("Punkte gesetzt. Klicke jetzt die <b>dritte</b> Zeile an und rücke sie mit <b>⇥</b> ein.","");
+    check(); };
+  w.ribbonBtn("demote").onclick=()=>{
+    if(!sel){ setHint("Klicke zuerst die Zeile an, die ein Unterpunkt werden soll.","warn"); return; }
+    sel.classList.toggle("indent");sfx.step();check();
+  };
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Klicke auf <b>• Aufzählung</b>, dann rücke die dritte Zeile mit <b>⇥</b> tiefer.","");
+};
+
+/* ---- Station: Formen einfügen (sshapes) ---- */
+SCREENS.sshapes=(stage)=>{
+  if(stationIntro("sshapes",stage))return;
+  const st=STATIONS.find(s=>s.id==="sshapes");
+  setInstruction(`Station ${stationNumber("sshapes")} · ${st.title}`,"Füge eine Form ein und gib ihr anschließend eine Farbe.");
+  const w=buildPowerPoint(stage,{tab:"einfuegen",layout:"titleContent",editable:false,insertTools:["shape"],fname:"Plakat – PowerPoint"});
+  w.setBox("title","Achtung!");
+  w.setBox("content","Hebe das Wichtige mit einer Form hervor.");
+  const SHAPES=[{id:"rechteck",name:"Rechteck",e:"▭"},{id:"kreis",name:"Kreis",e:"⬤"},{id:"dreieck",name:"Dreieck",e:"▲"}];
+  const COLORS=[{c:"#c43e1c",n:"Rot"},{c:"#2b7a3e",n:"Grün"},{c:"#2b579a",n:"Blau"},{c:"#e0a000",n:"Gelb"}];
+  let done=false;
+  function check(){
+    if(done)return;
+    const colored=w.shapes().some(s=>s.dataset.colored==="1");
+    if(w.shapes().length && colored){ done=true; completeStation("sshapes","Form eingefügt und eingefärbt! ⬜"); }
+  }
+  function openShapes(){
+    const body=document.createElement("div");body.className="pgrid";
+    SHAPES.forEach(s=>{ const b=document.createElement("button");
+      b.innerHTML=`<span class="emoji">${s.e}</span><span class="lname">${s.name}</span>`;
+      b.onclick=()=>{ dlg.close();w.addShape(s.id);setCounter("2/2","Aufgabe");
+        setHint("Form eingefügt. Wähle jetzt eine <b>Füllfarbe</b>.","");openColors(); };
+      body.appendChild(b);});
+    const dlg=pptDialog("Form auswählen",body);
+  }
+  function openColors(){
+    const body=document.createElement("div");body.className="pgrid";
+    COLORS.forEach(c=>{ const b=document.createElement("button");
+      b.innerHTML=`<span class="emoji" style="color:${c.c}">■</span><span class="lname">${c.n}</span>`;
+      b.onclick=()=>{ dlg.close();w.colorSelected(c.c);sfx.step();check(); };
+      body.appendChild(b);});
+    const dlg=pptDialog("Füllfarbe wählen",body);
+  }
+  w.ribbonBtn("shape").onclick=openShapes;
+  setCounter("1/2","Aufgabe");
+  setHint("👉 Klicke auf <b>Formen</b> und wähle eine Form.","");
+};
+
+/* ---- Station: Objekte anordnen & ausrichten (salign) ---- */
+SCREENS.salign=(stage)=>{
+  if(stationIntro("salign",stage))return;
+  const st=STATIONS.find(s=>s.id==="salign");
+  setInstruction(`Station ${stationNumber("salign")} · ${st.title}`,"Die beiden Formen stehen versetzt. Richte sie mit „Zentrieren“ mittig aus.");
+  const w=buildPowerPoint(stage,{tab:"start",layout:"blank",arrange:true,fname:"Anordnen – PowerPoint"});
+  const a=w.addShape("rechteck","#c43e1c");a.style.left="50px";a.style.top="50px";
+  const b=w.addShape("kreis","#2b579a");b.style.left="330px";b.style.top="150px";
+  w.selectObj(null);
+  let done=false;
+  w.ribbonBtn("align-center").onclick=()=>{
+    w.alignCenterH();sfx.step();
+    const ok=w.shapes().length>0 && w.shapes().every(s=>s.style.left==="50%");
+    if(ok && !done){ done=true; completeStation("salign","Sauber zentriert – sieht ordentlich aus! 📐"); }
+  };
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Klicke im Menüband auf <b>↔️ Zentrieren</b>.","");
+};
+
+/* ---- Station: SmartArt & Diagramm (ssmart) ---- */
+SCREENS.ssmart=(stage)=>{
+  if(stationIntro("ssmart",stage))return;
+  const st=STATIONS.find(s=>s.id==="ssmart");
+  setInstruction(`Station ${stationNumber("ssmart")} · ${st.title}`,"Wandle die Schritte in eine SmartArt-Grafik um und beschrifte sie.");
+  const w=buildPowerPoint(stage,{tab:"einfuegen",layout:"titleContent",editable:false,insertTools:["smartart"],fname:"Ablauf – PowerPoint"});
+  w.setBox("title","So wächst eine Pflanze");
+  w.setBox("content","Aus Text wird eine übersichtliche Grafik: Samen → Keimling → Pflanze.");
+  const TARGET=["Samen","Keimling","Pflanze"];
+  let boxes=null,done=false;
+  function check(){
+    if(done||!boxes)return;
+    const vals=boxes.map(b=>b.textContent.trim().toLowerCase());
+    if(TARGET.every((t,i)=>vals[i]===t.toLowerCase())){ done=true; completeStation("ssmart","Aus Text wurde eine Grafik! 📈"); }
+  }
+  function openSmart(){
+    const body=document.createElement("div");body.className="pgrid";
+    [{id:"prozess",n:"Prozess",e:"➡️"},{id:"liste",n:"Liste",e:"☰"},{id:"zyklus",n:"Zyklus",e:"🔄"}].forEach(o=>{
+      const btn=document.createElement("button");
+      btn.innerHTML=`<span class="emoji">${o.e}</span><span class="lname">${o.n}</span>`;
+      btn.onclick=()=>{ dlg.close();
+        boxes=w.addSmartArt(["Schritt 1","Schritt 2","Schritt 3"]);
+        boxes.forEach(bx=>bx.addEventListener("input",check));
+        setHint("Grafik eingefügt. Trage die drei Schritte ein: <b>Samen → Keimling → Pflanze</b>.","");
+      };
+      body.appendChild(btn);
+    });
+    const dlg=pptDialog("SmartArt-Grafik wählen",body);
+  }
+  w.ribbonBtn("smartart").onclick=openSmart;
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Klicke auf <b>SmartArt</b> und wähle eine <b>Prozess</b>-Grafik.","");
+};
+
+/* ---- Station: Farben & Kontrast (scontrast) ---- */
+SCREENS.scontrast=(stage)=>{
+  if(stationIntro("scontrast",stage))return;
+  const st=STATIONS.find(s=>s.id==="scontrast");
+  setInstruction(`Station ${stationNumber("scontrast")} · ${st.title}`,"Probiere die Farbkombinationen aus und wähle eine gut lesbare.");
+  const COMBOS=[
+    {id:"weissblau", label:"Weiß auf Dunkelblau",   good:true,  bg:"#12263a", fg:"#ffffff"},
+    {id:"gelbgelb",  label:"Hellgelb auf Gelb",     good:false, bg:"#ffe600", fg:"#fff7a8"},
+    {id:"grauweiss", label:"Dunkelgrau auf Weiß",   good:true,  bg:"#ffffff", fg:"#1d2733"},
+    {id:"orange",    label:"Orange auf Orange",     good:false, bg:"#c43e1c", fg:"#e0603a"}
+  ];
+  const w=buildPowerPoint(stage,{tab:"entwurf",layout:"title",editable:false,designs:COMBOS,fname:"Lesbarkeit – PowerPoint"});
+  w.setBox("title","Gut lesbar?");
+  w.setBox("subtitle","Teste die Farbkombinationen");
+  let done=false;
+  $$('.rb-swatch[data-tool="design"]',w.wrap).forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const d=COMBOS.find(x=>x.id===btn.dataset.design);
+      $$('.rb-swatch',w.wrap).forEach(b=>b.classList.remove("active"));btn.classList.add("active");
+      w.applyDesign(d);sfx.step();
+      if(done)return;
+      if(d.good){ done=true; completeStation("scontrast","Guter Kontrast – gut lesbar! 🌗"); }
+      else setHint(`<b>${d.label}</b>: Der Text hebt sich kaum ab – <b>schwacher Kontrast</b>. Wähle eine besser lesbare Kombination.`,"warn");
+    });
+  });
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Wähle eine Kombination mit <b>starkem Kontrast</b>.","");
+};
+
+/* ---- Station: Master & Einheitlichkeit (smaster) ---- */
+SCREENS.smaster=(stage)=>{
+  if(stationIntro("smaster",stage))return;
+  const st=STATIONS.find(s=>s.id==="smaster");
+  setInstruction(`Station ${stationNumber("smaster")} · ${st.title}`,"Aktiviere im Folienmaster die Seitenzahl – sie soll auf allen Folien erscheinen.");
+  const w=buildPowerPoint(stage,{tab:"start",master:true,fname:"Projekt – PowerPoint",
+    initialSlides:[{layout:"title",name:"Titel"},{layout:"titleContent",name:"Inhalt"},{layout:"titleContent",name:"Schluss"}]});
+  let done=false;
+  function openMaster(){
+    const body=document.createElement("div");
+    body.innerHTML=`
+      <label style="display:flex;gap:8px;align-items:center;font-size:.95rem;color:var(--ink);">
+        <input type="checkbox" id="mNum"> Seitenzahl auf allen Folien anzeigen</label>`;
+    const ok=document.createElement("button");ok.className="btn btn-primary btn-small";ok.textContent="Übernehmen";
+    ok.style.marginTop="12px";
+    ok.onclick=()=>{ const on=$("#mNum",body).checked; dlg.close();
+      w.setMaster({pageNumber:on});
+      if(on && !done){ done=true; completeStation("smaster","Seitenzahl auf allen Folien – einheitlich! 🧩"); }
+      else if(!on) setHint("Setze im Master den Haken bei <b>Seitenzahl</b>, damit sie überall erscheint.","warn");
+    };
+    body.appendChild(ok);
+    const dlg=pptDialog("Folienmaster",body);
+  }
+  w.ribbonBtn("master").onclick=openMaster;
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Öffne den <b>Folienmaster</b> und aktiviere die <b>Seitenzahl</b>.","");
+};
+
+/* ---- Station: Folienübergänge (s8) ---- */
+SCREENS.s8=(stage)=>{
+  if(stationIntro("s8",stage))return;
+  const st=STATIONS.find(s=>s.id==="s8");
+  setInstruction(`Station ${stationNumber("s8")} · ${st.title}`,"Wähle im Register „Übergänge“ einen dezenten Übergang für diese Folie.");
+  const w=buildPowerPoint(stage,{tab:"uebergaenge",layout:"title",editable:false,trans:true,fname:"Vortrag – PowerPoint",
+    initialSlides:[{layout:"title",name:"Folie 1"},{layout:"titleContent",name:"Folie 2"}]});
+  w.setBox("title","Folie mit Übergang");
+  w.setBox("subtitle","Übergänge wirken beim Folienwechsel");
+  let done=false;
+  $$('.rb-btn[data-tool="trans"]',w.wrap).forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      $$('.rb-btn[data-tool="trans"]',w.wrap).forEach(b=>b.classList.remove("active"));btn.classList.add("active");
+      w.slideEl.classList.remove("anim-erscheinen");void w.slideEl.offsetWidth;w.slideEl.classList.add("anim-erscheinen");
+      sfx.step();
+      if(done)return;
+      done=true;
+      const dezent=btn.dataset.trans==="verblassen";
+      setHint(dezent?"Gute Wahl – <b>Verblassen</b> ist schön dezent.":"Übergang gesetzt. Tipp: <b>Verblassen</b> wirkt besonders ruhig.","good");
+      later(()=>completeStation("s8","Übergang gesetzt! 🔀"),700);
+    });
+  });
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Wähle einen Übergang, z. B. <b>Verblassen</b>.","");
+};
+
+/* ---- Station: Abschnitte & roter Faden (sthread) ---- */
+SCREENS.sthread=(stage)=>{
+  if(stationIntro("sthread",stage))return;
+  const st=STATIONS.find(s=>s.id==="sthread");
+  setInstruction(`Station ${stationNumber("sthread")} · ${st.title}`,"Bringe die Folien per Ziehen in eine sinnvolle Reihenfolge: Titel → Gliederung → Inhalt → Fazit.");
+  const TARGET=["Titel","Gliederung","Inhalt","Fazit"];
+  let done=false;
+  const w=buildPowerPoint(stage,{tab:"start",reorder:true,fname:"Referat – PowerPoint",
+    initialSlides:[
+      {layout:"titleContent",name:"Fazit",sub:"Zusammenfassung"},
+      {layout:"title",name:"Titel",sub:"Das Thema"},
+      {layout:"titleContent",name:"Inhalt",sub:"Hauptteil"},
+      {layout:"titleContent",name:"Gliederung",sub:"Überblick"}
+    ],
+    onReorder:(order)=>{
+      if(done)return;
+      if(TARGET.every((t,i)=>order[i]===t)){ done=true; completeStation("sthread","Ein klarer roter Faden! 🧭"); }
+      else setHint("Noch nicht ganz. Sinnvoll ist: <b>Titel → Gliederung → Inhalt → Fazit</b>.","warn");
+    }});
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Ziehe die Folien in die Reihenfolge <b>Titel → Gliederung → Inhalt → Fazit</b>.","");
+};
+
+/* ---- Station: Bildschirmpräsentation (s10) ---- */
+SCREENS.s10=(stage)=>{
+  if(stationIntro("s10",stage))return;
+  const st=STATIONS.find(s=>s.id==="s10");
+  setInstruction(`Station ${stationNumber("s10")} · ${st.title}`,"Starte die Präsentation und blättere mit den Pfeiltasten bis zur letzten Folie.");
+  const w=buildPowerPoint(stage,{tab:"start",present:true,fname:"Fertig – PowerPoint",
+    initialSlides:[
+      {layout:"title",name:"Unser Thema",sub:"Eine Präsentation"},
+      {layout:"titleContent",name:"Hauptteil",sub:"Die wichtigsten Punkte"},
+      {layout:"titleContent",name:"Schluss",sub:"Danke fürs Zuhören!"}
+    ]});
+  let done=false;
+  w.ribbonBtn("present").onclick=()=>{
+    w.startPresent(()=>{
+      if(done)return;done=true;
+      setHint("Letzte Folie erreicht! Beende die Präsentation mit <b>Esc</b>.","good");
+      later(()=>completeStation("s10","Vortrag durchgeklickt – geschafft! ▶️"),400);
+    });
+  };
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Klicke auf <b>Von Beginn</b> und blättere mit <b>→</b> bis zur letzten Folie.","");
 };
 
 /* ---- Platzhalter-Stationen ---- */
