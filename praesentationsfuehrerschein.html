@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Präsentationsführerschein</title>
+<!--
+  Präsentationsführerschein – Trainer für PowerPoint-Grundlagen (Mittelstufe).
+  Aufbau bewusst analog zu word-fuehrerschein.html (gleiche Reihe).
+  Die PowerPoint-Oberfläche ist NACHGEBAUT (kein echtes PowerPoint, keine echte .pptx).
+  Voll umgesetzt: Start + Station 1–7 (Folien, Layout, Textfelder, Bilder,
+  Typographie, Design-Grundlagen, Animationen). Übrige Stationen: Platzhalter.
+-->
+<style>
+  :root{
+    /* An aktuelles PowerPoint angelehnte Farben (PowerPoint-Orange) */
+    --ppt-deep:#8a2b0e; --ppt:#c43e1c; --ppt-bright:#e0603a; --ppt-pale:#fdf1ed;
+    --bg:#f5f3f1; --card:#fff; --ink:#1d2733; --ink-soft:#5a6675; --line:#e4ddd8;
+    --success:#217a3e; --success-soft:#e6f4ea; --hint:#b9520b; --hint-soft:#fbeede;
+    --ribbon:#fbf6f4; --ribbon-line:#ecdfd8;
+    --shadow:0 10px 30px rgba(138,43,14,.12); --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);
+    color:var(--ink);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh;}
+  .no-select{user-select:none;-webkit-user-select:none;}
+
+  /* ---- Kopfzeile der App ---- */
+  header.app{background:linear-gradient(120deg,var(--ppt-deep),var(--ppt) 60%,var(--ppt-bright));
+    color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px;
+    box-shadow:0 4px 16px rgba(138,43,14,.25);flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.18rem;white-space:nowrap;}
+  .brand .glyph{font-size:1.45rem;}
+  .brand small{display:block;font-weight:400;font-size:.68rem;opacity:.85;letter-spacing:.4px;text-transform:uppercase;}
+  .navbtn,.gear{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:38px;height:38px;
+    border-radius:9px;font-size:1.15rem;cursor:pointer;display:grid;place-items:center;}
+  .navbtn:hover,.gear:hover{background:rgba(255,255,255,.28);}
+  .stationnow{margin-right:auto;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#fff;
+    border-radius:999px;padding:6px 14px;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap;
+    max-width:46vw;overflow:hidden;text-overflow:ellipsis;}
+  .stationnow:hover{background:rgba(255,255,255,.26);}
+  .hud{display:flex;align-items:center;gap:9px;color:#fff;white-space:nowrap;}
+  .hud .lvl{background:#ffd479;color:#5a3a06;font-weight:700;border-radius:999px;padding:4px 10px;font-size:.78rem;}
+  .hud .xpbar{position:relative;width:120px;height:13px;background:rgba(255,255,255,.2);border-radius:8px;overflow:hidden;}
+  .hud .xpfill{height:100%;width:0;background:linear-gradient(90deg,var(--hint),#ffd479);transition:width .45s ease;}
+  .hud .xptxt{position:absolute;inset:0;display:grid;place-items:center;font-size:.62rem;font-weight:700;color:#5a3a06;}
+  .hud .coins{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:600;}
+
+  .xpfloat{position:fixed;z-index:90;transform:translateX(-50%);font-weight:800;color:var(--hint);
+    text-shadow:0 1px 4px rgba(0,0,0,.2);pointer-events:none;animation:rise 1.1s ease-out forwards;}
+  @keyframes rise{0%{opacity:0;transform:translate(-50%,6px) scale(.8);}20%{opacity:1;}100%{opacity:0;transform:translate(-50%,-34px) scale(1.1);}}
+  .toast{position:fixed;top:68px;right:18px;z-index:90;max-width:300px;background:#fff;border-left:5px solid var(--ppt);
+    border-radius:10px;box-shadow:0 12px 30px rgba(138,43,14,.25);padding:12px 16px;font-size:.9rem;color:var(--ink);line-height:1.4;
+    opacity:0;transform:translateX(30px);transition:opacity .3s,transform .3s;}
+  .toast.show{opacity:1;transform:translateX(0);}
+  .toast.good{border-left-color:var(--success);}
+
+  /* ---- Maskottchen ---- */
+  .bot{transition:transform .15s;}
+  .bot.bot-happy{animation:botHappy .9s ease;}
+  .bot.bot-cheer{animation:botCheer .9s ease;}
+  .bot.bot-think{animation:botThink .9s ease;}
+  @keyframes botHappy{0%,100%{transform:translateY(0);}30%{transform:translateY(-7px);}60%{transform:translateY(-2px);}}
+  @keyframes botCheer{0%,100%{transform:rotate(0) scale(1);}25%{transform:rotate(-9deg) scale(1.12);}55%{transform:rotate(9deg) scale(1.12);}80%{transform:rotate(-4deg) scale(1.05);}}
+  @keyframes botThink{0%,100%{transform:rotate(0);}40%{transform:rotate(-6deg);}}
+
+  /* ---- Karte / Instruktion / Footer ---- */
+  main{flex:1;display:flex;justify-content:center;padding:20px 16px 28px;}
+  .card{background:var(--card);width:min(1000px,100%);border-radius:var(--radius);box-shadow:var(--shadow);
+    overflow:hidden;display:flex;flex-direction:column;}
+  .instruct{display:flex;gap:14px;align-items:flex-start;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--ppt-pale);}
+  .bot.avatar{flex:none;width:48px;height:48px;border-radius:50%;background:#fff;border:2px solid var(--ppt-bright);
+    display:grid;place-items:center;box-shadow:0 4px 12px rgba(138,43,14,.12);}
+  .bot.avatar svg{width:28px;height:28px;}
+  .instruct .txt{flex:1;}
+  .instruct h2{margin:0 0 3px;font-size:1.1rem;color:var(--ppt-deep);}
+  .instruct p{margin:0;color:var(--ink-soft);font-size:.95rem;line-height:1.45;}
+  .counter{flex:none;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center;font-size:.76rem;color:var(--ink-soft);min-width:76px;}
+  .counter b{display:block;font-size:1.18rem;color:var(--ppt);line-height:1.1;}
+
+  .play{padding:20px;min-height:380px;display:flex;flex-direction:column;}
+  .footbar{display:flex;align-items:center;gap:12px;padding:13px 20px;border-top:1px solid var(--line);background:#fdfbfa;min-height:60px;flex-wrap:wrap;}
+  .hint{flex:1;min-width:200px;font-size:.94rem;color:var(--ink-soft);display:flex;align-items:center;gap:9px;transition:.2s;}
+  .hint.good{color:var(--success);font-weight:600;}
+  .hint.warn{color:var(--hint);}
+  .btn{border:none;border-radius:9px;padding:10px 18px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;}
+  .btn-primary{background:var(--ppt);color:#fff;}
+  .btn-primary:hover{background:var(--ppt-deep);}
+  .btn-ghost{background:#fff;color:var(--ppt);border:1px solid var(--line);}
+  .btn-ghost:hover{background:var(--ppt-pale);}
+  .btn-small{padding:7px 12px;font-size:.85rem;}
+
+  /* ---- Startseite ---- */
+  .hero{text-align:center;max-width:640px;margin:6px auto;}
+  .hero h1{color:var(--ppt-deep);font-size:1.7rem;margin:.2em 0;}
+  .hero p{color:var(--ink-soft);line-height:1.55;}
+  .hero .doc-emoji{font-size:3rem;}
+
+  /* ---- Erklärseite ---- */
+  .explainer{max-width:740px;margin:6px auto 12px;background:linear-gradient(170deg,#fff,var(--ppt-pale));
+    border:2px solid var(--ppt-bright);border-radius:18px;box-shadow:0 8px 26px rgba(138,43,14,.14);overflow:hidden;}
+  .explainer-head{display:flex;align-items:center;gap:10px;padding:11px 18px;
+    background:linear-gradient(90deg,var(--ppt-deep),var(--ppt));color:#fff;font-weight:700;font-size:1.05rem;}
+  .explainer-head .badge{font-size:1.3rem;line-height:1;}
+  .explainer-body{padding:18px 22px 4px;}
+  .explainer-lead{margin:0 0 14px;color:var(--ink);font-size:1.0rem;line-height:1.55;}
+  .explainer ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;}
+  .explainer ul li{display:flex;gap:10px;align-items:flex-start;font-size:.95rem;color:var(--ink-soft);line-height:1.45;}
+  .explainer ul li .me{font-size:1.15rem;line-height:1;flex:none;}
+  .explainer-steps{margin:6px 22px 20px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;}
+  .explainer-steps h3{margin:0 0 9px;font-size:1.0rem;color:var(--ppt-deep);}
+  .explainer-steps ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:7px;}
+  .explainer-steps li{font-size:.94rem;color:var(--ink-soft);line-height:1.5;}
+  .explainer b{color:var(--ppt-deep);}
+
+  /* ============================================================
+     Nachgebaute PowerPoint-Oberfläche (wiederverwendbar)
+     ============================================================ */
+  .ppt{border:1px solid var(--ribbon-line);border-radius:10px;overflow:hidden;box-shadow:0 6px 18px rgba(138,43,14,.10);background:#fff;}
+  .ppt-title{background:var(--ppt);color:#fff;display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:.82rem;}
+  .ppt-title .dot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.55);}
+  .ppt-title .fname{margin-left:6px;font-weight:600;}
+  .ppt-title .win{margin-left:auto;display:flex;gap:14px;opacity:.85;}
+  /* Registerkarten */
+  .ppt-tabs{display:flex;gap:2px;background:var(--ppt-deep);padding:0 8px;flex-wrap:wrap;}
+  .ppt-tab{color:#f4dcd3;padding:8px 14px;font-size:.84rem;cursor:pointer;border:none;background:none;font-family:inherit;
+    border-top-left-radius:6px;border-top-right-radius:6px;}
+  .ppt-tab:hover{background:rgba(255,255,255,.12);color:#fff;}
+  .ppt-tab.active{background:var(--ribbon);color:var(--ppt-deep);font-weight:600;}
+  /* Menüband */
+  .ribbon{display:flex;gap:0;background:var(--ribbon);border-bottom:1px solid var(--ribbon-line);padding:8px 6px 4px;flex-wrap:wrap;}
+  .rb-group{display:flex;flex-direction:column;align-items:center;padding:0 10px;border-right:1px solid var(--ribbon-line);gap:5px;}
+  .rb-row{display:flex;gap:4px;align-items:center;}
+  .rb-label{font-size:.66rem;color:var(--ink-soft);}
+  .rb-btn{min-width:34px;height:34px;padding:0 8px;border:1px solid transparent;background:none;border-radius:6px;cursor:pointer;
+    font-size:.95rem;font-family:inherit;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:4px;}
+  .rb-btn:hover{background:#f3e2db;border-color:var(--ribbon-line);}
+  .rb-btn.active{background:#f6ddd2;border-color:var(--ppt-bright);color:var(--ppt-deep);}
+  .rb-btn.bold{font-weight:800;}
+  .rb-btn.italic{font-style:italic;}
+  .rb-btn.underline{text-decoration:underline;}
+  .rb-btn:disabled{opacity:.4;cursor:default;}
+  .rb-big{flex-direction:column;height:auto;padding:4px 8px;line-height:1.05;}
+  .rb-big span{font-size:.6rem;}
+  .rb-sel{height:30px;border:1px solid var(--ribbon-line);border-radius:6px;font-family:inherit;font-size:.85rem;padding:0 6px;background:#fff;}
+  .rb-swatch{width:40px;height:34px;border:1px solid var(--ribbon-line);border-radius:6px;cursor:pointer;display:grid;place-items:center;
+    font-weight:800;font-size:.9rem;padding:0;}
+  .rb-swatch:hover{outline:2px solid var(--ppt-bright);}
+  .rb-swatch.active{outline:2px solid var(--ppt);}
+
+  /* Arbeitsbereich: Folienleiste + Folie */
+  .ppt-body{display:flex;background:#eae6e2;max-height:400px;}
+  .ppt-rail{flex:none;width:118px;background:#f3efec;border-right:1px solid var(--ribbon-line);padding:10px 8px;
+    display:flex;flex-direction:column;gap:9px;overflow-y:auto;}
+  .ppt-thumb{display:flex;gap:6px;align-items:center;cursor:pointer;}
+  .ppt-thumb-n{font-size:.72rem;color:var(--ink-soft);width:12px;text-align:right;}
+  .ppt-thumb-mini{flex:1;height:44px;background:#fff;border:1px solid var(--line);border-radius:3px;position:relative;overflow:hidden;}
+  .ppt-thumb.active .ppt-thumb-mini{border-color:var(--ppt-bright);box-shadow:0 0 0 2px var(--ppt-bright);}
+  .ppt-thumb-mini::before{content:"";position:absolute;left:6px;right:6px;top:8px;height:5px;border-radius:2px;background:#d6cec8;}
+  .ppt-thumb-mini.ly-blank::before{display:none;}
+  .ppt-thumb-mini.ly-titleContent::after{content:"";position:absolute;left:6px;right:6px;top:18px;bottom:6px;border-radius:2px;background:#ece6e2;}
+  .ppt-stage-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;}
+  /* Die Folie (16:9) */
+  .ppt-slide{position:relative;width:min(520px,100%);aspect-ratio:16/9;background:#fff;border:1px solid var(--line);
+    box-shadow:0 4px 16px rgba(0,0,0,.16);border-radius:4px;padding:26px 30px;display:flex;flex-direction:column;gap:12px;overflow:hidden;
+    transition:background .25s,color .25s;}
+  .ppt-box{border-radius:4px;padding:4px 8px;outline:none;line-height:1.3;min-height:1.4em;cursor:text;}
+  .ppt-box:empty:before{content:attr(data-ph);color:#b3aca6;font-style:italic;}
+  .ppt-box:focus{box-shadow:0 0 0 2px var(--ppt-bright);}
+  .box-title{font-size:1.5rem;font-weight:700;color:var(--ppt-deep);}
+  .box-sub{font-size:1rem;color:var(--ink-soft);}
+  .box-content{font-size:1rem;flex:1;color:var(--ink);}
+  .box-free{position:absolute;left:34px;top:64px;min-width:160px;border:1px dashed var(--ppt-bright);background:rgba(255,255,255,.6);}
+  .box-free.second{top:150px;}
+  .ppt-img{font-size:2.8rem;text-align:center;cursor:pointer;line-height:1;padding:4px;border-radius:6px;align-self:center;}
+  .objsel{outline:2px solid var(--ppt-bright);outline-offset:2px;}
+  /* Animationseffekte */
+  .anim-erscheinen{animation:aFade .6s ease;}
+  .anim-einfliegen{animation:aFly .6s ease;}
+  .anim-zoom{animation:aZoom .6s ease;}
+  .anim-springen{animation:aBounce .7s ease;}
+  @keyframes aFade{from{opacity:0;}to{opacity:1;}}
+  @keyframes aFly{from{opacity:0;transform:translateX(-60px);}to{opacity:1;transform:none;}}
+  @keyframes aZoom{from{opacity:0;transform:scale(.4);}to{opacity:1;transform:scale(1);}}
+  @keyframes aBounce{0%{transform:translateY(-30px);}40%{transform:translateY(6px);}70%{transform:translateY(-3px);}100%{transform:translateY(0);}}
+  .anim-badge{position:absolute;left:-8px;top:-8px;background:var(--ppt);color:#fff;border-radius:50%;width:18px;height:18px;
+    font-size:.66rem;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+  .ppt-obj{position:relative;}
+
+  .ppt-status{display:flex;align-items:center;gap:14px;background:var(--ppt);color:#fff;font-size:.74rem;padding:4px 14px;}
+  .ppt-status .right{margin-left:auto;}
+
+  /* Dialog (Layout-, Bild-, Design-Auswahl) */
+  .pdialog-back{position:fixed;inset:0;background:rgba(40,20,10,.45);z-index:74;display:grid;place-items:center;padding:18px;}
+  .pdialog{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.32);
+    padding:16px 18px;width:min(420px,94vw);}
+  .pdialog-head{font-weight:700;color:var(--ppt-deep);margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:8px;}
+  .pgrid{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .pgrid button{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;cursor:pointer;font-family:inherit;
+    display:flex;flex-direction:column;align-items:center;gap:5px;width:96px;}
+  .pgrid button:hover{border-color:var(--ppt-bright);background:var(--ppt-pale);}
+  .pgrid .emoji{font-size:2rem;}
+  .pgrid .lname{font-size:.74rem;color:var(--ink-soft);}
+  .layoutmini{width:78px;height:44px;border:1px solid var(--line);border-radius:3px;position:relative;background:#fff;}
+  .layoutmini i{position:absolute;background:#d6cec8;border-radius:2px;display:block;}
+  .pdialog-btns{display:flex;justify-content:flex-end;margin-top:12px;}
+
+  /* Platzhalter-Stationen */
+  .placeholder{max-width:560px;margin:10px auto;text-align:center;background:var(--ppt-pale);
+    border:1px solid var(--line);border-radius:14px;padding:26px;}
+  .placeholder .big{font-size:2.4rem;}
+  .placeholder h3{color:var(--ppt-deep);margin:.4em 0;}
+  .placeholder p{color:var(--ink-soft);line-height:1.5;margin:.3em 0;}
+
+  /* ---- Drawer / Fortschritt ---- */
+  .progress{display:none;}
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(70,30,10,.5);z-index:59;display:none;}
+  .drawer-backdrop.open{display:block;}
+  .drawer{position:fixed;left:0;top:0;bottom:0;width:min(300px,86vw);z-index:60;display:flex;flex-direction:column;
+    background:linear-gradient(160deg,var(--ppt-deep),var(--ppt));box-shadow:6px 0 24px rgba(0,0,0,.3);
+    transform:translateX(-100%);transition:transform .25s ease;}
+  .drawer.open{transform:none;}
+  .drawer-head{display:flex;align-items:center;gap:8px;padding:14px;color:#fff;font-weight:700;border-bottom:1px solid rgba(255,255,255,.18);}
+  .drawer-head .drawer-progress{margin-left:auto;font-size:.76rem;background:rgba(255,255,255,.15);border-radius:999px;padding:3px 9px;}
+  .drawer-x{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:30px;height:30px;border-radius:8px;font-size:1.1rem;cursor:pointer;}
+  #drawer .progress{display:flex;flex-direction:column;gap:6px;padding:10px;overflow-y:auto;flex:1;}
+  .stamp{display:flex;align-items:center;gap:9px;width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+    color:#fff;border-radius:999px;padding:9px 12px;font-size:.86rem;cursor:pointer;text-align:left;font-family:inherit;}
+  .stamp:hover{background:rgba(255,255,255,.22);}
+  .stamp.active{outline:2px solid #fff;outline-offset:1px;}
+  .stamp.done{background:#fff;color:var(--ppt-deep);font-weight:600;}
+  .stamp .dot{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:.8rem;flex:none;}
+  .stamp.done .dot{background:var(--success);color:#fff;}
+
+  /* ---- Einstellungen-Overlay ---- */
+  .overlay{position:fixed;inset:0;background:rgba(70,30,10,.5);z-index:70;display:none;align-items:center;justify-content:center;padding:18px;}
+  .overlay.open{display:flex;}
+  .panel{background:#fff;border-radius:14px;width:min(440px,100%);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+  .panel header{background:var(--ppt);color:#fff;padding:13px 18px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+  .panel header button{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;}
+  .panel .body{padding:18px;}
+  .setrow{margin-bottom:16px;}
+  .setrow label{font-weight:600;display:block;margin-bottom:5px;}
+  .setrow .help{font-size:.82rem;color:var(--ink-soft);margin-bottom:6px;}
+
+  footer.sitefooter{text-align:center;color:var(--ink-soft);font-size:.78rem;padding:14px;line-height:1.5;}
+  footer.sitefooter a{color:var(--ppt);}
+
+  @media (max-width:560px){ .ppt-slide{padding:18px 20px;} .rb-group{padding:0 6px;} .ppt-rail{width:92px;} }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="brand"><span class="glyph">📊</span><span>Präsentationsführerschein<small>Folien gestalten Schritt für Schritt</small></span></div>
+  <button class="navbtn" id="navBtn" aria-label="Stationen" aria-expanded="false">☰</button>
+  <button class="stationnow" id="stationNow" aria-label="Aktuelle Station">Start</button>
+  <div class="hud" id="hud" aria-label="Punktestand">
+    <span class="lvl" id="hudLvl">Lv 1</span>
+    <div class="xpbar"><div class="xpfill" id="hudXp"></div><span class="xptxt" id="hudXpTxt"></span></div>
+    <span class="coins" id="hudCoins">🪙 0</span>
+  </div>
+  <button class="gear" id="gearBtn" title="Einstellungen" aria-label="Einstellungen">⚙</button>
+</header>
+
+<main>
+  <div class="card">
+    <div class="instruct">
+      <div class="bot avatar" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none">
+          <rect x="9" y="13" width="22" height="18" rx="5" fill="#e0603a"/>
+          <rect x="13" y="18" width="14" height="8" rx="3" fill="#fff"/>
+          <circle cx="17" cy="22" r="2" fill="#8a2b0e"/><circle cx="23" cy="22" r="2" fill="#8a2b0e"/>
+          <rect x="18.5" y="6" width="3" height="6" rx="1.5" fill="#c43e1c"/><circle cx="20" cy="5" r="2.5" fill="#b9520b"/>
+          <rect x="6" y="19" width="3" height="7" rx="1.5" fill="#c43e1c"/><rect x="31" y="19" width="3" height="7" rx="1.5" fill="#c43e1c"/>
+        </svg>
+      </div>
+      <div class="txt"><h2 id="iTitle">Willkommen</h2><p id="iText">Schön, dass du da bist!</p></div>
+      <div class="counter" id="counter" style="display:none;"><b id="cNum">0</b><span id="cLab">Aufgabe</span></div>
+    </div>
+
+    <div class="play" id="stage"></div>
+
+    <div class="footbar">
+      <div class="hint" id="hint"><span class="ic">💬</span><span id="hintText">Klicke auf „Los geht’s“, um zu starten.</span></div>
+      <button class="btn btn-ghost btn-small" id="skipBtn" style="display:none;">Überspringen</button>
+      <button class="btn btn-ghost" id="replayBtn" style="display:none;">Nochmal üben</button>
+      <button class="btn btn-primary" id="nextBtn" style="display:none;">Weiter</button>
+    </div>
+  </div>
+</main>
+
+<footer class="sitefooter">
+  <p>© 2026 Wolfgang Schneider · <b>Präsentationsführerschein</b> (im Aufbau · Stationen 1–7 spielbar)</p>
+  <p>Lizenz: <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>.
+     Microsoft PowerPoint ist eine Marke der Microsoft Corp.; diese Übung ist eine eigenständige Nachbildung zu Lernzwecken.</p>
+</footer>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <span>Stationen</span>
+    <span class="drawer-progress" id="drawerProgress"></span>
+    <button class="drawer-x" id="drawerClose" aria-label="Schließen">×</button>
+  </div>
+  <nav class="progress" id="progress" aria-label="Stationen"></nav>
+</aside>
+
+<div class="overlay" id="overlay">
+  <div class="panel" role="dialog" aria-modal="true" aria-label="Einstellungen">
+    <header>Einstellungen <button id="closeSet" aria-label="Schließen">×</button></header>
+    <div class="body">
+      <div class="setrow">
+        <label><input type="checkbox" id="soundChk" checked> Töne abspielen</label>
+        <div class="help">Kleine Klänge bei Erfolg.</div>
+      </div>
+      <div class="setrow" style="margin-bottom:0;text-align:center;">
+        <button class="btn btn-ghost" id="resetBtn">Fortschritt zurücksetzen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $  = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
+
+/* ============================================================
+   Stationen
+   ============================================================ */
+const STATIONS = [
+  {id:"start", short:"Start",       icon:"🏁"},
+  {id:"s1",    short:"Folien",      icon:"🗂️", title:"Folien anlegen",       desc:"Neue Folien einfügen & ordnen"},
+  {id:"s2",    short:"Layout",      icon:"▤",  title:"Folienlayout",         desc:"Passendes Layout wählen"},
+  {id:"s3",    short:"Textfeld",    icon:"🔤", title:"Textfelder",           desc:"Textfeld einfügen & beschriften"},
+  {id:"s4",    short:"Bild",        icon:"🖼️", title:"Bilder einfügen",      desc:"Bild auswählen & platzieren"},
+  {id:"s5",    short:"Typografie",  icon:"✒️", title:"Typografie",           desc:"Schrift lesbar & sinnvoll wählen"},
+  {id:"s6",    short:"Design",      icon:"🎨", title:"Design-Grundlagen",    desc:"Farbe, Kontrast & Klarheit"},
+  {id:"s7",    short:"Animation",   icon:"✨", title:"Animationen & Effekte",desc:"Objekte gezielt animieren"},
+  {id:"s8",    short:"Übergänge",   icon:"🔀", title:"Folienübergänge",      desc:"Übergang zwischen Folien"},
+  {id:"s9",    short:"Aufzählung",  icon:"•",  title:"Aufzählungen",         desc:"Gliederungsebenen & Bullets"},
+  {id:"s10",   short:"Präsentieren",icon:"▶️", title:"Bildschirmpräsentation",desc:"Vortrag starten & navigieren"}
+];
+const PLAYABLE = STATIONS.filter(s=>s.id!=="start");
+const stationNumber = id => PLAYABLE.findIndex(s=>s.id===id)+1;
+/* Stationen, die bereits voll spielbar sind: */
+const IMPLEMENTED = ["s1","s2","s3","s4","s5","s6","s7"];
+
+/* ============================================================
+   Zustand & Gamification (analog Word-/Maus-Trainer)
+   ============================================================ */
+const state = {
+  current:"start", done:{}, sound:true, xp:0, level:1, coins:0, badges:{},
+  stats:{attempts:0, fails:0}
+};
+let _timers=[];
+function stopLoop(){ _timers.forEach(clearTimeout); _timers=[]; }
+function later(fn,ms){ const t=setTimeout(fn,ms); _timers.push(t); return t; }
+
+let audioCtx=null;
+function tone(freq,dur=0.12,type="sine",vol=0.18){
+  if(!state.sound) return;
+  try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+dur);
+    o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+const sfx={ good(){tone(660,.1,"sine",.16);later(()=>tone(880,.14,"sine",.16),90);},
+  step(){tone(560,.08,"triangle",.13);}, win(){[523,659,784,1046].forEach((f,i)=>later(()=>tone(f,.16,"sine",.17),i*120));} };
+
+const LEVELS=[
+  {min:0,title:"Folien-Neuling"},{min:60,title:"Folien-Schüler"},{min:150,title:"Präsentations-Kenner"},
+  {min:300,title:"Präsentations-Profi"},{min:500,title:"Präsentations-Meister"}
+];
+function levelForXp(xp){let lv=1,t=LEVELS[0].title;LEVELS.forEach((l,i)=>{if(xp>=l.min){lv=i+1;t=l.title;}});return{lv,title:t};}
+const BADGES={
+  first_step:{icon:"👣",title:"Erster Schritt"}, slides:{icon:"🗂️",title:"Folien-Baumeister"},
+  layout:{icon:"▤",title:"Layout-Kenner"}, textbox:{icon:"🔤",title:"Textfeld-Profi"},
+  image_pro:{icon:"🖼️",title:"Bilder-Profi"}, typo:{icon:"✒️",title:"Typo-Auge"},
+  design:{icon:"🎨",title:"Design-Auge"}, anim:{icon:"✨",title:"Animations-Regisseur"},
+  halfway:{icon:"🌟",title:"Halbzeit-Star"}
+};
+
+function toast(html,mood){
+  const t=document.createElement("div");t.className="toast"+(mood?" "+mood:"");t.innerHTML=html;
+  document.body.appendChild(t);requestAnimationFrame(()=>t.classList.add("show"));
+  setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),350);},2600);
+}
+function floatXP(n){
+  const hud=$("#hud");if(!hud)return;const r=hud.getBoundingClientRect();
+  const f=document.createElement("div");f.className="xpfloat";f.textContent="+"+n+" XP";
+  f.style.left=(r.left+r.width/2)+"px";f.style.top=(r.bottom+4)+"px";
+  document.body.appendChild(f);setTimeout(()=>f.remove(),1100);
+}
+function mascotReact(mood){
+  const bot=$(".bot.avatar");if(!bot)return;
+  const cls=mood==="level"?"bot-cheer":mood==="warn"?"bot-think":"bot-happy";
+  bot.classList.remove("bot-cheer","bot-happy","bot-think");void bot.offsetWidth;bot.classList.add(cls);
+  setTimeout(()=>bot.classList.remove(cls),900);
+}
+function refreshHUD(){
+  const {lv}=levelForXp(state.xp);state.level=lv;
+  $("#hudLvl").textContent="Lv "+lv;$("#hudLvl").title=LEVELS[lv-1].title;
+  const cur=LEVELS[lv-1].min,next=LEVELS[lv]?LEVELS[lv].min:cur,span=Math.max(1,next-cur);
+  const pct=LEVELS[lv]?Math.min(100,Math.round((state.xp-cur)/span*100)):100;
+  $("#hudXp").style.width=pct+"%";
+  $("#hudXpTxt").textContent=LEVELS[lv]?(state.xp+" / "+next):(state.xp+" XP");
+  $("#hudCoins").textContent="🪙 "+state.coins;
+}
+function awardXP(n){
+  const before=state.level;state.xp+=n;state.coins+=n;
+  const {lv,title}=levelForXp(state.xp);state.level=lv;refreshHUD();floatXP(n);
+  if(lv>before){sfx.win();mascotReact("level");
+    toast(`🎉 <b>Level ${lv}!</b><br>Codi: „Stark – du bist jetzt <b>${title}</b>!“`,"good");}
+}
+function unlock(id){
+  if(state.badges[id]||!BADGES[id])return;
+  state.badges[id]=true;const b=BADGES[id];sfx.good();
+  toast(`Abzeichen freigeschaltet:<br><b>${b.icon} ${b.title}</b>`,"good");
+  state.xp+=15;state.coins+=15;refreshHUD();
+}
+function checkStationBadges(id){
+  unlock("first_step");
+  if(id==="s1")unlock("slides");
+  if(id==="s2")unlock("layout");
+  if(id==="s3")unlock("textbox");
+  if(id==="s4")unlock("image_pro");
+  if(id==="s5")unlock("typo");
+  if(id==="s6")unlock("design");
+  if(id==="s7")unlock("anim");
+  if(Object.keys(state.done).length>=5)unlock("halfway");
+}
+
+/* ---- Anzeige-Helfer ---- */
+function setInstruction(title,text){ $("#iTitle").textContent=title; $("#iText").innerHTML=text; }
+function setHint(html,mood){
+  const h=$("#hint");h.className="hint"+(mood?" "+mood:"");
+  h.querySelector(".ic").textContent=mood==="good"?"✅":mood==="warn"?"💡":"💬";
+  $("#hintText").innerHTML=html;
+}
+function setCounter(num,label){const c=$("#counter");if(num==null){c.style.display="none";return;}c.style.display="";$("#cNum").textContent=num;$("#cLab").textContent=label||"Aufgabe";}
+function showNext(show,label="Weiter"){const b=$("#nextBtn");b.style.display=show?"":"none";b.textContent=label;}
+function showReplay(show){$("#replayBtn").style.display=show?"":"none";}
+function showSkip(show,fn){const b=$("#skipBtn");b.style.display=show?"":"none";b.onclick=fn||null;}
+
+/* ---- Fortschritt / Drawer ---- */
+function buildProgress(){
+  const nav=$("#progress");nav.innerHTML="";
+  STATIONS.forEach(st=>{ if(st.id==="start")return;
+    const b=document.createElement("button");b.className="stamp";b.dataset.id=st.id;
+    b.innerHTML=`<span class="dot">${st.icon}</span>${st.short}`;
+    b.addEventListener("click",()=>{closeDrawer();go(st.id);});nav.appendChild(b);
+  });
+}
+function refreshProgress(){
+  $$(".stamp").forEach(b=>{const id=b.dataset.id;
+    b.classList.toggle("done",!!state.done[id]);b.classList.toggle("active",state.current===id);
+    b.querySelector(".dot").textContent=state.done[id]?"✓":STATIONS.find(s=>s.id===id).icon;});
+  const total=PLAYABLE.length,done=PLAYABLE.filter(s=>state.done[s.id]).length;
+  const cur=STATIONS.find(s=>s.id===state.current);
+  const label=state.current==="start"?"Start"
+    :`Station ${stationNumber(state.current)}/${total} · ${cur?cur.short:""}`;
+  $("#stationNow").textContent=label;
+  $("#drawerProgress").textContent=`${done}/${total} ✓`;
+}
+function openDrawer(){$("#drawer").classList.add("open");$("#drawerBackdrop").classList.add("open");$("#navBtn").setAttribute("aria-expanded","true");}
+function closeDrawer(){$("#drawer").classList.remove("open");$("#drawerBackdrop").classList.remove("open");$("#navBtn").setAttribute("aria-expanded","false");}
+function markDone(id){state.done[id]=true;refreshProgress();}
+function nextStationId(){const i=STATIONS.findIndex(s=>s.id===state.current);return STATIONS[Math.min(i+1,STATIONS.length-1)].id;}
+
+/* ---- Router ---- */
+function go(id){
+  stopLoop();state.current=id;
+  const stage=$("#stage");stage.innerHTML="";
+  setHint("","");showNext(false);showReplay(false);showSkip(false);setCounter(null);
+  refreshProgress();refreshHUD();
+  (SCREENS[id]||SCREENS.start)(stage);
+  $("main").scrollTop=0;
+}
+function completeStation(id,msg){
+  const isNew=!state.done[id];
+  markDone(id);setHint(msg||"Super gemacht! 🎉","good");sfx.win();showSkip(false);
+  if(isNew){ awardXP(20); state.stats.attempts++; checkStationBadges(id); }
+  const next=nextStationId();showReplay(true);
+  if(next===id){ showNext(false); }
+  else { showNext(true,'Weiter zu „'+STATIONS.find(s=>s.id===next).short+'“ ›'); $("#nextBtn").onclick=()=>go(next); }
+}
+$("#replayBtn").addEventListener("click",()=>go(state.current));
+
+/* ============================================================
+   Erklärseiten
+   ============================================================ */
+const INTROS={
+  s1:{head:"Folien anlegen", lead:"Eine Präsentation besteht aus einzelnen <b>Folien</b>. Über <b>Neue Folie</b> im Register <b>Start</b> fügst du weitere Folien hinzu. Links siehst du alle Folien als <b>Miniaturansichten</b> – dort erkennst du Anzahl und Reihenfolge.",
+    points:[{ic:"➕",txt:"<b>Neue Folie</b> fügt am Ende eine leere Folie an."},
+      {ic:"🗂️",txt:"Die <b>Folienleiste</b> links zeigt alle Folien nummeriert."},
+      {ic:"🎯",txt:"Faustregel: <b>eine Kernaussage pro Folie</b> – nicht alles auf eine Folie packen."}],
+    steps:["Klicke im Menüband auf <b>Neue Folie</b>.","Beobachte, wie links eine Miniatur dazukommt.","Füge so viele Folien hinzu, bis die Vorgabe erreicht ist."]},
+  s2:{head:"Folienlayout", lead:"Jede Folie hat ein <b>Layout</b> – eine Vorlage, die festlegt, wo Titel, Text oder Inhalt stehen. Das passende Layout spart Arbeit und sorgt für ein <b>einheitliches</b> Aussehen der ganzen Präsentation.",
+    points:[{ic:"▤",txt:"Über <b>Layout</b> wählst du die Struktur der Folie."},
+      {ic:"🏷️",txt:"<b>Titelfolie</b> für den Anfang, <b>Titel und Inhalt</b> für den Rest."},
+      {ic:"📐",txt:"Platzhalter zeigen dir, wohin welcher Inhalt gehört."}],
+    steps:["Öffne im Menüband <b>Layout</b>.","Wähle das Layout, das zur Aufgabe passt.","Die Platzhalter auf der Folie ändern sich sofort."]},
+  s3:{head:"Textfelder", lead:"Text steht in PowerPoint immer in einem <b>Textfeld</b>. Über <b>Einfügen → Textfeld</b> erstellst du ein neues Feld und tippst hinein. So platzierst du Beschriftungen genau dort, wo du sie brauchst.",
+    points:[{ic:"🔤",txt:"<b>Textfeld</b> einfügen und direkt hineinschreiben."},
+      {ic:"👆",txt:"Klick ins Feld, dann tippen – wie in einer kleinen Box."},
+      {ic:"✂️",txt:"Kurz und knapp: <b>Stichworte statt ganzer Sätze</b>."}],
+    steps:["Klicke im Register <b>Einfügen</b> auf <b>Textfeld</b>.","Tippe den vorgegebenen Text hinein.","Füge das zweite Textfeld genauso hinzu."]},
+  s4:{head:"Bilder einfügen", lead:"Ein passendes <b>Bild</b> macht eine Folie anschaulicher als reiner Text. Bilder fügst du über <b>Einfügen → Bilder</b> hinzu und wählst eins aus der Auswahl.",
+    points:[{ic:"🗂️",txt:"Register <b>Einfügen</b> → <b>Bilder</b>."},
+      {ic:"🖼️",txt:"Wähle ein Bild, das zum Thema passt."},
+      {ic:"⚖️",txt:"Wenige, große Bilder wirken besser als viele kleine."}],
+    steps:["Öffne <b>Bilder</b> im Register Einfügen.","Wähle ein passendes Bild aus.","Es erscheint auf deiner Folie."]},
+  s5:{head:"Typografie", lead:"<b>Typografie</b> heißt: die Schrift so wählen, dass alle sie gut lesen können – auch in der letzten Reihe. Wichtig sind <b>Größe</b>, <b>Kontrast</b> und wenige, klare Schriftarten.",
+    points:[{ic:"🔠",txt:"Überschriften groß: als Faustregel <b>mind. 40 pt</b>."},
+      {ic:"🌗",txt:"Guter <b>Kontrast</b>: dunkle Schrift auf hellem Grund (oder umgekehrt)."},
+      {ic:"✌️",txt:"<b>Höchstens zwei</b> Schriftarten pro Präsentation."}],
+    steps:["Klicke den Titel an, um ihn auszuwählen.","Stelle oben eine ausreichend große Schriftgröße ein.","Gib dem Titel eine gut lesbare Farbe."]},
+  s6:{head:"Design-Grundlagen", lead:"Ein gutes <b>Design</b> lenkt nicht ab, sondern unterstützt die Aussage. Entscheidend sind <b>Kontrast</b> (gut lesbar) und <b>Ruhe</b> („weniger ist mehr“). Im Register <b>Entwurf</b> wählst du ein Design für alle Folien.",
+    points:[{ic:"🌗",txt:"<b>Kontrast</b> zuerst: Text muss sich klar vom Hintergrund abheben."},
+      {ic:"🧹",txt:"Weniger ist mehr – nicht mit Farben und Effekten überladen."},
+      {ic:"🔁",txt:"Ein <b>einheitliches</b> Design wirkt professionell."}],
+    steps:["Öffne das Register <b>Entwurf</b>.","Vergleiche die Designs auf Lesbarkeit.","Wähle ein Design mit <b>gutem Kontrast</b>."]},
+  s7:{head:"Animationen & Effekte", lead:"<b>Animationen</b> lassen Objekte erscheinen oder sich bewegen. Richtig eingesetzt lenken sie den Blick – zu viele davon wirken schnell unruhig. Erst das Objekt <b>auswählen</b>, dann im Register <b>Animationen</b> einen Effekt zuweisen.",
+    points:[{ic:"🎯",txt:"Erst ein <b>Objekt anklicken</b>, dann Effekt wählen."},
+      {ic:"✨",txt:"<b>Eingangseffekte</b> lassen etwas erscheinen (z. B. Einfliegen)."},
+      {ic:"🧘",txt:"Sparsam einsetzen – <b>eine</b> klare Animation reicht meist."}],
+    steps:["Klicke ein Objekt auf der Folie an.","Wähle im Menüband einen Animationseffekt.","Sieh dir die Vorschau der Animation an."]}
+};
+let _introSkip=null;
+function stationIntro(id,stage){
+  const info=INTROS[id];
+  if(!info) return false;
+  if(_introSkip===id){_introSkip=null;return false;}
+  const st=STATIONS.find(s=>s.id===id);
+  setInstruction(`Station ${stationNumber(id)} · ${st.title}`,"Schau dir kurz die neue Funktion an. Klicke dann auf „Los geht’s“.");
+  setHint("Lies die Erklärung – dann auf „Los geht’s“ klicken.","");
+  const ex=document.createElement("div");ex.className="explainer";
+  ex.innerHTML=`
+    <div class="explainer-head"><span class="badge">📖</span><span>Neu erklärt: ${info.head}</span></div>
+    <div class="explainer-body">
+      <p class="explainer-lead">${info.lead}</p>
+      <ul>${info.points.map(p=>`<li><span class="me">${p.ic}</span><div>${p.txt}</div></li>`).join("")}</ul>
+    </div>
+    <div class="explainer-steps"><h3>👉 So geht’s</h3><ol>${info.steps.map(s=>`<li>${s}</li>`).join("")}</ol></div>`;
+  stage.appendChild(ex);
+  const begin=()=>{_introSkip=id;go(id);};
+  showNext(true,"Los geht’s ›");$("#nextBtn").onclick=begin;
+  return true;
+}
+
+/* ============================================================
+   Wiederverwendbare PowerPoint-Oberfläche
+   buildPowerPoint(stage,opts) -> Handles
+   opts.tab: aktive Registerkarte ("start"|"einfuegen"|"entwurf"|"uebergaenge"|"animationen")
+   opts.layout: Start-Layout ("title"|"titleContent"|"blank")
+   opts.editable: Platzhalter beschreibbar (contenteditable)
+   opts.slides / opts.fontControls / opts.insertTools / opts.designs / opts.anim: Menüband-Gruppen
+   ============================================================ */
+const LAYOUTS={
+  title:[{role:"title",ph:"Titel durch Klicken hinzufügen",cls:"box-title"},
+         {role:"subtitle",ph:"Untertitel durch Klicken hinzufügen",cls:"box-sub"}],
+  titleContent:[{role:"title",ph:"Titel durch Klicken hinzufügen",cls:"box-title"},
+         {role:"content",ph:"Text durch Klicken hinzufügen",cls:"box-content"}],
+  blank:[]
+};
+const LAYOUT_NAMES={title:"Titelfolie",titleContent:"Titel und Inhalt",blank:"Leer"};
+
+function pptDialog(headHTML, bodyEl){
+  const back=document.createElement("div");back.className="pdialog-back";
+  const dlg=document.createElement("div");dlg.className="pdialog";
+  dlg.innerHTML=`<div class="pdialog-head">${headHTML}</div>`;
+  dlg.appendChild(bodyEl);
+  const btns=document.createElement("div");btns.className="pdialog-btns";
+  const cancel=document.createElement("button");cancel.className="btn btn-ghost btn-small";cancel.textContent="Abbrechen";
+  btns.appendChild(cancel);dlg.appendChild(btns);
+  back.appendChild(dlg);document.body.appendChild(back);
+  const close=()=>back.remove();
+  cancel.onclick=close;
+  back.addEventListener("click",e=>{if(e.target===back)close();});
+  return {back,close};
+}
+
+function buildPowerPoint(stage, opts={}){
+  const tab = opts.tab || "start";
+  const wrap=document.createElement("div");wrap.className="ppt no-select";
+
+  const slideGroup = opts.slides ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <button class="rb-btn rb-big" data-tool="newslide" title="Neue Folie">➕<span>Neue Folie</span></button>
+        <button class="rb-btn rb-big" data-tool="layout" title="Layout">▤<span>Layout</span></button>
+      </div>
+      <div class="rb-label">Folien</div>
+    </div>` : "";
+  const layoutGroup = (!opts.slides && opts.layoutPicker) ? `
+    <div class="rb-group">
+      <div class="rb-row"><button class="rb-btn rb-big" data-tool="layout" title="Layout">▤<span>Layout</span></button></div>
+      <div class="rb-label">Folien</div>
+    </div>` : "";
+  const insertTools = opts.insertTools || [];
+  const insertGroup = insertTools.length ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        ${insertTools.includes("textbox")?`<button class="rb-btn rb-big" data-tool="textbox" title="Textfeld einfügen">🔤<span>Textfeld</span></button>`:""}
+        ${insertTools.includes("image")?`<button class="rb-btn rb-big" data-tool="image" title="Bilder einfügen">🖼️<span>Bilder</span></button>`:""}
+      </div>
+      <div class="rb-label">Einfügen</div>
+    </div>` : "";
+  const fonts=["Calibri","Arial","Georgia","Comic Sans MS"];
+  const sizes=[16,20,24,28,32,40,54,66];
+  const fontGroup = opts.fontControls ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        <select class="rb-sel" data-ctl="font">${fonts.map(f=>`<option>${f}</option>`).join("")}</select>
+        <select class="rb-sel" data-ctl="size">${sizes.map(s=>`<option>${s}</option>`).join("")}</select>
+        <button class="rb-btn" data-tool="color" title="Schriftfarbe"><span style="border-bottom:3px solid #c43e1c;line-height:.7;font-weight:700">A</span></button>
+      </div>
+      <div class="rb-label">Schriftart</div>
+    </div>` : "";
+  const designs = opts.designs || [];
+  const designGroup = designs.length ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        ${designs.map(d=>`<button class="rb-swatch" data-tool="design" data-design="${d.id}" data-good="${d.good?1:0}"
+           title="${d.label}" style="background:${d.bg};color:${d.fg};">A</button>`).join("")}
+      </div>
+      <div class="rb-label">Designs</div>
+    </div>` : "";
+  const ANIMS=[{id:"erscheinen",label:"Erscheinen"},{id:"einfliegen",label:"Einfliegen"},
+               {id:"zoom",label:"Zoom"},{id:"springen",label:"Springen"}];
+  const animGroup = opts.anim ? `
+    <div class="rb-group">
+      <div class="rb-row">
+        ${ANIMS.map(a=>`<button class="rb-btn" data-tool="anim" data-anim="${a.id}" title="${a.label}">${a.label}</button>`).join("")}
+      </div>
+      <div class="rb-label">Animation</div>
+    </div>` : "";
+
+  wrap.innerHTML=`
+    <div class="ppt-title"><span class="dot"></span><span class="fname">${opts.fname||"Präsentation1 – PowerPoint"}</span>
+      <span class="win">— ▢ ✕</span></div>
+    <div class="ppt-tabs">
+      <button class="ppt-tab${tab==="start"?" active":""}" data-tab="start">Start</button>
+      <button class="ppt-tab${tab==="einfuegen"?" active":""}" data-tab="einfuegen">Einfügen</button>
+      <button class="ppt-tab${tab==="entwurf"?" active":""}" data-tab="entwurf">Entwurf</button>
+      <button class="ppt-tab${tab==="uebergaenge"?" active":""}" data-tab="uebergaenge">Übergänge</button>
+      <button class="ppt-tab${tab==="animationen"?" active":""}" data-tab="animationen">Animationen</button>
+    </div>
+    <div class="ribbon">${slideGroup}${layoutGroup}${insertGroup}${fontGroup}${designGroup}${animGroup}</div>
+    <div class="ppt-body">
+      <div class="ppt-rail"></div>
+      <div class="ppt-stage-wrap"><div class="ppt-slide"></div></div>
+    </div>
+    <div class="ppt-status"><span id="pStatusL">Folie 1 von 1</span><span class="right" id="pStatusR">Deutsch</span></div>`;
+  stage.appendChild(wrap);
+
+  const rail=$(".ppt-rail",wrap);
+  const slideEl=$(".ppt-slide",wrap);
+  let slides=[{layout:opts.layout||"title"}];
+  let active=0;
+  let selected=null;
+
+  function selectObj(el){
+    if(selected)selected.classList.remove("objsel");
+    selected=el;if(el)el.classList.add("objsel");
+    if(el)sfx.step();
+  }
+  function slideInnerHTML(layout){
+    return (LAYOUTS[layout]||[]).map(b=>
+      `<div class="ppt-box ${b.cls}" data-role="${b.role}" data-ph="${b.ph}" ${opts.editable?'contenteditable="true"':''} spellcheck="false"></div>`
+    ).join("");
+  }
+  function wireSlide(){
+    $$(".ppt-box, .ppt-img, .ppt-obj",slideEl).forEach(el=>{
+      el.addEventListener("mousedown",()=>selectObj(el));
+    });
+  }
+  function renderSlide(){
+    selected=null;
+    slideEl.innerHTML=slideInnerHTML(slides[active].layout);
+    wireSlide();
+  }
+  function renderRail(){
+    rail.innerHTML=slides.map((s,i)=>
+      `<div class="ppt-thumb${i===active?" active":""}" data-i="${i}">
+         <span class="ppt-thumb-n">${i+1}</span>
+         <div class="ppt-thumb-mini ly-${s.layout}"></div>
+       </div>`).join("");
+    $$(".ppt-thumb",rail).forEach(t=>t.onclick=()=>{active=+t.dataset.i;renderRail();renderSlide();setStatus();});
+  }
+  function setStatus(l,r){
+    $("#pStatusL",wrap).textContent = l!=null?l:`Folie ${active+1} von ${slides.length}`;
+    if(r!=null)$("#pStatusR",wrap).textContent=r;
+  }
+  renderRail();renderSlide();
+
+  // Register-Wechsel: nur optischer Wechsel (Inhalte je Station)
+  $$(".ppt-tab",wrap).forEach(t=>t.addEventListener("click",()=>{
+    $$(".ppt-tab",wrap).forEach(x=>x.classList.remove("active"));t.classList.add("active");
+  }));
+
+  return {
+    wrap, rail, slideEl,
+    ribbonBtn:(tool)=>$(`.rb-btn[data-tool="${tool}"]`,wrap),
+    ribbonBtns:(tool)=>$$(`[data-tool="${tool}"]`,wrap),
+    fontSel:$('select[data-ctl="font"]',wrap),
+    sizeSel:$('select[data-ctl="size"]',wrap),
+    getSelected:()=>selected,
+    selectObj,
+    slideCount:()=>slides.length,
+    activeIndex:()=>active,
+    addSlide(layout="titleContent"){
+      slides.push({layout});active=slides.length-1;
+      renderRail();renderSlide();setStatus();return slides.length;
+    },
+    setLayout(layout){
+      slides[active].layout=layout;renderRail();renderSlide();setStatus();
+    },
+    layoutOf:()=>slides[active].layout,
+    setBox(role,text){ const b=$(`.ppt-box[data-role="${role}"]`,slideEl); if(b)b.textContent=text; return b; },
+    addTextbox(placeholder,second){
+      const b=document.createElement("div");
+      b.className="ppt-box box-free"+(second?" second":"");
+      b.dataset.role="free";b.dataset.ph=placeholder||"Text hinzufügen";
+      if(opts.editable!==false){b.setAttribute("contenteditable","true");}
+      b.setAttribute("spellcheck","false");
+      slideEl.appendChild(b);
+      b.addEventListener("mousedown",()=>selectObj(b));
+      selectObj(b);b.focus();
+      return b;
+    },
+    addImage(emoji){
+      const img=document.createElement("div");img.className="ppt-img";img.textContent=emoji;
+      slideEl.appendChild(img);
+      img.addEventListener("mousedown",()=>selectObj(img));
+      selectObj(img);return img;
+    },
+    applyDesign(d){
+      slideEl.style.background=d.bg;
+      $$(".ppt-box",slideEl).forEach(b=>{ b.style.color=d.fg; });
+    },
+    setStatus
+  };
+}
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+const SCREENS={};
+
+/* ---- Start ---- */
+SCREENS.start=(stage)=>{
+  setInstruction("Willkommen beim Präsentationsführerschein","Hier lernst du Schritt für Schritt, wie man mit PowerPoint überzeugende Folien gestaltet.");
+  setHint("Klicke auf „Los geht’s“, um zu starten.","");
+  const hero=document.createElement("div");hero.className="hero";
+  hero.innerHTML=`
+    <div class="doc-emoji">📊</div>
+    <h1>Präsentationsführerschein</h1>
+    <p>Du übst die wichtigsten PowerPoint-Handgriffe: <b>Folien anlegen, Layouts, Textfelder, Bilder,
+       Typografie, Design und Animationen</b> – an einer nachgebauten PowerPoint-Oberfläche.</p>
+    <p style="font-size:.88rem;opacity:.85">Tipp: Über das ☰-Menü oben links springst du zwischen den Stationen.</p>`;
+  stage.appendChild(hero);
+  const first=PLAYABLE[0].id;
+  showNext(true,"Los geht’s ›");$("#nextBtn").onclick=()=>go(first);
+};
+
+/* ---- Station 1: Folien anlegen ---- */
+SCREENS.s1=(stage)=>{
+  if(stationIntro("s1",stage))return;
+  const st=STATIONS.find(s=>s.id==="s1");
+  const TARGET=4;
+  setInstruction(`Station ${stationNumber("s1")} · ${st.title}`,`Füge neue Folien hinzu, bis deine Präsentation genau ${TARGET} Folien hat.`);
+  const w=buildPowerPoint(stage,{tab:"start",slides:true,layout:"title",fname:"Meine Präsentation – PowerPoint"});
+  let done=false;
+  function refresh(){
+    const n=w.slideCount();
+    setCounter(`${n}/${TARGET}`,"Folien");
+    if(done)return;
+    if(n<TARGET){ setHint(`👉 Klicke auf <b>Neue Folie</b>. Noch <b>${TARGET-n}</b> Folie(n) fehlen.`,""); }
+    else if(n===TARGET){ done=true; completeStation("s1","Vier Folien – gut aufgebaut! 🗂️"); }
+    else { setHint("Das sind schon mehr als vier. Für diese Übung reichen genau vier – mit „Nochmal üben“ neu starten.","warn"); }
+  }
+  w.ribbonBtn("newslide").addEventListener("click",()=>{ w.addSlide("titleContent");sfx.step();refresh(); });
+  w.ribbonBtn("layout").addEventListener("click",()=>setHint("Das Layout üben wir in der nächsten Station – jetzt geht es nur um die Anzahl der Folien.",""));
+  refresh();
+};
+
+/* ---- Station 2: Folienlayout ---- */
+SCREENS.s2=(stage)=>{
+  if(stationIntro("s2",stage))return;
+  const st=STATIONS.find(s=>s.id==="s2");
+  setInstruction(`Station ${stationNumber("s2")} · ${st.title}`,"Öffne „Layout“ und wähle das Layout, das zur Aufgabe passt.");
+  const w=buildPowerPoint(stage,{tab:"start",layout:"blank",layoutPicker:true,editable:true,fname:"Vortrag – PowerPoint"});
+  const TASKS=[
+    {want:"title",        label:'Die <b>erste</b> Folie eröffnet den Vortrag. Wähle das Layout <b>Titelfolie</b>.'},
+    {want:"titleContent", label:'Jetzt kommt eine Inhaltsfolie. Wähle das Layout <b>Titel und Inhalt</b>.'}
+  ];
+  let ti=0, busy=false;
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+TASKS[ti].label,""); }
+  function openPicker(){
+    const body=document.createElement("div");body.className="pgrid";
+    const opts=[
+      {id:"title",bars:'<i style="left:14px;right:14px;top:16px;height:6px;"></i><i style="left:22px;right:22px;top:28px;height:4px;"></i>'},
+      {id:"titleContent",bars:'<i style="left:10px;right:10px;top:8px;height:5px;"></i><i style="left:10px;right:10px;top:18px;bottom:8px;background:#ece6e2;"></i>'},
+      {id:"blank",bars:''}
+    ];
+    opts.forEach(o=>{
+      const b=document.createElement("button");
+      b.innerHTML=`<div class="layoutmini">${o.bars}</div><span class="lname">${LAYOUT_NAMES[o.id]}</span>`;
+      b.onclick=()=>{ dlg.close(); w.setLayout(o.id); check(o.id); };
+      body.appendChild(b);
+    });
+    const dlg=pptDialog("Folienlayout wählen",body);
+  }
+  function check(chosen){
+    if(busy)return;
+    const t=TASKS[ti];
+    if(chosen===t.want){
+      sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ busy=true; setHint("Richtig! Nächste Aufgabe …","good"); later(()=>{ti++;busy=false;setTask();},900); }
+      else completeStation("s2","Passende Layouts gewählt! ▤");
+    } else {
+      setHint(`Das war <b>${LAYOUT_NAMES[chosen]}</b>. ${t.label}`,"warn");
+    }
+  }
+  w.ribbonBtn("layout").addEventListener("click",openPicker);
+  setTask();
+};
+
+/* ---- Station 3: Textfelder ---- */
+SCREENS.s3=(stage)=>{
+  if(stationIntro("s3",stage))return;
+  const st=STATIONS.find(s=>s.id==="s3");
+  setInstruction(`Station ${stationNumber("s3")} · ${st.title}`,"Füge über „Textfeld“ Felder ein und beschrifte sie wie vorgegeben.");
+  const w=buildPowerPoint(stage,{tab:"einfuegen",layout:"blank",editable:true,insertTools:["textbox"],fname:"Steckbrief – PowerPoint"});
+  const TASKS=[
+    {text:"Meine Präsentation", label:'Füge ein <b>Textfeld</b> ein und schreibe als Titel: <b>Meine Präsentation</b>.'},
+    {text:"Von mir",            label:'Füge ein <b>zweites Textfeld</b> ein und schreibe: <b>Von mir</b>.'}
+  ];
+  let ti=0, box=null, done=false;
+  function norm(s){return s.replace(/\s+/g," ").trim().toLowerCase();}
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+TASKS[ti].label,""); box=null; }
+  function checkText(){
+    if(done||!box)return;
+    if(norm(box.textContent)===norm(TASKS[ti].text)){
+      sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ setHint("Sitzt! Nächstes Textfeld …","good"); const cur=ti; done=true;
+        later(()=>{ti=cur+1;done=false;setTask();},900); }
+      else { done=true; completeStation("s3","Beide Textfelder beschriftet! 🔤"); }
+    }
+  }
+  w.ribbonBtn("textbox").addEventListener("click",()=>{
+    box=w.addTextbox(ti===0?"Titel eingeben":"Text eingeben", ti>0);
+    setHint("Gut – jetzt in das Textfeld tippen: <b>"+TASKS[ti].text+"</b>","");
+    box.addEventListener("input",checkText);
+  });
+  setTask();
+};
+
+/* ---- Station 4: Bilder einfügen ---- */
+SCREENS.s4=(stage)=>{
+  if(stationIntro("s4",stage))return;
+  const st=STATIONS.find(s=>s.id==="s4");
+  setInstruction(`Station ${stationNumber("s4")} · ${st.title}`,"Öffne „Bilder“ und wähle ein Bild, das zum Thema der Folie passt.");
+  const w=buildPowerPoint(stage,{tab:"einfuegen",layout:"titleContent",editable:false,insertTools:["image"],fname:"Natur – PowerPoint"});
+  w.setBox("title","Der Wald");
+  w.setBox("content","Ein Lebensraum für viele Tiere und Pflanzen.");
+  const GALLERY=[
+    {e:"🌲",good:true,name:"Wald"},{e:"🦌",good:true,name:"Reh"},
+    {e:"🍕",good:false,name:"Pizza"},{e:"🚗",good:false,name:"Auto"},{e:"🏖️",good:false,name:"Strand"}
+  ];
+  let done=false;
+  function openGallery(){
+    const body=document.createElement("div");body.className="pgrid";
+    GALLERY.forEach(g=>{
+      const b=document.createElement("button");
+      b.innerHTML=`<span class="emoji">${g.e}</span><span class="lname">${g.name}</span>`;
+      b.onclick=()=>{ dlg.close(); place(g); };
+      body.appendChild(b);
+    });
+    const dlg=pptDialog("Bild auswählen",body);
+  }
+  function place(g){
+    if(done)return;
+    $$(".ppt-img",w.slideEl).forEach(el=>el.remove());
+    w.addImage(g.e);
+    if(g.good){ done=true; completeStation("s4","Passendes Bild eingefügt! 🖼️"); }
+    else { setHint(`Ein <b>${g.name}</b> passt nicht zum Thema „Der Wald“. Wähle ein Bild, das zum Inhalt passt.`,"warn"); }
+  }
+  w.ribbonBtn("image").addEventListener("click",openGallery);
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Klicke auf <b>Bilder</b> und wähle ein Bild, das zum <b>Wald</b> passt.","");
+};
+
+/* ---- Station 5: Typografie ---- */
+SCREENS.s5=(stage)=>{
+  if(stationIntro("s5",stage))return;
+  const st=STATIONS.find(s=>s.id==="s5");
+  setInstruction(`Station ${stationNumber("s5")} · ${st.title}`,"Wähle den Titel aus und mache ihn gut lesbar: groß genug und mit kräftiger Farbe.");
+  const w=buildPowerPoint(stage,{tab:"start",layout:"title",editable:true,fontControls:true,fname:"Plakat – PowerPoint"});
+  const title=w.setBox("title","Sommerfest");
+  title.style.fontSize="16px";
+  w.setBox("subtitle","Alle sind herzlich eingeladen");
+  const TASKS=[
+    {label:'Klicke den <b>Titel</b> an und stelle die <b>Schriftgröße</b> auf mindestens <b>40</b>.',
+     ok:()=>parseInt(title.style.fontSize||"0")>=40},
+    {label:'Gib dem Titel jetzt eine <b>kräftige Farbe</b> (Knopf <span style="color:#c43e1c;font-weight:700">A</span>) für guten Kontrast.',
+     ok:()=>!!title.style.color && title.style.color!=="rgb(179, 172, 166)"}
+  ];
+  let ti=0, busy=false;
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+TASKS[ti].label,""); }
+  function check(){
+    if(busy)return;
+    if(!w.getSelected()){ setHint("Klicke zuerst den <b>Titel</b> an, dann oben die Einstellung wählen.","warn"); return; }
+    if(TASKS[ti].ok()){
+      sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ busy=true; setHint("Schon viel besser lesbar! …","good"); later(()=>{ti++;busy=false;setTask();},900); }
+      else completeStation("s5","Klar und gut lesbar! ✒️");
+    }
+  }
+  w.sizeSel.addEventListener("change",()=>{
+    const sel=w.getSelected();
+    if(!sel){ setHint("Klicke zuerst den <b>Titel</b> an.","warn"); return; }
+    sel.style.fontSize=w.sizeSel.value+"px";sfx.step();check();
+  });
+  w.fontSel.addEventListener("change",()=>{
+    const sel=w.getSelected();if(sel)sel.style.fontFamily=w.fontSel.value;
+  });
+  w.ribbonBtn("color").addEventListener("click",()=>{
+    const sel=w.getSelected();
+    if(!sel){ setHint("Klicke zuerst den <b>Titel</b> an.","warn"); return; }
+    sel.style.color="#c43e1c";sfx.step();check();
+  });
+  setTask();
+};
+
+/* ---- Station 6: Design-Grundlagen ---- */
+SCREENS.s6=(stage)=>{
+  if(stationIntro("s6",stage))return;
+  const st=STATIONS.find(s=>s.id==="s6");
+  setInstruction(`Station ${stationNumber("s6")} · ${st.title}`,"Wähle im Register „Entwurf“ ein Design, auf dem der Text gut lesbar ist.");
+  const DESIGNS=[
+    {id:"klar",     label:"Klar",     good:true,  bg:"#ffffff", fg:"#1d2733"},
+    {id:"kontrast", label:"Kontrast", good:true,  bg:"#12263a", fg:"#ffffff"},
+    {id:"grell",    label:"Grell",    good:false, bg:"#ffe600", fg:"#fff7a8"},
+    {id:"ton",      label:"Ton in Ton",good:false,bg:"#e0603a", fg:"#c43e1c"}
+  ];
+  const w=buildPowerPoint(stage,{tab:"entwurf",layout:"title",editable:false,designs:DESIGNS,fname:"Referat – PowerPoint"});
+  w.setBox("title","Der Regenwald");
+  w.setBox("subtitle","Ein Referat über die Tropen");
+  let done=false;
+  $$('.rb-swatch[data-tool="design"]',w.wrap).forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const d=DESIGNS.find(x=>x.id===btn.dataset.design);
+      $$('.rb-swatch',w.wrap).forEach(b=>b.classList.remove("active"));btn.classList.add("active");
+      w.applyDesign(d);sfx.step();
+      if(done)return;
+      if(d.good){ done=true; completeStation("s6","Gut lesbares Design gewählt! 🎨"); }
+      else { setHint("Auf diesem Design hebt sich der Text kaum vom Hintergrund ab – der <b>Kontrast</b> ist zu schwach. Wähle ein besser lesbares Design.","warn"); }
+    });
+  });
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Probiere die Designs aus und wähle eines mit <b>gutem Kontrast</b>.","");
+};
+
+/* ---- Station 7: Animationen & Effekte ---- */
+SCREENS.s7=(stage)=>{
+  if(stationIntro("s7",stage))return;
+  const st=STATIONS.find(s=>s.id==="s7");
+  setInstruction(`Station ${stationNumber("s7")} · ${st.title}`,"Wähle ein Objekt auf der Folie aus und weise ihm einen Animationseffekt zu.");
+  const w=buildPowerPoint(stage,{tab:"animationen",layout:"titleContent",editable:false,anim:true,fname:"Weltall – PowerPoint"});
+  w.setBox("title","Unser Sonnensystem");
+  w.setBox("content","Acht Planeten kreisen um die Sonne.");
+  const img=w.addImage("🪐");
+  w.selectObj(null);
+  let done=false;
+  $$('.rb-btn[data-tool="anim"]',w.wrap).forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const sel=w.getSelected();
+      if(!sel){ setHint("Klicke zuerst ein <b>Objekt</b> auf der Folie an (z. B. das Planeten-Bild).","warn"); return; }
+      const anim=btn.dataset.anim;
+      ["erscheinen","einfliegen","zoom","springen"].forEach(a=>sel.classList.remove("anim-"+a));
+      void sel.offsetWidth;
+      sel.classList.add("anim-"+anim);
+      sel.dataset.anim=anim;
+      if(!$(".anim-badge",sel) && sel.classList.contains("ppt-img")){
+        const badge=document.createElement("span");badge.className="anim-badge";badge.textContent="★";
+        sel.style.position="relative";sel.appendChild(badge);
+      }
+      sfx.step();
+      if(done)return;
+      done=true;
+      setHint("Schön! Tipp: <b>Eine</b> klare Animation reicht – nicht jedes Objekt animieren.","good");
+      later(()=>completeStation("s7","Animation zugewiesen! ✨"),700);
+    });
+  });
+  setCounter("1/1","Aufgabe");
+  setHint("👉 Klicke das <b>🪐 Bild</b> an und wähle oben einen Effekt (z. B. <b>Einfliegen</b>).","");
+};
+
+/* ---- Platzhalter-Stationen ---- */
+function placeholderScreen(id){
+  return (stage)=>{
+    const st=STATIONS.find(s=>s.id===id);
+    setInstruction(`Station ${stationNumber(id)} · ${st.title}`,st.desc);
+    setHint("Diese Station entsteht gerade.","");
+    const ph=document.createElement("div");ph.className="placeholder";
+    ph.innerHTML=`
+      <div class="big">${st.icon}🚧</div>
+      <h3>${st.title}</h3>
+      <p>Diese Übung wird in einer der nächsten Ausbaustufen ergänzt.</p>
+      <p style="font-size:.86rem">Lernziel: ${st.desc}.</p>`;
+    stage.appendChild(ph);
+    const next=nextStationId();
+    if(next===id){ showNext(false); }
+    else { showNext(true,'Weiter zu „'+STATIONS.find(s=>s.id===next).short+'“ ›'); $("#nextBtn").onclick=()=>go(next); }
+  };
+}
+STATIONS.forEach(st=>{
+  if(st.id==="start") return;
+  if(!IMPLEMENTED.includes(st.id)) SCREENS[st.id]=placeholderScreen(st.id);
+});
+
+/* ============================================================
+   Einstellungen & Start
+   ============================================================ */
+$("#gearBtn").addEventListener("click",()=>$("#overlay").classList.add("open"));
+$("#closeSet").addEventListener("click",()=>$("#overlay").classList.remove("open"));
+$("#overlay").addEventListener("click",e=>{if(e.target===$("#overlay"))$("#overlay").classList.remove("open");});
+$("#soundChk").addEventListener("change",e=>state.sound=e.target.checked);
+$("#resetBtn").addEventListener("click",()=>{
+  state.done={};state.xp=0;state.coins=0;state.level=1;state.badges={};
+  $("#overlay").classList.remove("open");go("start");
+});
+$("#navBtn").addEventListener("click",openDrawer);
+$("#drawerClose").addEventListener("click",closeDrawer);
+$("#drawerBackdrop").addEventListener("click",closeDrawer);
+$("#stationNow").addEventListener("click",openDrawer);
+
+buildProgress();
+refreshHUD();
+go("start");
+</script>
+</body>
+</html>
