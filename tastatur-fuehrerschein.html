@@ -172,6 +172,33 @@
     justify-content:center;gap:10px;color:#fff;font-size:1rem;z-index:5;}
   .rainbottom .raininput{font-weight:800;letter-spacing:2px;min-width:60px;text-align:center;}
 
+  /* ===== Wort-Weltraum ===== */
+  .spacefield{flex:1;position:relative;border-radius:12px;overflow:hidden;min-height:340px;border:1px solid var(--ocean-deep);
+    background:
+      radial-gradient(1px 1px at 20% 30%,#fff,transparent),
+      radial-gradient(1px 1px at 70% 62%,#fff,transparent),
+      radial-gradient(2px 2px at 45% 82%,#dff0ff,transparent),
+      radial-gradient(1px 1px at 85% 24%,#cfe9ff,transparent),
+      radial-gradient(1px 1px at 12% 72%,#cfe9ff,transparent),
+      radial-gradient(2px 2px at 60% 14%,#fff,transparent),
+      linear-gradient(180deg,#0b1e3f,#0a2c52 60%,#0e3a5c);}
+  .spacehud{position:absolute;left:0;right:0;top:0;height:34px;display:flex;align-items:center;justify-content:space-between;
+    gap:10px;padding:0 12px;color:#eaf6ff;font-size:.8rem;font-weight:600;z-index:6;background:rgba(6,18,40,.5);}
+  .spacehud b{color:#fff;}
+  .shieldbar{display:flex;align-items:center;gap:4px;}
+  .shieldbar .seg{width:15px;height:15px;border-radius:4px;background:var(--ocean-bright);box-shadow:0 0 6px rgba(19,184,212,.8);}
+  .shieldbar .seg.empty{background:rgba(255,255,255,.16);box-shadow:none;}
+  .spacehud .combo{color:var(--hint);white-space:nowrap;}
+  .asteroid{position:absolute;background:rgba(255,255,255,.96);border:2px solid var(--ocean-bright);border-radius:12px;
+    padding:6px 12px;font-size:1.12rem;font-weight:700;color:var(--ocean-deep);white-space:nowrap;transform:translateX(-50%);
+    box-shadow:0 0 12px rgba(19,184,212,.45);}
+  .asteroid .typed{color:var(--success);}
+  .asteroid.active{border-color:var(--hint);box-shadow:0 0 0 3px rgba(217,131,36,.45),0 0 14px rgba(217,131,36,.55);}
+  .asteroid.boss{border-color:#ff6a3d;color:#a3341a;box-shadow:0 0 0 3px rgba(255,106,61,.35),0 0 18px rgba(255,106,61,.65);font-size:1.28rem;}
+  .rocket{position:absolute;left:50%;bottom:5px;transform:translateX(-50%);font-size:2.2rem;z-index:5;filter:drop-shadow(0 0 8px rgba(19,184,212,.7));}
+  .laserhit{position:absolute;transform:translate(-50%,-50%);font-size:1.7rem;pointer-events:none;animation:boom .42s ease-out forwards;z-index:7;}
+  @keyframes boom{0%{opacity:1;transform:translate(-50%,-50%) scale(.6);}100%{opacity:0;transform:translate(-50%,-50%) scale(1.9);}}
+
   /* ===== Tipp-Rennen ===== */
   .racewrap{flex:1;display:flex;flex-direction:column;gap:16px;justify-content:center;}
   .racetrack{position:relative;height:60px;background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;
@@ -402,6 +429,7 @@ const STATIONS = [
   {id:"kraindrop", short:"Wortregen",    icon:"🌧️", part:2, title:"Wortregen",        desc:"Fallende Wörter abtippen"},
   {id:"kreflex",   short:"Blitz",        icon:"⚡", part:2, title:"Blitz-Taste",      desc:"So schnell wie möglich"},
   {id:"krace",     short:"Rennen",       icon:"🏁", part:2, title:"Tipp-Rennen",      desc:"Wörter im Wettlauf"},
+  {id:"kspace",    short:"Weltraum",     icon:"🚀", part:2, title:"Wort-Weltraum",    desc:"Wort-Asteroiden abtippen"},
   {id:"exam",      short:"Prüfung",      icon:"🏆", title:"Prüfung",          desc:"Alles zusammen!"}
 ];
 /* Nummerierung zählt nur echte Übungsstationen – die Prüfungen bleiben aussen vor */
@@ -669,6 +697,7 @@ const BADGES = {
   rain_hero:     {icon:"🌧️", title:"Regen-Held"},
   speed_typer:   {icon:"⚡", title:"Blitzfinger"},
   racer:         {icon:"🏁", title:"Tipp-Renner"},
+  space_pilot:   {icon:"🚀", title:"Weltraum-Pilot"},
   flawless:      {icon:"💎", title:"Fehlerfrei"},
   streak5:       {icon:"🔥", title:"5er-Serie"},
   halfway:       {icon:"🌟", title:"Halbzeit-Star"},
@@ -747,6 +776,7 @@ function checkStationBadges(id){
   if(id==="kraindrop")unlock("rain_hero");
   if(id==="kreflex")unlock("speed_typer");
   if(id==="krace")unlock("racer");
+  if(id==="kspace")unlock("space_pilot");
   if(id==="exam")unlock("champion");
   if(Object.keys(state.done).length>=6)unlock("halfway");
 }
@@ -1536,6 +1566,138 @@ SCREENS.krace=(stage)=>{
     setKeyHandler(e=>typer.feed(e));
   }
   place(); nextWord();
+};
+
+/* ---------- Wort-Weltraum (Arcade) ---------- */
+SCREENS.kspace=(stage)=>{
+  const N=stationNumber("kspace");
+  setInstruction(`Station ${N} · Wort-Weltraum 🚀`,
+    "Wort-Asteroiden fliegen auf deine Station zu! Tippe ein Wort ab, um es zu sprengen. "+
+    "Fang mit dem <b>ersten Buchstaben</b> an – Groß und Klein ist hier egal. Schütze deinen <b>Schild 🛡️</b>!");
+  const field=mk("spacefield");
+  const hud=mk("spacehud",
+    `<span class="shieldbar" id="spShield"></span>`+
+    `<span>Punkte: <b id="spScore">0</b> · Rekord: <b id="spBest">0</b></span>`+
+    `<span class="combo" id="spCombo">Combo ×1</span>`);
+  const rocket=mk("rocket"); rocket.textContent="🚀";
+  field.appendChild(hud); field.appendChild(rocket); stage.appendChild(field);
+
+  const D=diff();
+  const BEST_KEY="tf_kspace_highscore";
+  let best=0; try{ best=parseInt(localStorage.getItem(BEST_KEY)||"0",10)||0; }catch(e){}
+
+  const EASY=WORDS_EASY.filter(w=>w.length<=6);
+  const MID=WORDS.filter(w=>w.length<=9);
+  const FUN=FUNNY_WORDS.filter(w=>w.length<=9);
+  const BOSSES=["Sternschnuppe","Weltraumrakete","Mondspaziergang","Kometenschweif"];
+  const WAVE_POOLS=[EASY, WORDS_EASY.concat(MID), MID.concat(FUN)];
+  const WAVE_SIZES=[dCount(4,3), dCount(5,4), dCount(6,4)];
+
+  let shield=3, score=0, combo=1;
+  let wave=0, boss=false, over=false, transitioning=false;
+  let drops=[], spawnedInWave=0, locked=null, last=0, spawnAcc=0;
+
+  const W=()=>field.clientWidth, FLOOR=()=>field.clientHeight-46;
+  const poolFor=()=> boss ? BOSSES : WAVE_POOLS[wave];
+  const sizeFor=()=> boss ? 1 : WAVE_SIZES[wave];
+  const speed=()=>{ const base=0.040*D.rainSpeed; return boss ? base*0.85 : base*(1+wave*0.28); };
+  const spawnInterval=()=> boss ? 9e9 : D.rainSpawn*(1-wave*0.12);
+  const maxConcurrent=()=> boss ? 1 : (wave>=2 ? 3 : 2);
+
+  function renderShield(){ $("#spShield",field).innerHTML="🛡️ "+[0,1,2].map(i=>`<span class="seg${i<shield?"":" empty"}"></span>`).join(""); }
+  function renderHud(){ $("#spScore",field).textContent=score; $("#spBest",field).textContent=best; $("#spCombo",field).textContent="Combo ×"+combo; renderShield(); }
+  function renderDrop(d){
+    d.el.querySelector(".typed").textContent=d.word.slice(0,d.typed);
+    d.el.querySelector(".rest").textContent=d.word.slice(d.typed);
+    d.el.classList.toggle("active",locked===d);
+  }
+  function spawn(){
+    spawnedInWave++;
+    const pool=poolFor(); const word=pool[(Math.random()*pool.length)|0];
+    const el=mk("asteroid"+(boss?" boss":""),`<span class="typed"></span><span class="rest">${word}</span>`);
+    field.appendChild(el);
+    const x=44+Math.random()*Math.max(40,(W()-88));
+    const d={el,word,x,y:-10,typed:0,boss};
+    el.style.left=x+"px"; el.style.top="-10px"; drops.push(d);
+  }
+  function boom(x,y,txt){ const b=mk("laserhit",txt); b.style.left=x+"px"; b.style.top=y+"px"; field.appendChild(b); later(()=>b.remove(),420); }
+
+  function destroy(d){
+    boom(d.x,d.y,"💥"); d.el.remove(); drops=drops.filter(x=>x!==d); locked=null;
+    score+=10*combo; awardXP(2*combo,"space");
+    const prev=combo; combo=Math.min(3,combo+1);
+    if(combo===3 && prev<3) toast("🔥 <b>Combo ×3!</b> Volle Punkte.","good");
+    renderHud();
+    if(d.boss) win(); else checkWave();
+  }
+  function loseShield(d){
+    boom(d.x,FLOOR(),"💢"); d.el.remove(); drops=drops.filter(x=>x!==d);
+    if(locked===d) locked=null;
+    shield--; combo=1; renderHud(); mascotReact("warn"); sfx.soft();
+    if(shield<=0){ gameOver(); return; }
+    if(d.boss) later(()=>{ if(!over) spawn(); },700); /* Boss kommt wieder */
+  }
+  function gameOver(){
+    over=true; stopLoop(); locked=null;
+    setHint("Schild leer! 🛡️ Kein Problem – drück auf „Nochmal“ und starte neu.","warn");
+    showReplay(true); showNext(false);
+  }
+  function win(){
+    if(over) return; over=true; stopLoop(); locked=null;
+    if(score>best){ best=score; try{ localStorage.setItem(BEST_KEY,String(best)); }catch(e){} renderHud();
+      toast("🏆 <b>Neuer Rekord!</b> "+score+" Punkte","good"); }
+    completeStation("kspace",`Weltraum gerettet! 🚀🎉 ${score} Punkte`,{perfect:shield===3});
+  }
+  function checkWave(){
+    if(over||boss||transitioning) return;
+    if(spawnedInWave>=sizeFor() && drops.length===0){ transitioning=true; later(nextPhase,600); }
+  }
+  function nextPhase(){
+    if(over) return;
+    if(wave>=WAVE_POOLS.length-1){
+      boss=true; spawnedInWave=0; spawnAcc=0;
+      setCounter("Boss ⚠️","Gegner"); toast("⚠️ <b>Boss-Wort!</b> Tipp es ganz ab.","warn");
+      later(()=>{ if(!over) spawn(); },550);
+    } else {
+      wave++; spawnedInWave=0; spawnAcc=0;
+      setCounter(`Welle ${wave+1}/3`,"Welle"); toast(`🌊 <b>Welle ${wave+1}</b>`,"good");
+    }
+    transitioning=false;
+  }
+
+  setKeyHandler(e=>{
+    if(over) return;
+    const ch=getChar(e); if(ch==null) return;
+    if(!locked){
+      let bestD=null;
+      drops.forEach(d=>{ if(d.word[0].toLowerCase()===ch.toLowerCase() && (!bestD||d.y>bestD.y)) bestD=d; });
+      if(bestD){ locked=bestD; bestD.typed=1; sfx.step();
+        if(bestD.typed>=bestD.word.length) destroy(bestD); else renderDrop(bestD);
+      } else { sfx.soft(); if(combo>1){ combo=1; renderHud(); } }
+    } else {
+      if(locked.word[locked.typed].toLowerCase()===ch.toLowerCase()){
+        locked.typed++; sfx.step();
+        if(locked.typed>=locked.word.length) destroy(locked); else renderDrop(locked);
+      } else { sfx.soft(); combo=1; locked.typed=0; renderDrop(locked); locked=null; renderHud(); }
+    }
+  });
+
+  renderHud(); setCounter("Welle 1/3","Welle");
+  last=performance.now();
+  (function loop(t){
+    const dt=Math.min(60,t-last); last=t;
+    if(!over){
+      spawnAcc+=dt;
+      if(spawnAcc>=spawnInterval() && spawnedInWave<sizeFor() && drops.length<maxConcurrent()){ spawn(); spawnAcc=0; }
+      const sp=speed();
+      for(const d of [...drops]){
+        d.y+=sp*dt; d.el.style.top=d.y+"px";
+        if(d.y>=FLOOR()){ loseShield(d); if(over) break; }
+      }
+      if(!over) checkWave();
+    }
+    _raf=requestAnimationFrame(loop);
+  })(last);
 };
 
 /* ---------- Prüfung ---------- */
