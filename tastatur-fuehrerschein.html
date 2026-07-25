@@ -423,11 +423,12 @@ const dCount = (base,min=2) => Math.max(min, Math.round(base*diff().count));
 /* ============================================================
    Wort- und Satz-Vorrat (kindgerecht, deutsch)
    ============================================================ */
-const WORDS_EASY = ["und","der","die","das","ist","auf","ufo","oma","opa","ball","haus","maus","baum","fisch","hund","katze","sonne","blume","apfel","gelb","rot","tor","see","eis"];
-const WORDS = ["schule","freude","spielen","lesen","tippen","computer","tastatur","banane","fahrrad","wolke","garten","kuchen","musik","tiger","sommer","winter","fenster","blume","drache","raupe"];
-const SENTENCES = ["Die Katze schlaeft.","Der Hund bellt laut.","Wir lernen tippen.","Die Sonne scheint hell.","Mein Ball ist rot.","Ich mag den Sommer.","Das Auto faehrt schnell."];
+/* Substantive groß, Verben/Adjektive/Artikel klein – korrekte Orthografie. */
+const WORDS_EASY = ["und","der","die","das","ist","auf","Ufo","Oma","Opa","Ball","Haus","Maus","Baum","Fisch","Hund","Katze","Sonne","Blume","Apfel","gelb","rot","Tor","See","Eis"];
+const WORDS = ["Schule","Freude","spielen","lesen","tippen","Computer","Tastatur","Banane","Fahrrad","Wolke","Garten","Kuchen","Musik","Tiger","Sommer","Winter","Fenster","Blume","Drache","Raupe"];
+const SENTENCES = ["Die Katze schläft.","Der Hund bellt laut.","Wir lernen tippen.","Die Sonne scheint hell.","Mein Ball ist rot.","Ich mag den Sommer.","Das Auto fährt schnell."];
 /* Lustige Texte – hier sind Umlaute (ä ö ü ß) ausdrücklich erlaubt. */
-const FUNNY_WORDS = ["quatschkopf","giraffe","pupsdrache","möhre","kokosnuss","zappelzahn","brummbär","schnickschnack","kuddelmuddel","krötenkönig","waldschrat","zwergnase","pusteblume","schlingel","murmeltier","wackelpudding","süßkram","flauschball"];
+const FUNNY_WORDS = ["Quatschkopf","Giraffe","Pupsdrache","Möhre","Kokosnuss","Zappelzahn","Brummbär","Schnickschnack","Kuddelmuddel","Krötenkönig","Waldschrat","Zwergnase","Pusteblume","Schlingel","Murmeltier","Wackelpudding","Süßkram","Flauschball"];
 const FUNNY_SENTENCES = [
   "Opa tanzt mit der Giraffe Polka.",
   "Der Frosch fährt Fahrrad zum Mond.",
@@ -447,7 +448,7 @@ const FUNNY_SENTENCES = [
 const FUNC_KEYS = [
   {tok:"Space",     name:"Leertaste",          sym:"␣",    press:true,
     what:"Macht den Abstand zwischen zwei Wörtern.",
-    ex:"Aus „gutentag“ wird „guten tag“."},
+    ex:"Aus „gutentag“ wird „guten Tag“."},
   {tok:"Enter",     name:"Enter (Eingabetaste)",sym:"⏎",   press:true,
     what:"Beginnt eine neue Zeile oder bestätigt etwas.",
     ex:"Drückst du Enter, geht es in der nächsten Zeile weiter."},
@@ -1088,7 +1089,7 @@ SCREENS.kfix=(stage)=>{
   const box=mk("typebox"); const line=mk("fixword"); box.appendChild(line);
   const kbHost=mk("kbwrap"); const kb=buildKeyboard();
   stage.appendChild(box); stage.appendChild(kbHost); kbHost.appendChild(kb.el);
-  const POOL=["hallo","maus","tastatur","freude","schule","banane","fahrrad","sonne","apfel","tiger","blume","garten"];
+  const POOL=["Hallo","Maus","Tastatur","Freude","Schule","Banane","Fahrrad","Sonne","Apfel","Tiger","Blume","Garten"];
   const LETTERS="abdefghiklmnorstu".split("");
   const TOTAL=dCount(6,5); let done=0, fault=false, chars=[], wrongIdx=-1, cursor=0, useBack=true;
   function render(){
@@ -1380,7 +1381,7 @@ SCREENS.kwords=(stage)=>{
         if(i>=TOTAL) completeStation("kwords","Du tippst schon ganze Wörter – super! 📝🎉",{perfect:!fault});
         else { setHint("Super! Nächstes Wort …","good"); later(nextWord,500); } }
     });
-    setHint("Tippe das Wort ab.","");
+    setHint("Tippe das Wort ab. Großbuchstaben mit <b>Umschalt ⇧</b>.","");
     setKeyHandler(e=>typer.feed(e));
   }
   nextWord();
@@ -1451,10 +1452,10 @@ SCREENS.kraindrop=(stage)=>{
     const ch=getChar(e); if(ch==null) return;
     if(!locked){
       let best=null;
-      drops.forEach(d=>{ if(d.word[0]===ch && (!best||d.y>best.y)) best=d; });
+      drops.forEach(d=>{ if(d.word[0].toLowerCase()===ch.toLowerCase() && (!best||d.y>best.y)) best=d; });
       if(best){ locked=best;best.typed=1;renderDrop(best);sfx.step(); } else { sfx.soft(); }
     } else {
-      if(locked.word[locked.typed]===ch){
+      if(locked.word[locked.typed].toLowerCase()===ch.toLowerCase()){
         locked.typed++; sfx.step();
         if(locked.typed>=locked.word.length){
           locked.el.remove(); drops=drops.filter(x=>x!==locked); cleared++;
@@ -1531,7 +1532,7 @@ SCREENS.krace=(stage)=>{
         if(i>=TOTAL){ $("#runner").textContent="🎉"; completeStation("krace","Als Erster im Ziel! 🏁🎉",{perfect:!fault}); }
         else { setHint("Lauf weiter! 🏃","good"); later(nextWord,350); } }
     });
-    setHint("Tippe das Wort, um zu laufen.","");
+    setHint("Tippe das Wort, um zu laufen. Groß mit <b>Umschalt ⇧</b>.","");
     setKeyHandler(e=>typer.feed(e));
   }
   place(); nextWord();
@@ -1568,7 +1569,7 @@ SCREENS.exam=(stage)=>{
     const word=WORDS[(Math.random()*WORDS.length)|0];
     const typer=buildTyper(box,word,{kb,onChar:(idx,err)=>{if(err)fault=true;},
       onDone:()=>{ sfx.good();kb.clearHighlight();activate(3);stepSentence(); }});
-    setHint("Schritt 2: Tippe das Wort ab.","");
+    setHint("Schritt 2: Tippe das Wort ab. Groß mit <b>Umschalt ⇧</b>.","");
     setKeyHandler(e=>typer.feed(e));
   }
   function stepSentence(){
