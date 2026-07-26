@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suchmaschinen richtig nutzen</title>
+<style>
+  :root{
+    --ocean-deep:#0a4d68; --ocean-mid:#088395; --ocean-bright:#13b8d4; --ocean-pale:#e6f3f7;
+    --bg:#f1f7fa; --card:#fff; --ink:#143540; --ink-soft:#4a6670; --line:#d4e6ec;
+    --success:#2a9d8f; --success-soft:#e4f5f1; --hint:#d98324; --hint-soft:#fbf0e2;
+    --warn:#c0392b; --warn-soft:#fdecea;
+    --shadow:0 10px 30px rgba(10,77,104,.10); --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;min-height:100%;}
+  body{font-family:"Segoe UI","Frutiger",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--ink);
+    -webkit-font-smoothing:antialiased;line-height:1.55;min-height:100vh;display:flex;flex-direction:column;}
+
+  /* ===== Kopf mit Stationsleiste ===== */
+  header.app{background:linear-gradient(120deg,var(--ocean-deep),var(--ocean-mid) 55%,var(--ocean-bright));
+    color:#fff;padding:14px 22px;display:flex;align-items:center;gap:18px;
+    box-shadow:0 4px 18px rgba(10,77,104,.25);flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:1.22rem;white-space:nowrap;}
+  .brand .glyph{font-size:1.5rem;}
+  .brand small{display:block;font-weight:400;font-size:.7rem;opacity:.82;letter-spacing:.5px;text-transform:uppercase;}
+  .progress{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap;}
+  .stamp{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:999px;
+    padding:5px 11px 5px 7px;font-size:.74rem;display:flex;align-items:center;gap:6px;cursor:pointer;transition:.18s;white-space:nowrap;
+    font-family:inherit;}
+  .stamp:hover{background:rgba(255,255,255,.26);}
+  .stamp .dot{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:.72rem;line-height:1;}
+  .stamp.done{background:#fff;color:var(--ocean-deep);border-color:#fff;font-weight:600;}
+  .stamp.done .dot{background:var(--success);color:#fff;}
+  .stamp.active{outline:2px solid #fff;outline-offset:1px;}
+  .stamp:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+
+  main{flex:1;display:flex;justify-content:center;padding:22px 18px 30px;}
+  .card{background:var(--card);width:min(980px,100%);border-radius:var(--radius);box-shadow:var(--shadow);
+    overflow:hidden;display:flex;flex-direction:column;min-height:520px;}
+
+  /* Kopfzeile der aktuellen Station */
+  .instruct{display:flex;gap:14px;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line);background:var(--ocean-pale);}
+  .bot{flex:none;width:54px;height:54px;border-radius:50%;background:#fff;border:2px solid var(--ocean-bright);
+    display:grid;place-items:center;box-shadow:0 4px 12px rgba(10,77,104,.12);}
+  .bot svg{width:32px;height:32px;}
+  .instruct .txt{flex:1;}
+  .instruct h1{margin:0;font-size:1.4rem;color:var(--ocean-deep);font-weight:700;}
+  .instruct .stationlbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;color:var(--ocean-mid);font-weight:700;margin-bottom:2px;}
+
+  .play{padding:24px 26px;flex:1;}
+
+  /* ===== Stationen ===== */
+  .station{display:none;}
+  .station.active{display:block;animation:fade .28s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .station p{margin:0 0 12px;}
+  .station p:last-child{margin-bottom:0;}
+  .station b{color:var(--ocean-deep);}
+
+  /* Schritte "Wie funktioniert..." */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:6px 0 4px;}
+  .step{background:var(--ocean-pale);border:1px solid var(--line);border-radius:14px;padding:16px 16px 18px;text-align:center;}
+  .step .ico{font-size:2rem;line-height:1;}
+  .step h3{margin:8px 0 6px;font-size:1.02rem;color:var(--ocean-deep);}
+  .step p{font-size:.9rem;color:var(--ink-soft);margin:0;}
+  .step .snum{display:inline-block;background:var(--ocean-mid);color:#fff;border-radius:999px;font-size:.72rem;
+    font-weight:700;padding:2px 9px;margin-bottom:4px;}
+
+  /* Karten (klickbare Suchmaschinen) */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;}
+  a.mini{display:block;border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff;
+    text-decoration:none;color:inherit;transition:.16s;position:relative;}
+  a.mini:hover{border-color:var(--ocean-mid);box-shadow:0 8px 20px rgba(10,77,104,.14);transform:translateY(-2px);}
+  a.mini:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .mini h3{margin:0 0 4px;font-size:1rem;color:var(--ocean-deep);display:flex;align-items:center;gap:7px;}
+  .mini p{margin:0 0 8px;font-size:.88rem;color:var(--ink-soft);}
+  .mini .url{font-size:.8rem;color:var(--ocean-mid);font-weight:600;display:flex;align-items:center;gap:5px;word-break:break-all;}
+  .mini .url::before{content:"🔗";font-size:.85rem;}
+  .mini .tag{display:inline-block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+    border-radius:6px;padding:2px 7px;margin-bottom:8px;}
+  .tag.kids{background:var(--success-soft);color:var(--success);}
+  .tag.privacy{background:var(--ocean-pale);color:var(--ocean-mid);}
+  .cardgroup-title{color:var(--ocean-deep);margin:18px 0 8px;font-size:1.05rem;}
+  .cardgroup-title:first-child{margin-top:6px;}
+
+  /* Listen mit Häkchen / Kreuzen */
+  ul.ticks{list-style:none;margin:4px 0 0;padding:0;}
+  ul.ticks li{position:relative;padding:7px 0 7px 30px;border-bottom:1px solid var(--line);font-size:.95rem;}
+  ul.ticks li:last-child{border-bottom:0;}
+  ul.ticks li::before{content:"✔";position:absolute;left:0;top:7px;width:20px;height:20px;border-radius:50%;
+    background:var(--success-soft);color:var(--success);display:grid;place-items:center;font-size:.72rem;font-weight:700;}
+  ul.ticks.cross li::before{content:"✕";background:var(--warn-soft);color:var(--warn);}
+  code.kbd{background:var(--ocean-pale);padding:1px 6px;border-radius:5px;}
+
+  /* Hinweisboxen */
+  .note{border-radius:12px;padding:13px 16px;font-size:.92rem;margin-top:16px;line-height:1.5;}
+  .note.warn{background:var(--warn-soft);border:1px solid #f3c6c0;color:#7a241c;}
+  .note.hint{background:var(--hint-soft);border:1px solid #f0d9b8;color:#8a5616;}
+  .note.good{background:var(--success-soft);border:1px solid #bfe6de;color:#1f6e63;}
+  .note b{color:inherit;}
+  .lead{color:var(--ink-soft);font-size:1rem;}
+
+  /* Quellen-Beispiel */
+  .quellbsp{background:var(--ocean-pale);border:1px dashed var(--ocean-mid);border-radius:12px;padding:14px 16px;
+    font-size:.92rem;margin-top:12px;}
+  .quellbsp .row{padding:3px 0;}
+  .quellbsp .k{display:inline-block;min-width:130px;font-weight:700;color:var(--ocean-deep);}
+  .quellbsp code{background:#fff;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.88em;}
+
+  /* ===== Aufgabenblatt (letzte Station) ===== */
+  .sheet h2{color:var(--ocean-deep);font-size:1.25rem;margin:0 0 4px;display:flex;align-items:center;gap:10px;font-weight:700;}
+  .sheet .subline{color:var(--ink-soft);font-size:.92rem;margin:0 0 16px;}
+  .meta{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:16px;}
+  .meta .fld{display:flex;align-items:center;gap:8px;font-size:.92rem;}
+  .meta .fld label{font-weight:700;color:var(--ocean-deep);white-space:nowrap;}
+  .meta .fld input{border:none;border-bottom:1.5px solid var(--ink-soft);background:transparent;font-family:inherit;
+    font-size:.95rem;padding:3px 4px;color:var(--ink);min-width:150px;}
+  .meta .fld.klasse input{min-width:80px;}
+  .meta .fld.datum input{min-width:110px;}
+  .meta .fld input:focus{outline:none;border-bottom-color:var(--ocean-mid);}
+
+  .task-intro{background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:8px;font-size:.95rem;}
+  .task-intro b{color:var(--ocean-deep);}
+
+  .q{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:16px;background:#fff;}
+  .q .qhead{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;}
+  .q .qnum{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ocean-mid);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:.95rem;}
+  .q .qtext{font-size:1rem;font-weight:600;color:var(--ink);}
+  .q .field{margin-top:8px;}
+  .q .field label{display:block;font-size:.82rem;font-weight:700;color:var(--ocean-deep);
+    text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .q input.url{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit;
+    font-size:.92rem;color:var(--ink);background:#fbfdfe;}
+  .q textarea.answer{width:100%;min-height:90px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+    font-family:inherit;font-size:.95rem;color:var(--ink);background:#fbfdfe;resize:vertical;line-height:1.5;}
+  .q input:focus,.q textarea:focus{outline:none;border-color:var(--ocean-mid);box-shadow:0 0 0 3px rgba(8,131,149,.12);}
+
+  .exportbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:22px;padding-top:18px;border-top:1px solid var(--line);}
+  .exportbar .spacer{flex:1;}
+  .savehint{font-size:.8rem;color:var(--ink-soft);}
+
+  /* ===== Fußnavigation ===== */
+  .footbar{display:flex;align-items:center;gap:14px;padding:14px 24px;border-top:1px solid var(--line);background:#fbfdfe;flex-wrap:wrap;}
+  .stationcount{flex:1;font-size:.88rem;color:var(--ink-soft);}
+  .stationcount b{color:var(--ocean-mid);}
+  .btn{font-family:inherit;font-size:.95rem;font-weight:600;border-radius:10px;padding:10px 20px;cursor:pointer;
+    border:0;transition:.16s;display:inline-flex;align-items:center;gap:7px;}
+  .btn-primary{background:var(--ocean-mid);color:#fff;}
+  .btn-primary:hover{background:var(--ocean-deep);}
+  .btn-ghost{background:#fff;color:var(--ocean-mid);border:1.5px solid var(--ocean-mid);}
+  .btn-ghost:hover{background:var(--ocean-pale);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+
+  footer.sitefooter{background:linear-gradient(120deg,var(--ocean-deep),var(--ocean-mid) 55%,var(--ocean-bright));
+    color:#fff;padding:14px 22px;text-align:center;font-size:.8rem;line-height:1.5;
+    box-shadow:0 -4px 18px rgba(10,77,104,.25);}
+  footer.sitefooter p{margin:2px 0;}
+  footer.sitefooter a{color:#fff;text-decoration:underline;}
+
+  @media (max-width:680px){
+    .brand small{display:none;}
+    .steps{grid-template-columns:1fr;}
+    .progress{order:3;flex-basis:100%;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .station.active{animation:none;}
+    a.mini:hover{transform:none;}
+  }
+
+  /* ===== Druck / PDF: nur das Aufgabenblatt ===== */
+  @media print{
+    @page{margin:14mm;}
+    body{background:#fff;}
+    header.app,footer.sitefooter,.footbar,.instruct,.exportbar{display:none!important;}
+    main{padding:0;}
+    .card{box-shadow:none;border-radius:0;min-height:0;}
+    .play{padding:0;}
+    .station{display:none!important;}
+    .station#st-aufgabe{display:block!important;}
+    .q,.task-intro,.meta .fld input{border-color:#000;}
+    .q input.url,.q textarea.answer{background:#fff;border:1px solid #999;}
+    .q{break-inside:avoid;}
+    .savehint{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="brand"><span class="glyph">🔍</span><span>Suchmaschinen richtig nutzen<small>Clever suchen · Quellen prüfen · Datenschutz</small></span></div>
+  <nav class="progress" id="progress" aria-label="Stationen"></nav>
+</header>
+
+<main>
+  <div class="card">
+    <div class="instruct">
+      <div class="bot" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none">
+          <circle cx="17" cy="17" r="9" fill="none" stroke="#088395" stroke-width="3"/>
+          <line x1="23.5" y1="23.5" x2="32" y2="32" stroke="#0a4d68" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="14" cy="15" r="1.7" fill="#0a4d68"/><circle cx="20" cy="15" r="1.7" fill="#0a4d68"/>
+          <path d="M13 19.5c1.6 1.6 5.4 1.6 7 0" stroke="#d98324" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <div class="stationlbl" id="stationLbl">Station 1 von 8</div>
+        <h1 id="stationTitle">Was ist eine Suchmaschine?</h1>
+      </div>
+    </div>
+
+    <div class="play">
+
+      <!-- Station 1 -->
+      <section class="station active" id="st-was" data-title="Was ist eine Suchmaschine?">
+        <p class="lead">Im Internet findest du fast alles &ndash; wenn du weißt, <b>wie</b> du suchst.
+          In diesen Stationen lernst du Schritt für Schritt, wie Suchmaschinen funktionieren, wie du gute
+          Ergebnisse findest, worauf du bei KI-Antworten achten musst und wie du deine Quellen richtig angibst.</p>
+        <p>Eine <b>Suchmaschine</b> ist ein Werkzeug im Internet, das dir hilft, Webseiten zu finden.
+          Du gibst ein oder mehrere <b>Suchwörter</b> ein &ndash; und die Suchmaschine zeigt dir eine
+          Liste mit passenden Seiten. Bekannte Suchmaschinen sind zum Beispiel Google, Bing oder Ecosia.</p>
+        <p>Stell dir die Suchmaschine wie einen <b>riesigen, superschnellen Bibliothekar</b> vor: Er hat
+          Millionen von Webseiten gelesen und weiß sofort, welche davon zu deiner Frage passen könnten.
+          Wichtig: Die Suchmaschine <b>versteht</b> deine Frage nicht wie ein Mensch &ndash; sie sucht nach
+          Seiten, in denen deine Wörter vorkommen.</p>
+        <div class="note hint">💡 <b>Merke:</b> Eine Suchmaschine <b>zeigt dir Webseiten</b>. Ob eine Seite wirklich
+          stimmt, musst du selbst prüfen. Die Suchmaschine sortiert nur &ndash; sie entscheidet nicht, was wahr ist.</div>
+      </section>
+
+      <!-- Station 2 -->
+      <section class="station" id="st-funktion" data-title="Wie funktioniert eine Suchmaschine?">
+        <p>Eine Suchmaschine arbeitet in drei Schritten:</p>
+        <div class="steps">
+          <div class="step">
+            <span class="snum">Schritt 1</span>
+            <div class="ico">🕷️</div>
+            <h3>Sammeln</h3>
+            <p>Kleine Computerprogramme (&bdquo;Crawler&ldquo; oder &bdquo;Spinnen&ldquo;) surfen Tag und Nacht
+              durchs Internet und lesen unzählige Webseiten.</p>
+          </div>
+          <div class="step">
+            <span class="snum">Schritt 2</span>
+            <div class="ico">🗂️</div>
+            <h3>Sortieren</h3>
+            <p>Alle gefundenen Seiten werden in einer riesigen Liste gespeichert &ndash; dem <b>Index</b>.
+              Das ist wie ein Stichwortverzeichnis in einem Buch.</p>
+          </div>
+          <div class="step">
+            <span class="snum">Schritt 3</span>
+            <div class="ico">📊</div>
+            <h3>Anzeigen</h3>
+            <p>Gibst du ein Suchwort ein, sucht die Maschine im Index und <b>reiht</b> die passendsten
+              Seiten nach oben. Das nennt man &bdquo;Ranking&ldquo;.</p>
+          </div>
+        </div>
+        <div class="note warn">📢 <b>Vorsicht bei Werbung:</b> Ganz oben stehen oft <b>Anzeigen</b>. Sie sind meist
+          mit &bdquo;Anzeige&ldquo; oder &bdquo;Gesponsert&ldquo; gekennzeichnet. Das sind bezahlte Ergebnisse &ndash;
+          nicht unbedingt die besten! Schau also nicht nur auf das erste Ergebnis.</div>
+      </section>
+
+      <!-- Station 3 -->
+      <section class="station" id="st-alternativen" data-title="Datenschutzfreundliche Alternativen zu Google">
+        <p>Google merkt sich sehr viel über dich: wonach du suchst, wo du bist und was dich interessiert.
+          Es gibt Suchmaschinen, die <b>weniger Daten über dich sammeln</b> &ndash; oder die extra für Kinder
+          gemacht sind und sichere Seiten anzeigen. <b>Klicke auf eine Kachel, um die Suchmaschine auszuprobieren.</b></p>
+
+        <h3 class="cardgroup-title">🔒 Sammeln weniger Daten</h3>
+        <div class="cards">
+          <a class="mini" href="https://www.ecosia.org" target="_blank" rel="noopener noreferrer">
+            <span class="tag privacy">Datenschutz</span><h3>Ecosia 🌱</h3>
+            <p>Nutzt Geld aus der Werbung, um weltweit Bäume zu pflanzen. Speichert wenig über dich.</p>
+            <span class="url">www.ecosia.org</span></a>
+          <a class="mini" href="https://duckduckgo.com" target="_blank" rel="noopener noreferrer">
+            <span class="tag privacy">Datenschutz</span><h3>DuckDuckGo 🦆</h3>
+            <p>Verfolgt dich nicht und speichert deine Suchen nicht. Zeigt für alle die gleichen Ergebnisse.</p>
+            <span class="url">duckduckgo.com</span></a>
+          <a class="mini" href="https://www.startpage.com" target="_blank" rel="noopener noreferrer">
+            <span class="tag privacy">Datenschutz</span><h3>Startpage</h3>
+            <p>Zeigt Google-Ergebnisse, gibt aber deine Daten nicht an Google weiter.</p>
+            <span class="url">www.startpage.com</span></a>
+          <a class="mini" href="https://www.qwant.com" target="_blank" rel="noopener noreferrer">
+            <span class="tag privacy">Datenschutz</span><h3>Qwant</h3>
+            <p>Eine europäische Suchmaschine, die deine Privatsphäre schützt.</p>
+            <span class="url">www.qwant.com</span></a>
+        </div>
+
+        <h3 class="cardgroup-title">🧒 Suchmaschinen extra für Kinder</h3>
+        <div class="cards">
+          <a class="mini" href="https://www.fragfinn.de" target="_blank" rel="noopener noreferrer">
+            <span class="tag kids">Für Kinder</span><h3>fragFINN</h3>
+            <p>Zeigt nur geprüfte, sichere Seiten für Kinder. Ideal zum Recherchieren.</p>
+            <span class="url">www.fragfinn.de</span></a>
+          <a class="mini" href="https://www.blinde-kuh.de" target="_blank" rel="noopener noreferrer">
+            <span class="tag kids">Für Kinder</span><h3>Blinde Kuh 🐮</h3>
+            <p>Eine der ersten Kindersuchmaschinen &ndash; einfach und sicher.</p>
+            <span class="url">www.blinde-kuh.de</span></a>
+          <a class="mini" href="https://www.helles-koepfchen.de" target="_blank" rel="noopener noreferrer">
+            <span class="tag kids">Für Kinder</span><h3>Helles Köpfchen 💡</h3>
+            <p>Suchmaschine und Wissensportal mit vielen erklärten Themen.</p>
+            <span class="url">www.helles-koepfchen.de</span></a>
+        </div>
+        <div class="note good">✅ <b>Tipp:</b> Für die Schule sind <b>Kindersuchmaschinen</b> wie fragFINN oder Blinde Kuh
+          besonders gut &ndash; dort landest du nicht aus Versehen auf Seiten, die nichts für dich sind.</div>
+      </section>
+
+      <!-- Station 4 -->
+      <section class="station" id="st-tipps" data-title="Tipps für gute Suchen">
+        <p>Mit ein paar Tricks findest du viel schneller, was du suchst:</p>
+        <ul class="ticks">
+          <li>Suche mit <b>wenigen, wichtigen Wörtern</b> (Schlüsselwörtern) &ndash; nicht mit ganzen Sätzen.
+            Statt &bdquo;Wie hoch ist der höchste Berg der Welt?&ldquo; reicht <b>höchster Berg Welt</b>.</li>
+          <li>Achte auf die <b>Rechtschreibung</b>. Tippfehler führen oft zu schlechten Ergebnissen.</li>
+          <li><b>Mehrere Wörter kombinieren</b> macht die Suche genauer, z.&nbsp;B. <b>Vulkan Ausbruch Kinder erklärt</b>.</li>
+          <li>Setze eine genaue Wortgruppe in <b>Anführungszeichen</b>: <code class="kbd">"höchster Berg der Alpen"</code>
+            &ndash; dann sucht die Maschine genau diese Wörter in dieser Reihenfolge.</li>
+          <li>Findest du nichts Passendes? <b>Probiere andere Wörter</b> oder Wörter, die dasselbe bedeuten.</li>
+          <li>Nutze die <b>Reiter</b> oben: Bilder, Videos oder Karten, je nachdem, was du brauchst.</li>
+          <li>Schau dir <b>mehrere Ergebnisse</b> an, nicht nur das erste &ndash; und <b>vergleiche</b> die Seiten.</li>
+        </ul>
+        <div class="note warn">🔐 <b>Schütze dich:</b> Gib in einer Suchmaschine <b>niemals</b> deinen vollen Namen,
+          deine Adresse, Telefonnummer oder Passwörter ein. Suchmaschinen sind zum <b>Suchen</b> da &ndash;
+          nicht zum Verraten deiner Daten.</div>
+      </section>
+
+      <!-- Station 5 -->
+      <section class="station" id="st-ki" data-title="Vorsicht vor KI-Antworten">
+        <p>Immer öfter zeigt dir die Suchmaschine ganz oben eine <b>Antwort von einer Künstlichen Intelligenz (KI)</b>.
+          Das sieht bequem aus &ndash; aber sei vorsichtig:</p>
+        <ul class="ticks cross">
+          <li>Eine KI kann sich <b>irren</b> und Dinge <b>erfinden</b>, die gar nicht stimmen. Man sagt: Die KI &bdquo;halluziniert&ldquo;.</li>
+          <li>Die KI-Antwort nennt oft <b>keine Quelle</b> &ndash; du weißt also nicht, woher die Information kommt.</li>
+          <li>Die KI klingt immer <b>selbstsicher</b>, auch wenn sie falsch liegt. Sicher klingen ≠ richtig sein.</li>
+          <li>Die KI ist manchmal <b>nicht aktuell</b> und kennt neue Ereignisse nicht.</li>
+        </ul>
+        <div class="note good">✅ <b>So machst du es richtig:</b> Nutze eine KI-Antwort höchstens als <b>ersten Hinweis</b>.
+          Öffne dann eine <b>echte Webseite</b>, lies dort selbst nach und <b>prüfe</b>, ob es stimmt.
+          Für die Schule gilt: Schreibe deine Antwort in <b>eigenen Worten</b> von einer Webseite ab, die du gelesen hast &ndash;
+          niemals einfach die KI-Antwort kopieren.</div>
+      </section>
+
+      <!-- Station 6 -->
+      <section class="station" id="st-quellen" data-title="Wie gebe ich Quellen richtig an?">
+        <p>Eine <b>Quelle</b> zeigt, <b>woher</b> du eine Information hast. Das ist wichtig, denn:</p>
+        <ul class="ticks">
+          <li>Andere können <b>nachprüfen</b>, ob deine Information stimmt.</li>
+          <li>Du zeigst, dass du <b>ehrlich</b> gearbeitet hast und nicht einfach abgeschrieben hast.</li>
+          <li>Du gibst denen die <b>Anerkennung</b>, die die Information aufgeschrieben haben.</li>
+        </ul>
+        <p style="margin-top:14px;">Zu einer guten Quellenangabe für eine Webseite gehört:</p>
+        <div class="quellbsp">
+          <div class="row"><span class="k">Titel der Seite:</span> Worum geht es? (z.&nbsp;B. &bdquo;Warum ist der Mars rot?&ldquo;)</div>
+          <div class="row"><span class="k">Adresse (URL):</span> die komplette Internet-Adresse</div>
+          <div class="row"><span class="k">Abrufdatum:</span> der Tag, an dem du die Seite besucht hast</div>
+          <hr style="border:none;border-top:1px dashed var(--ocean-mid);margin:10px 0;">
+          <div class="row"><b>Beispiel:</b></div>
+          <div class="row">&bdquo;Warum ist der Mars rot?&ldquo; &ndash; <code>www.beispielseite.de/mars</code> &ndash; abgerufen am 26.03.2026</div>
+        </div>
+        <div class="note hint">✏️ <b>Wichtig:</b> Schreibe die Antwort immer in <b>eigenen Worten</b>.
+          Wort-für-Wort abschreiben ist kein gutes Arbeiten &ndash; und aus einer KI kopieren erst recht nicht.</div>
+      </section>
+
+      <!-- Station 7 -->
+      <section class="station" id="st-check" data-title="Ist die Seite vertrauenswürdig?">
+        <p>Nicht jede Webseite sagt die Wahrheit. Bevor du eine Information glaubst, stelle dir diese Fragen:</p>
+        <ul class="ticks">
+          <li><b>Wer steckt dahinter?</b> Gibt es ein <b>Impressum</b> und einen Namen? Seriöse Seiten verstecken sich nicht.</li>
+          <li><b>Wie alt ist die Info?</b> Ist sie noch <b>aktuell</b> oder schon veraltet?</li>
+          <li><b>Stimmt es woanders auch?</b> Vergleiche mit <b>mindestens zwei</b> weiteren Seiten.</li>
+          <li><b>Ist es Werbung?</b> Will dir die Seite etwas <b>verkaufen</b>? Dann sei besonders kritisch.</li>
+          <li><b>Klingt es übertrieben?</b> Wenn etwas zu unglaublich klingt, ist es oft falsch.</li>
+        </ul>
+        <div class="note good">📚 <b>Gut zu wissen:</b> Seiten wie das <b>Klexikon</b> (das Wikipedia für Kinder) oder
+          Wikipedia sind ein guter <b>Start</b>. Aber auch dort gilt: nachdenken und mit anderen Quellen vergleichen.</div>
+      </section>
+
+      <!-- Station 8: Aufgabe -->
+      <section class="station sheet" id="st-aufgabe" data-title="Aufgabe: Informationen im Internet finden">
+        <h2>📝 Informationen im Internet finden</h2>
+        <p class="subline">Fülle das Blatt am Computer aus und speichere es danach als Word- oder PDF-Datei.</p>
+
+        <div class="meta">
+          <div class="fld name"><label for="mName">Name:</label><input id="mName" type="text" autocomplete="off"></div>
+          <div class="fld klasse"><label for="mKlasse">Klasse:</label><input id="mKlasse" type="text" autocomplete="off"></div>
+          <div class="fld datum"><label for="mDatum">Datum:</label><input id="mDatum" type="text" placeholder="TT.MM.JJJJ" autocomplete="off"></div>
+        </div>
+
+        <div class="task-intro">
+          <b>Aufgabe:</b> Suche mithilfe einer Suchmaschine zu jeder Frage eine passende Webseite.
+          Schreibe die <b>URL als Quelle</b> auf und beantworte die Frage <b>in eigenen Worten</b>.
+          <br><br>
+          <b>Wichtig:</b> Nutze keine KI-Antwort direkt &ndash; <b>lies die Webseite selbst</b> und
+          formuliere die Antwort in deinen eigenen Worten!
+        </div>
+
+        <div id="questions"></div>
+
+        <div class="exportbar">
+          <button class="btn btn-primary" id="btnWord">📄 Als Word speichern</button>
+          <button class="btn btn-ghost" id="btnPdf">🖨️ Als PDF / drucken</button>
+          <span class="spacer"></span>
+          <button class="btn btn-ghost" id="btnClear">🗑️ Leeren</button>
+          <span class="savehint" id="saveHint">Deine Eingaben werden automatisch im Browser gemerkt.</span>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="footbar">
+      <button class="btn btn-ghost" id="prevBtn" disabled>← Zurück</button>
+      <span class="stationcount" id="stationCount"></span>
+      <button class="btn btn-primary" id="nextBtn">Weiter →</button>
+    </div>
+  </div>
+</main>
+
+<footer class="sitefooter">
+  <p>© 2026 Wolfgang Schneider</p>
+  <p>Dieses Werk ist lizenziert unter
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>
+    (Namensnennung &ndash; Nicht kommerziell &ndash; Weitergabe unter gleichen Bedingungen).</p>
+</footer>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Stationen-Navigation
+   ============================================================ */
+const stations = [...document.querySelectorAll(".station")];
+const STAMP_LABELS = ["Suchmaschine?","So funktioniert's","Alternativen","Such-Tipps","KI-Antworten","Quellen","Seriös?","Aufgabe"];
+const progressEl = document.getElementById("progress");
+const stationTitle = document.getElementById("stationTitle");
+const stationLbl = document.getElementById("stationLbl");
+const stationCount = document.getElementById("stationCount");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+let current = 0;
+
+/* Stationsmarken im Kopf erzeugen */
+stations.forEach((st, i) => {
+  const b = document.createElement("button");
+  b.className = "stamp";
+  b.type = "button";
+  b.innerHTML = '<span class="dot">' + (i + 1) + '</span><span>' + STAMP_LABELS[i] + '</span>';
+  b.addEventListener("click", () => goTo(i));
+  progressEl.appendChild(b);
+});
+const stamps = [...progressEl.children];
+
+function goTo(i){
+  current = Math.max(0, Math.min(stations.length - 1, i));
+  stations.forEach((st, k) => st.classList.toggle("active", k === current));
+  stamps.forEach((s, k) => {
+    s.classList.toggle("active", k === current);
+    s.classList.toggle("done", k < current);
+  });
+  const title = stations[current].dataset.title;
+  stationTitle.textContent = title;
+  stationLbl.textContent = "Station " + (current + 1) + " von " + stations.length;
+  stationCount.innerHTML = "Station <b>" + (current + 1) + "</b> von " + stations.length;
+  prevBtn.disabled = current === 0;
+  nextBtn.style.visibility = current === stations.length - 1 ? "hidden" : "visible";
+  document.querySelector(".card").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+prevBtn.addEventListener("click", () => goTo(current - 1));
+nextBtn.addEventListener("click", () => goTo(current + 1));
+goTo(0);
+
+/* ============================================================
+   Aufgabe "Informationen im Internet finden"
+   ============================================================ */
+const QUESTIONS = [
+  "Wir wissen, dass der Planet Mars rot wirkt – aber was genau macht den Staub auf dem Mars rot?",
+  "Wie schaffen es Geckos, glatte Wände oder sogar die Decke hochzulaufen, ohne herunterzufallen?",
+  "Was ist ein „Geysir“ – und warum schießt das Wasser manchmal meterhoch in die Luft?",
+  "In England gibt es den berühmten Steinkreis „Stonehenge“. Wofür haben die Menschen ihn vor Tausenden von Jahren vermutlich gebaut? (Es gibt mehrere Theorien!)",
+  "Schlafen Fische eigentlich? Und wenn ja: Wie machen sie das, obwohl sie keine Augenlider zum Schließen haben?"
+];
+
+const STORAGE_KEY = "suchmaschinen-aufgabe-v1";
+
+const qWrap = document.getElementById("questions");
+QUESTIONS.forEach((text, i) => {
+  const n = i + 1;
+  const q = document.createElement("div");
+  q.className = "q";
+  q.innerHTML =
+    '<div class="qhead"><div class="qnum">' + n + '</div><div class="qtext">' + text + '</div></div>' +
+    '<div class="field"><label for="url' + n + '">Quelle (URL)</label>' +
+    '<input class="url" id="url' + n + '" type="text" inputmode="url" autocomplete="off" placeholder="https://..."></div>' +
+    '<div class="field"><label for="ans' + n + '">Antwort (in eigenen Worten)</label>' +
+    '<textarea class="answer" id="ans' + n + '" placeholder="Hier deine Antwort in eigenen Worten …"></textarea></div>';
+  qWrap.appendChild(q);
+});
+
+const fields = () => [...document.querySelectorAll("#mName,#mKlasse,#mDatum,.url,.answer")];
+
+function save(){
+  const data = {};
+  fields().forEach(f => data[f.id] = f.value);
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
+}
+function load(){
+  let data;
+  try { data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e){ data = {}; }
+  fields().forEach(f => { if(data[f.id] != null) f.value = data[f.id]; });
+}
+load();
+fields().forEach(f => f.addEventListener("input", save));
+
+function esc(s){
+  return String(s || "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+function nl2br(s){ return esc(s).replace(/\r?\n/g,"<br>"); }
+
+function buildDocHtml(){
+  const name   = document.getElementById("mName").value.trim();
+  const klasse = document.getElementById("mKlasse").value.trim();
+  const datum  = document.getElementById("mDatum").value.trim();
+
+  let rows = "";
+  QUESTIONS.forEach((text, i) => {
+    const n = i + 1;
+    const url = document.getElementById("url" + n).value.trim();
+    const ans = document.getElementById("ans" + n).value.trim();
+    rows +=
+      '<div class="qblock">' +
+        '<p class="qtitle"><b>' + n + '. ' + esc(text) + '</b></p>' +
+        '<p class="lbl">Quelle (URL):</p>' +
+        '<p class="val">' + (url ? esc(url) : "&nbsp;") + '</p>' +
+        '<p class="lbl">Antwort:</p>' +
+        '<p class="val">' + (ans ? nl2br(ans) : "&nbsp;") + '</p>' +
+      '</div>';
+  });
+
+  return '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+    'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>Informationen im Internet finden</title>' +
+    '<style>' +
+    'body{font-family:Calibri,"Segoe UI",Arial,sans-serif;color:#143540;font-size:11pt;line-height:1.5;}' +
+    'h1{color:#0a4d68;font-size:16pt;margin:0 0 4pt;}' +
+    '.sub{color:#4a6670;font-size:10pt;margin:0 0 10pt;}' +
+    '.meta{font-size:11pt;margin:0 0 12pt;}' +
+    '.meta span{margin-right:24pt;}' +
+    '.intro{border:1px solid #088395;background:#e6f3f7;padding:8pt 10pt;font-size:10.5pt;margin:0 0 12pt;}' +
+    '.qblock{border:1px solid #d4e6ec;padding:8pt 10pt;margin:0 0 10pt;}' +
+    '.qtitle{color:#0a4d68;margin:0 0 6pt;}' +
+    '.lbl{color:#088395;font-size:9pt;text-transform:uppercase;margin:6pt 0 2pt;font-weight:bold;}' +
+    '.val{margin:0;padding:4pt 0;border-bottom:1px solid #d4e6ec;min-height:14pt;}' +
+    '</style></head><body>' +
+    '<h1>Informationen im Internet finden</h1>' +
+    '<p class="sub">Suche zu jeder Frage eine passende Webseite, notiere die URL als Quelle und beantworte die Frage in eigenen Worten.</p>' +
+    '<p class="meta"><span><b>Name:</b> ' + (name ? esc(name) : "________________") + '</span>' +
+      '<span><b>Klasse:</b> ' + (klasse ? esc(klasse) : "______") + '</span>' +
+      '<span><b>Datum:</b> ' + (datum ? esc(datum) : "__________") + '</span></p>' +
+    '<p class="intro"><b>Wichtig:</b> Nutze keine KI-Antwort direkt – lies die Webseite selbst ' +
+      'und formuliere die Antwort in deinen eigenen Worten!</p>' +
+    rows +
+    '</body></html>';
+}
+
+function downloadWord(){
+  const html = buildDocHtml();
+  const blob = new Blob(["﻿", html], { type: "application/msword" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const name = document.getElementById("mName").value.trim().replace(/[^\wäöüÄÖÜß\- ]/g,"").trim();
+  a.href = url;
+  a.download = "Informationen-im-Internet-finden" + (name ? "_" + name.replace(/\s+/g,"-") : "") + ".doc";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+document.getElementById("btnWord").addEventListener("click", downloadWord);
+document.getElementById("btnPdf").addEventListener("click", () => window.print());
+document.getElementById("btnClear").addEventListener("click", () => {
+  if(confirm("Möchtest du wirklich alle deine Eingaben löschen?")){
+    fields().forEach(f => f.value = "");
+    save();
+  }
+});
+</script>
+</body>
+</html>
