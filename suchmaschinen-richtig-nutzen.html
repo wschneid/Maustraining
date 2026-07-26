@@ -33,6 +33,8 @@
   .stamp.done{background:#fff;color:var(--ocean-deep);border-color:#fff;font-weight:600;}
   .stamp.done .dot{background:var(--success);color:#fff;}
   .stamp.active{outline:2px solid #fff;outline-offset:1px;}
+  .stamp.task{background:rgba(217,131,36,.22);border-color:rgba(255,255,255,.4);}
+  .stamp.task.done{background:#fff;color:#8a5616;}
   .stamp:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
 
   main{flex:1;display:flex;justify-content:center;padding:22px 18px 30px;}
@@ -66,6 +68,14 @@
   .step p{font-size:.9rem;color:var(--ink-soft);margin:0;}
   .step .snum{display:inline-block;background:var(--ocean-mid);color:#fff;border-radius:999px;font-size:.72rem;
     font-weight:700;padding:2px 9px;margin-bottom:4px;}
+
+  /* Ablauf-Rezept "Schritt für Schritt" */
+  ol.recipe{list-style:none;counter-reset:step;margin:8px 0 0;padding:0;}
+  ol.recipe li{position:relative;padding:12px 16px 12px 60px;border:1px solid var(--line);border-radius:12px;
+    margin-bottom:10px;counter-increment:step;background:#fff;font-size:.96rem;}
+  ol.recipe li::before{content:counter(step);position:absolute;left:12px;top:11px;width:34px;height:34px;border-radius:50%;
+    background:var(--ocean-mid);color:#fff;display:grid;place-items:center;font-weight:700;font-size:1.05rem;}
+  ol.recipe li b{color:var(--ocean-deep);}
 
   /* Karten (klickbare Suchmaschinen) */
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;}
@@ -108,7 +118,7 @@
   .quellbsp .k{display:inline-block;min-width:130px;font-weight:700;color:var(--ocean-deep);}
   .quellbsp code{background:#fff;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.88em;}
 
-  /* ===== Aufgabenblatt (letzte Station) ===== */
+  /* ===== Aufgaben ===== */
   .sheet h2{color:var(--ocean-deep);font-size:1.25rem;margin:0 0 4px;display:flex;align-items:center;gap:10px;font-weight:700;}
   .sheet .subline{color:var(--ink-soft);font-size:.92rem;margin:0 0 16px;}
   .meta{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:16px;}
@@ -131,22 +141,53 @@
   .q .field{margin-top:8px;}
   .q .field label{display:block;font-size:.82rem;font-weight:700;color:var(--ocean-deep);
     text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
-  .q input.url{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit;
+  .q input.txt,.q input.url{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit;
     font-size:.92rem;color:var(--ink);background:#fbfdfe;}
   .q textarea.answer{width:100%;min-height:90px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;
     font-family:inherit;font-size:.95rem;color:var(--ink);background:#fbfdfe;resize:vertical;line-height:1.5;}
   .q input:focus,.q textarea:focus{outline:none;border-color:var(--ocean-mid);box-shadow:0 0 0 3px rgba(8,131,149,.12);}
 
-  .exportbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:22px;padding-top:18px;border-top:1px solid var(--line);}
-  .exportbar .spacer{flex:1;}
-  .savehint{font-size:.8rem;color:var(--ink-soft);}
+  /* Aufgabe 3: Checkliste */
+  .quellname{margin:8px 0 16px;}
+  .quellname label{display:block;font-weight:700;color:var(--ocean-deep);margin-bottom:5px;font-size:.95rem;}
+  .quellname input{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-family:inherit;
+    font-size:.95rem;color:var(--ink);background:#fbfdfe;}
+  .quellname input:focus{outline:none;border-color:var(--ocean-mid);box-shadow:0 0 0 3px rgba(8,131,149,.12);}
+  ul.checklist{list-style:none;margin:6px 0 0;padding:0;}
+  ul.checklist li{margin-bottom:9px;}
+  ul.checklist label{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--line);
+    border-radius:10px;background:#fbfdfe;cursor:pointer;font-size:.95rem;transition:.14s;}
+  ul.checklist label:hover{background:var(--ocean-pale);}
+  ul.checklist input{width:20px;height:20px;margin-top:1px;accent-color:var(--ocean-mid);flex:none;}
+  ul.checklist label:has(input:checked){border-color:var(--success);background:var(--success-soft);}
+
+  /* Differenzierung "Für Schnelle" */
+  .bonus-badge{display:inline-flex;align-items:center;gap:7px;background:var(--hint-soft);color:#8a5616;
+    border:1px solid #f0d9b8;border-radius:999px;padding:5px 13px;font-size:.8rem;font-weight:700;margin-bottom:6px;}
+  .bonus-card{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:16px;background:#fff;}
+  .bonus-card h3{margin:0 0 6px;color:var(--ocean-deep);font-size:1.05rem;display:flex;align-items:center;gap:8px;}
+  .bonus-card p{margin:0 0 10px;font-size:.95rem;}
+  .bonus-card .field{margin-top:8px;}
+  .bonus-card .field label{display:block;font-size:.82rem;font-weight:700;color:var(--ocean-deep);
+    text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .bonus-card input.url,.bonus-card input.txt{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+    font-family:inherit;font-size:.92rem;color:var(--ink);background:#fbfdfe;}
+  .bonus-card textarea.answer{width:100%;min-height:80px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+    font-family:inherit;font-size:.95rem;color:var(--ink);background:#fbfdfe;resize:vertical;line-height:1.5;}
+  .bonus-card input:focus,.bonus-card textarea:focus{outline:none;border-color:var(--ocean-mid);box-shadow:0 0 0 3px rgba(8,131,149,.12);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:560px){.grid2{grid-template-columns:1fr;}}
 
   /* ===== Fußnavigation ===== */
-  .footbar{display:flex;align-items:center;gap:14px;padding:14px 24px;border-top:1px solid var(--line);background:#fbfdfe;flex-wrap:wrap;}
-  .stationcount{flex:1;font-size:.88rem;color:var(--ink-soft);}
+  .footbar{display:flex;align-items:center;gap:12px;padding:14px 24px;border-top:1px solid var(--line);background:#fbfdfe;flex-wrap:wrap;}
+  .stationcount{font-size:.88rem;color:var(--ink-soft);white-space:nowrap;}
   .stationcount b{color:var(--ocean-mid);}
-  .btn{font-family:inherit;font-size:.95rem;font-weight:600;border-radius:10px;padding:10px 20px;cursor:pointer;
+  .exporttools{display:none;gap:9px;flex-wrap:wrap;align-items:center;flex:1;justify-content:center;}
+  .exporttools.show{display:flex;}
+  .footspacer{flex:1;}
+  .btn{font-family:inherit;font-size:.95rem;font-weight:600;border-radius:10px;padding:10px 18px;cursor:pointer;
     border:0;transition:.16s;display:inline-flex;align-items:center;gap:7px;}
+  .btn-small{padding:8px 13px;font-size:.86rem;}
   .btn-primary{background:var(--ocean-mid);color:#fff;}
   .btn-primary:hover{background:var(--ocean-deep);}
   .btn-ghost{background:#fff;color:var(--ocean-mid);border:1.5px solid var(--ocean-mid);}
@@ -164,26 +205,29 @@
     .brand small{display:none;}
     .steps{grid-template-columns:1fr;}
     .progress{order:3;flex-basis:100%;}
+    .exporttools{order:5;flex-basis:100%;}
   }
   @media (prefers-reduced-motion:reduce){
     .station.active{animation:none;}
     a.mini:hover{transform:none;}
   }
 
-  /* ===== Druck / PDF: nur das Aufgabenblatt ===== */
+  /* ===== Druck / PDF: alle Aufgaben-Stationen ===== */
   @media print{
     @page{margin:14mm;}
     body{background:#fff;}
-    header.app,footer.sitefooter,.footbar,.instruct,.exportbar{display:none!important;}
+    header.app,footer.sitefooter,.footbar,.instruct{display:none!important;}
     main{padding:0;}
     .card{box-shadow:none;border-radius:0;min-height:0;}
     .play{padding:0;}
     .station{display:none!important;}
-    .station#st-aufgabe{display:block!important;}
-    .q,.task-intro,.meta .fld input{border-color:#000;}
-    .q input.url,.q textarea.answer{background:#fff;border:1px solid #999;}
+    .station.task{display:block!important;margin-bottom:18px;}
+    .station.task + .station.task{break-before:page;}
+    .q,.task-intro,.meta .fld input,.bonus-card,.quellname input,ul.checklist label{border-color:#000!important;}
+    .q input,.q textarea,.quellname input,.bonus-card input,.bonus-card textarea{background:#fff;border:1px solid #999;}
+    ul.checklist label:has(input:checked){background:#fff!important;}
     .q{break-inside:avoid;}
-    .savehint{display:none;}
+    .bonus-badge{border-color:#000;}
   }
 </style>
 </head>
@@ -206,7 +250,7 @@
         </svg>
       </div>
       <div class="txt">
-        <div class="stationlbl" id="stationLbl">Station 1 von 8</div>
+        <div class="stationlbl" id="stationLbl">Station 1</div>
         <h1 id="stationTitle">Was ist eine Suchmaschine?</h1>
       </div>
     </div>
@@ -375,10 +419,25 @@
           Wikipedia sind ein guter <b>Start</b>. Aber auch dort gilt: nachdenken und mit anderen Quellen vergleichen.</div>
       </section>
 
-      <!-- Station 8: Aufgabe -->
-      <section class="station sheet" id="st-aufgabe" data-title="Aufgabe: Informationen im Internet finden">
-        <h2>📝 Informationen im Internet finden</h2>
-        <p class="subline">Fülle das Blatt am Computer aus und speichere es danach als Word- oder PDF-Datei.</p>
+      <!-- Station 8: Schritt für Schritt -->
+      <section class="station" id="st-vorgehen" data-title="So gehst du Schritt für Schritt vor">
+        <p>Wenn du eine Frage im Internet recherchieren sollst, arbeite diese Schritte der Reihe nach ab:</p>
+        <ol class="recipe">
+          <li><b>Frage verstehen:</b> Lies die Aufgabe genau. Was genau sollst du herausfinden?</li>
+          <li><b>Schlüsselwörter überlegen:</b> Welche 2&ndash;3 wichtigen Wörter beschreiben deine Suche am besten?</li>
+          <li><b>Suchmaschine öffnen:</b> Starte mit einer Kindersuchmaschine (z.&nbsp;B. fragFINN.de) oder nutze eine Suchmaschine wie Google.</li>
+          <li><b>Suchergebnisse lesen:</b> Schau dir die Vorschautexte an &ndash; klicke nur auf Ergebnisse, die wirklich zu deiner Frage passen.</li>
+          <li><b>Informationen bewerten:</b> Prüfe: Wer hat die Seite gemacht? Steht Ähnliches auch auf anderen Seiten?</li>
+          <li><b>Ergebnis notieren:</b> Schreibe deine Antwort in eigenen Worten auf und notiere die Quelle.</li>
+        </ol>
+        <div class="note warn">⚠️ <b>Wichtig:</b> Kopiere niemals einfach Text von einer Website und gib ihn als deinen
+          eigenen aus! Lies die Information, verstehe sie und schreibe sie dann mit <b>eigenen Worten</b> auf.</div>
+      </section>
+
+      <!-- Station 9: Aufgabe 1 -->
+      <section class="station sheet task" id="st-aufgabe1" data-title="Aufgabe 1: Informationen im Internet finden">
+        <h2>📝 Aufgabe 1: Informationen im Internet finden</h2>
+        <p class="subline">Fülle das Blatt am Computer aus und speichere es am Ende als Word- oder PDF-Datei.</p>
 
         <div class="meta">
           <div class="fld name"><label for="mName">Name:</label><input id="mName" type="text" autocomplete="off"></div>
@@ -395,13 +454,60 @@
         </div>
 
         <div id="questions"></div>
+      </section>
 
-        <div class="exportbar">
-          <button class="btn btn-primary" id="btnWord">📄 Als Word speichern</button>
-          <button class="btn btn-ghost" id="btnPdf">🖨️ Als PDF / drucken</button>
-          <span class="spacer"></span>
-          <button class="btn btn-ghost" id="btnClear">🗑️ Leeren</button>
-          <span class="savehint" id="saveHint">Deine Eingaben werden automatisch im Browser gemerkt.</span>
+      <!-- Station 10: Aufgabe 2 -->
+      <section class="station sheet task" id="st-aufgabe2" data-title="Aufgabe 2: Gute Suchbegriffe finden">
+        <h2>🔑 Aufgabe 2: Gute Suchbegriffe finden</h2>
+        <p class="subline">Übe Schritt 2 aus dem Vorgehen: aus einer ganzen Frage die wichtigen Schlüsselwörter herausziehen.</p>
+        <div class="task-intro">
+          <b>Aufgabe:</b> Lange Sätze sind schlechte Suchwörter. Schreibe zu jeder Frage <b>2&ndash;3
+          Schlüsselwörter</b> auf, mit denen du am besten suchen würdest.
+          <br><br>
+          Beispiel: &bdquo;Wie hoch ist der höchste Berg der Welt?&ldquo; &nbsp;→&nbsp; <b>höchster Berg Welt</b>
+        </div>
+        <div id="keywords"></div>
+      </section>
+
+      <!-- Station 11: Aufgabe 3 -->
+      <section class="station sheet task" id="st-aufgabe3" data-title="Aufgabe 3: Quellen bewerten">
+        <h2>🔎 Aufgabe 3: Quellen bewerten</h2>
+        <p class="subline">Nicht jede Internetseite ist gleich gut. Gehe die Checkliste durch und hake ab, was auf eine deiner gefundenen Quellen zutrifft.</p>
+        <div class="quellname">
+          <label for="quelleName">✏️ Welche Quelle bewertest du? (Schreibe den Namen oder die URL auf)</label>
+          <input id="quelleName" type="text" autocomplete="off" placeholder="z.B. Klexikon.de oder www.beispielseite.de/thema">
+        </div>
+        <ul class="checklist" id="checklist"></ul>
+        <div class="note hint">💡 <b>Auswertung:</b> Je <b>mehr Häkchen</b> du setzen kannst, desto vertrauenswürdiger ist die Quelle
+          wahrscheinlich. Bei nur wenigen Häkchen solltest du besser eine andere Seite suchen.</div>
+      </section>
+
+      <!-- Station 12: Für Schnelle -->
+      <section class="station sheet task" id="st-schnelle" data-title="Für Schnelle: Such-Detektiv">
+        <span class="bonus-badge">🚀 Für Schnelle &ndash; Zusatzaufgabe</span>
+        <h2>🕵️ Such-Detektiv</h2>
+        <p class="subline">Fertig? Dann knacke diese beiden Detektiv-Aufgaben. Hier ist besonders wichtig: immer <b>mehrere Quellen</b> vergleichen!</p>
+
+        <div class="bonus-card">
+          <h3>🧪 Stimmt das wirklich?</h3>
+          <p>Man hört oft: <b>&bdquo;Ein Chamäleon wechselt seine Farbe nur, um sich zu tarnen.&ldquo;</b>
+            Stimmt das wirklich? Finde es mit <b>zwei verschiedenen Quellen</b> heraus und vergleiche.</p>
+          <div class="grid2">
+            <div class="field"><label for="sbQuelle1">Quelle 1 (URL)</label>
+              <input class="url" id="sbQuelle1" type="text" inputmode="url" autocomplete="off" placeholder="https://..."></div>
+            <div class="field"><label for="sbQuelle2">Quelle 2 (URL)</label>
+              <input class="url" id="sbQuelle2" type="text" inputmode="url" autocomplete="off" placeholder="https://..."></div>
+          </div>
+          <div class="field"><label for="sbAntwort">Was hast du herausgefunden? (in eigenen Worten)</label>
+            <textarea class="answer" id="sbAntwort" placeholder="Stimmt die Behauptung? Warum wechselt ein Chamäleon wirklich die Farbe?"></textarea></div>
+        </div>
+
+        <div class="bonus-card">
+          <h3>🔀 Zwei Suchmaschinen im Vergleich</h3>
+          <p>Suche denselben Begriff &ndash; zum Beispiel <b>Vulkan</b> &ndash; bei <b>zwei verschiedenen
+            Suchmaschinen</b> (z.&nbsp;B. fragFINN und Ecosia). Was fällt dir auf?</p>
+          <div class="field"><label for="sbVergleich">Nenne einen Unterschied, der dir auffällt</label>
+            <textarea class="answer" id="sbVergleich" placeholder="Zum Beispiel: andere Reihenfolge, andere Seiten, mehr/weniger Werbung, kindgerechter …"></textarea></div>
         </div>
       </section>
 
@@ -410,6 +516,12 @@
     <div class="footbar">
       <button class="btn btn-ghost" id="prevBtn" disabled>← Zurück</button>
       <span class="stationcount" id="stationCount"></span>
+      <div class="exporttools" id="exportTools">
+        <button class="btn btn-primary btn-small" id="btnWord">📄 Als Word speichern</button>
+        <button class="btn btn-ghost btn-small" id="btnPdf">🖨️ Als PDF / drucken</button>
+        <button class="btn btn-ghost btn-small" id="btnClear">🗑️ Leeren</button>
+      </div>
+      <span class="footspacer"></span>
       <button class="btn btn-primary" id="nextBtn">Weiter →</button>
     </div>
   </div>
@@ -426,50 +538,7 @@
 "use strict";
 
 /* ============================================================
-   Stationen-Navigation
-   ============================================================ */
-const stations = [...document.querySelectorAll(".station")];
-const STAMP_LABELS = ["Suchmaschine?","So funktioniert's","Alternativen","Such-Tipps","KI-Antworten","Quellen","Seriös?","Aufgabe"];
-const progressEl = document.getElementById("progress");
-const stationTitle = document.getElementById("stationTitle");
-const stationLbl = document.getElementById("stationLbl");
-const stationCount = document.getElementById("stationCount");
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
-let current = 0;
-
-/* Stationsmarken im Kopf erzeugen */
-stations.forEach((st, i) => {
-  const b = document.createElement("button");
-  b.className = "stamp";
-  b.type = "button";
-  b.innerHTML = '<span class="dot">' + (i + 1) + '</span><span>' + STAMP_LABELS[i] + '</span>';
-  b.addEventListener("click", () => goTo(i));
-  progressEl.appendChild(b);
-});
-const stamps = [...progressEl.children];
-
-function goTo(i){
-  current = Math.max(0, Math.min(stations.length - 1, i));
-  stations.forEach((st, k) => st.classList.toggle("active", k === current));
-  stamps.forEach((s, k) => {
-    s.classList.toggle("active", k === current);
-    s.classList.toggle("done", k < current);
-  });
-  const title = stations[current].dataset.title;
-  stationTitle.textContent = title;
-  stationLbl.textContent = "Station " + (current + 1) + " von " + stations.length;
-  stationCount.innerHTML = "Station <b>" + (current + 1) + "</b> von " + stations.length;
-  prevBtn.disabled = current === 0;
-  nextBtn.style.visibility = current === stations.length - 1 ? "hidden" : "visible";
-  document.querySelector(".card").scrollIntoView({ behavior: "smooth", block: "start" });
-}
-prevBtn.addEventListener("click", () => goTo(current - 1));
-nextBtn.addEventListener("click", () => goTo(current + 1));
-goTo(0);
-
-/* ============================================================
-   Aufgabe "Informationen im Internet finden"
+   Inhalte
    ============================================================ */
 const QUESTIONS = [
   "Wir wissen, dass der Planet Mars rot wirkt – aber was genau macht den Staub auf dem Mars rot?",
@@ -478,9 +547,21 @@ const QUESTIONS = [
   "In England gibt es den berühmten Steinkreis „Stonehenge“. Wofür haben die Menschen ihn vor Tausenden von Jahren vermutlich gebaut? (Es gibt mehrere Theorien!)",
   "Schlafen Fische eigentlich? Und wenn ja: Wie machen sie das, obwohl sie keine Augenlider zum Schließen haben?"
 ];
+const KEYWORD_QUESTIONS = [
+  "Wie weit ist der Mond von der Erde entfernt?",
+  "Warum färben sich im Herbst die Blätter bunt?",
+  "Wie schnell kann ein Gepard rennen?"
+];
+const CHECKS = [
+  "Die Seite hat ein Impressum (steht meist ganz unten).",
+  "Ich kann erkennen, wer die Seite gemacht hat (z.B. eine Schule, ein Verlag, eine Organisation).",
+  "Die Informationen sind in verständlicher Sprache geschrieben.",
+  "Auf der Seite ist wenig oder keine Werbung.",
+  "Die gleiche Information habe ich auch auf einer anderen Seite gefunden.",
+  "Die Seite sieht gepflegt und aktuell aus (kein uraltes Design, keine kaputten Links)."
+];
 
-const STORAGE_KEY = "suchmaschinen-aufgabe-v1";
-
+/* ---- Aufgabe 1: Recherche-Fragen ---- */
 const qWrap = document.getElementById("questions");
 QUESTIONS.forEach((text, i) => {
   const n = i + 1;
@@ -495,54 +576,147 @@ QUESTIONS.forEach((text, i) => {
   qWrap.appendChild(q);
 });
 
-const fields = () => [...document.querySelectorAll("#mName,#mKlasse,#mDatum,.url,.answer")];
+/* ---- Aufgabe 2: Schlüsselwörter ---- */
+const kwWrap = document.getElementById("keywords");
+KEYWORD_QUESTIONS.forEach((text, i) => {
+  const n = i + 1;
+  const q = document.createElement("div");
+  q.className = "q";
+  q.innerHTML =
+    '<div class="qhead"><div class="qnum">' + n + '</div><div class="qtext">' + text + '</div></div>' +
+    '<div class="field"><label for="kw' + n + '">Meine Schlüsselwörter</label>' +
+    '<input class="txt" id="kw' + n + '" type="text" autocomplete="off" placeholder="2–3 wichtige Wörter …"></div>';
+  kwWrap.appendChild(q);
+});
+
+/* ---- Aufgabe 3: Checkliste ---- */
+const clWrap = document.getElementById("checklist");
+CHECKS.forEach((text, i) => {
+  const n = i + 1;
+  const li = document.createElement("li");
+  li.innerHTML = '<label><input type="checkbox" id="chk' + n + '"><span>' + text + '</span></label>';
+  clWrap.appendChild(li);
+});
+
+/* ============================================================
+   Stationen-Navigation
+   ============================================================ */
+const stations = [...document.querySelectorAll(".station")];
+const STAMP_LABELS = ["Suchmaschine?","So funktioniert's","Alternativen","Such-Tipps","KI-Antworten","Quellen","Seriös?",
+  "Schritt für Schritt","Aufgabe 1","Aufgabe 2","Aufgabe 3","Für Schnelle"];
+const progressEl = document.getElementById("progress");
+const stationTitle = document.getElementById("stationTitle");
+const stationLbl = document.getElementById("stationLbl");
+const stationCount = document.getElementById("stationCount");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const exportTools = document.getElementById("exportTools");
+let current = 0;
+
+stations.forEach((st, i) => {
+  const b = document.createElement("button");
+  b.className = "stamp" + (st.classList.contains("task") ? " task" : "");
+  b.type = "button";
+  b.innerHTML = '<span class="dot">' + (i + 1) + '</span><span>' + (STAMP_LABELS[i] || ("Station " + (i + 1))) + '</span>';
+  b.addEventListener("click", () => goTo(i));
+  progressEl.appendChild(b);
+});
+const stamps = [...progressEl.children];
+
+function goTo(i){
+  current = Math.max(0, Math.min(stations.length - 1, i));
+  const st = stations[current];
+  stations.forEach((s, k) => s.classList.toggle("active", k === current));
+  stamps.forEach((s, k) => {
+    s.classList.toggle("active", k === current);
+    s.classList.toggle("done", k < current);
+  });
+  stationTitle.textContent = st.dataset.title;
+  stationLbl.textContent = "Station " + (current + 1) + " von " + stations.length;
+  stationCount.innerHTML = "Station <b>" + (current + 1) + "</b> von " + stations.length;
+  prevBtn.disabled = current === 0;
+  nextBtn.style.visibility = current === stations.length - 1 ? "hidden" : "visible";
+  exportTools.classList.toggle("show", st.classList.contains("task"));
+  document.querySelector(".card").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+prevBtn.addEventListener("click", () => goTo(current - 1));
+nextBtn.addEventListener("click", () => goTo(current + 1));
+goTo(0);
+
+/* ============================================================
+   Speichern (Browser) + Export
+   ============================================================ */
+const STORAGE_KEY = "suchmaschinen-aufgabe-v2";
+const fields = () => [...document.querySelectorAll(".station.task input, .station.task textarea")];
 
 function save(){
   const data = {};
-  fields().forEach(f => data[f.id] = f.value);
+  fields().forEach(f => data[f.id] = (f.type === "checkbox" ? f.checked : f.value));
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
 }
 function load(){
   let data;
   try { data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e){ data = {}; }
-  fields().forEach(f => { if(data[f.id] != null) f.value = data[f.id]; });
+  fields().forEach(f => {
+    if(data[f.id] == null) return;
+    if(f.type === "checkbox") f.checked = !!data[f.id]; else f.value = data[f.id];
+  });
 }
 load();
-fields().forEach(f => f.addEventListener("input", save));
+fields().forEach(f => f.addEventListener(f.type === "checkbox" ? "change" : "input", save));
 
+function val(id){ const el = document.getElementById(id); return el ? el.value.trim() : ""; }
+function checked(id){ const el = document.getElementById(id); return !!(el && el.checked); }
 function esc(s){
   return String(s || "")
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;");
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 function nl2br(s){ return esc(s).replace(/\r?\n/g,"<br>"); }
+function line(s){ return s ? esc(s) : "&nbsp;"; }
+function para(s){ return s ? nl2br(s) : "&nbsp;"; }
 
+/* ---- Word-Dokument mit allen Aufgaben ---- */
 function buildDocHtml(){
-  const name   = document.getElementById("mName").value.trim();
-  const klasse = document.getElementById("mKlasse").value.trim();
-  const datum  = document.getElementById("mDatum").value.trim();
+  const name = val("mName"), klasse = val("mKlasse"), datum = val("mDatum");
 
-  let rows = "";
+  // Aufgabe 1
+  let a1 = "";
   QUESTIONS.forEach((text, i) => {
     const n = i + 1;
-    const url = document.getElementById("url" + n).value.trim();
-    const ans = document.getElementById("ans" + n).value.trim();
-    rows +=
-      '<div class="qblock">' +
-        '<p class="qtitle"><b>' + n + '. ' + esc(text) + '</b></p>' +
-        '<p class="lbl">Quelle (URL):</p>' +
-        '<p class="val">' + (url ? esc(url) : "&nbsp;") + '</p>' +
-        '<p class="lbl">Antwort:</p>' +
-        '<p class="val">' + (ans ? nl2br(ans) : "&nbsp;") + '</p>' +
-      '</div>';
+    a1 += '<div class="qblock"><p class="qtitle"><b>' + n + '. ' + esc(text) + '</b></p>' +
+      '<p class="lbl">Quelle (URL):</p><p class="val">' + line(val("url" + n)) + '</p>' +
+      '<p class="lbl">Antwort:</p><p class="val">' + para(val("ans" + n)) + '</p></div>';
   });
+
+  // Aufgabe 2
+  let a2 = "";
+  KEYWORD_QUESTIONS.forEach((text, i) => {
+    const n = i + 1;
+    a2 += '<div class="qblock"><p class="qtitle"><b>' + n + '. ' + esc(text) + '</b></p>' +
+      '<p class="lbl">Schlüsselwörter:</p><p class="val">' + line(val("kw" + n)) + '</p></div>';
+  });
+
+  // Aufgabe 3
+  let a3 = '<p class="lbl">Bewertete Quelle:</p><p class="val">' + line(val("quelleName")) + '</p><p class="lbl">Checkliste:</p>';
+  CHECKS.forEach((text, i) => {
+    a3 += '<p class="chk">' + (checked("chk" + (i + 1)) ? "☑" : "☐") + " " + esc(text) + '</p>';
+  });
+
+  // Für Schnelle
+  let bonus = '<div class="qblock"><p class="qtitle"><b>Stimmt das wirklich? (Chamäleon &amp; Tarnung)</b></p>' +
+    '<p class="lbl">Quelle 1:</p><p class="val">' + line(val("sbQuelle1")) + '</p>' +
+    '<p class="lbl">Quelle 2:</p><p class="val">' + line(val("sbQuelle2")) + '</p>' +
+    '<p class="lbl">Antwort:</p><p class="val">' + para(val("sbAntwort")) + '</p></div>' +
+    '<div class="qblock"><p class="qtitle"><b>Zwei Suchmaschinen im Vergleich</b></p>' +
+    '<p class="lbl">Unterschied:</p><p class="val">' + para(val("sbVergleich")) + '</p></div>';
 
   return '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
     'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
-    '<head><meta charset="utf-8"><title>Informationen im Internet finden</title>' +
+    '<head><meta charset="utf-8"><title>Suchmaschinen richtig nutzen – Aufgaben</title>' +
     '<style>' +
     'body{font-family:Calibri,"Segoe UI",Arial,sans-serif;color:#143540;font-size:11pt;line-height:1.5;}' +
     'h1{color:#0a4d68;font-size:16pt;margin:0 0 4pt;}' +
+    'h2{color:#088395;font-size:13pt;margin:16pt 0 6pt;border-bottom:1px solid #d4e6ec;padding-bottom:3pt;}' +
     '.sub{color:#4a6670;font-size:10pt;margin:0 0 10pt;}' +
     '.meta{font-size:11pt;margin:0 0 12pt;}' +
     '.meta span{margin-right:24pt;}' +
@@ -551,15 +725,19 @@ function buildDocHtml(){
     '.qtitle{color:#0a4d68;margin:0 0 6pt;}' +
     '.lbl{color:#088395;font-size:9pt;text-transform:uppercase;margin:6pt 0 2pt;font-weight:bold;}' +
     '.val{margin:0;padding:4pt 0;border-bottom:1px solid #d4e6ec;min-height:14pt;}' +
+    '.chk{margin:3pt 0;font-size:11pt;}' +
     '</style></head><body>' +
-    '<h1>Informationen im Internet finden</h1>' +
-    '<p class="sub">Suche zu jeder Frage eine passende Webseite, notiere die URL als Quelle und beantworte die Frage in eigenen Worten.</p>' +
+    '<h1>Suchmaschinen richtig nutzen – Aufgaben</h1>' +
     '<p class="meta"><span><b>Name:</b> ' + (name ? esc(name) : "________________") + '</span>' +
       '<span><b>Klasse:</b> ' + (klasse ? esc(klasse) : "______") + '</span>' +
       '<span><b>Datum:</b> ' + (datum ? esc(datum) : "__________") + '</span></p>' +
+    '<h2>Aufgabe 1: Informationen im Internet finden</h2>' +
     '<p class="intro"><b>Wichtig:</b> Nutze keine KI-Antwort direkt – lies die Webseite selbst ' +
-      'und formuliere die Antwort in deinen eigenen Worten!</p>' +
-    rows +
+      'und formuliere die Antwort in deinen eigenen Worten!</p>' + a1 +
+    '<h2>Aufgabe 2: Gute Suchbegriffe finden</h2>' +
+    '<p class="sub">Schreibe zu jeder Frage 2–3 Schlüsselwörter auf.</p>' + a2 +
+    '<h2>Aufgabe 3: Quellen bewerten</h2>' + a3 +
+    '<h2>Für Schnelle: Such-Detektiv</h2>' + bonus +
     '</body></html>';
 }
 
@@ -568,9 +746,9 @@ function downloadWord(){
   const blob = new Blob(["﻿", html], { type: "application/msword" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  const name = document.getElementById("mName").value.trim().replace(/[^\wäöüÄÖÜß\- ]/g,"").trim();
+  const name = val("mName").replace(/[^\wäöüÄÖÜß\- ]/g,"").trim();
   a.href = url;
-  a.download = "Informationen-im-Internet-finden" + (name ? "_" + name.replace(/\s+/g,"-") : "") + ".doc";
+  a.download = "Suchmaschinen-Aufgaben" + (name ? "_" + name.replace(/\s+/g,"-") : "") + ".doc";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -580,8 +758,8 @@ function downloadWord(){
 document.getElementById("btnWord").addEventListener("click", downloadWord);
 document.getElementById("btnPdf").addEventListener("click", () => window.print());
 document.getElementById("btnClear").addEventListener("click", () => {
-  if(confirm("Möchtest du wirklich alle deine Eingaben löschen?")){
-    fields().forEach(f => f.value = "");
+  if(confirm("Möchtest du wirklich alle deine Eingaben in allen Aufgaben löschen?")){
+    fields().forEach(f => { if(f.type === "checkbox") f.checked = false; else f.value = ""; });
     save();
   }
 });
