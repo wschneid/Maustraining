@@ -13,7 +13,7 @@
     --shadow:0 10px 30px rgba(10,77,104,.10); --radius:16px;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;min-height:100%;}
+  html,body{margin:0;padding:0;min-height:100%;overflow-x:hidden;}
   body{font-family:"Segoe UI","Frutiger",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--ink);
     -webkit-font-smoothing:antialiased;line-height:1.55;min-height:100vh;display:flex;flex-direction:column;}
 
@@ -96,6 +96,49 @@
   .step p{font-size:.9rem;color:var(--ink-soft);margin:0;}
   .step .snum{display:inline-block;background:var(--ocean-mid);color:#fff;border-radius:999px;font-size:.72rem;
     font-weight:700;padding:2px 9px;margin-bottom:4px;}
+
+  /* ===== Profil-Baukasten: Datenkrümel → Steckbrief ===== */
+  .profile-builder{display:flex;gap:16px;align-items:stretch;flex-wrap:wrap;margin:8px 0 4px;}
+  .pb-clues{flex:1 1 260px;display:flex;flex-direction:column;gap:9px;}
+  .pb-clue{font-family:inherit;text-align:left;display:flex;align-items:center;gap:10px;cursor:pointer;
+    background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-size:.94rem;color:var(--ink);
+    transition:.16s;position:relative;}
+  .pb-clue:hover{border-color:var(--ocean-mid);box-shadow:0 6px 16px rgba(10,77,104,.12);transform:translateY(-1px);}
+  .pb-clue:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .pb-clue .pb-ico{font-size:1.3rem;line-height:1;flex:none;}
+  .pb-clue .pb-lbl{flex:1;font-weight:600;color:var(--ocean-deep);}
+  .pb-clue .pb-state{flex:none;width:24px;height:24px;border-radius:50%;background:var(--ocean-pale);
+    color:var(--ocean-mid);display:grid;place-items:center;font-size:.8rem;font-weight:700;}
+  .pb-clue[aria-pressed="true"]{border-color:var(--success);background:var(--success-soft);}
+  .pb-clue[aria-pressed="true"] .pb-state{background:var(--success);color:#fff;}
+  .pb-arrow{flex:none;display:grid;place-items:center;font-size:1.6rem;color:var(--ocean-mid);align-self:center;}
+  .pb-arrow .pb-down{display:none;}
+  .pb-card{flex:1 1 300px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;}
+  .pb-card-head{display:flex;align-items:center;gap:9px;padding:12px 16px;color:#fff;font-weight:700;font-size:1rem;
+    background:linear-gradient(90deg,var(--ocean-deep),var(--ocean-mid));}
+  .pb-card ul{list-style:none;margin:0;padding:10px 14px;display:flex;flex-direction:column;gap:8px;flex:1;}
+  .pb-line{display:none;gap:9px;align-items:flex-start;padding:8px 11px;border:1px solid var(--line);border-radius:10px;
+    background:var(--ocean-pale);font-size:.93rem;}
+  .pb-line.show{display:flex;animation:pbFade .3s ease;}
+  @keyframes pbFade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .pb-line .pb-line-ico{flex:none;font-size:1.05rem;line-height:1.2;}
+  .pb-empty{color:var(--ink-soft);font-size:.9rem;font-style:italic;padding:8px 11px;}
+  .pb-empty.hide{display:none;}
+  .pb-summary{opacity:0;max-height:0;overflow:hidden;transition:opacity .35s ease,max-height .35s ease;
+    margin:0 14px 14px;background:var(--hint-soft);border:1px solid #f0d9b8;border-radius:12px;padding:0 14px;color:#8a5616;
+    font-size:.93rem;line-height:1.5;}
+  .pb-summary.show{opacity:1;max-height:320px;padding:12px 14px;}
+  .pb-summary b{color:#7a4a12;}
+  .pb-reset{align-self:flex-start;margin:2px 0 0;font-family:inherit;font-size:.84rem;font-weight:600;cursor:pointer;
+    background:#fff;color:var(--ocean-mid);border:1.5px solid var(--ocean-mid);border-radius:9px;padding:7px 14px;transition:.16s;}
+  .pb-reset:hover{background:var(--ocean-pale);}
+  .pb-reset:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  @media (max-width:640px){
+    .pb-arrow{width:100%;transform:rotate(0);}
+    .pb-arrow .pb-right{display:none;}
+    .pb-arrow .pb-down{display:block;}
+  }
 
   /* Ablauf-Rezept "Schritt für Schritt" */
   ol.recipe{list-style:none;counter-reset:step;margin:8px 0 0;padding:0;}
@@ -238,6 +281,9 @@
   @media (prefers-reduced-motion:reduce){
     .station.active{animation:none;}
     a.mini:hover{transform:none;}
+    .pb-clue:hover{transform:none;}
+    .pb-line.show{animation:none;}
+    .pb-summary{transition:none;}
   }
 
   /* ===== Druck / PDF: alle Aufgaben-Stationen ===== */
@@ -347,6 +393,51 @@
           <li><b>Welches Gerät</b> du benutzt (Handy, Tablet, Computer) und welchen Browser.</li>
           <li><b>Daten aus anderen Diensten:</b> Wenn du angemeldet bist, kommen Informationen aus YouTube, Google Maps oder Gmail dazu.</li>
         </ul>
+
+        <h3 class="cardgroup-title">🧩 So entsteht aus vielen Krümeln ein ganzes Profil</h3>
+        <p>Ein einzelnes Suchwort ist noch harmlos. Aber Google sammelt <b>ganz viele</b> Krümel und setzt sie
+          zusammen &ndash; wie Puzzleteile. Am Ende entsteht ein erstaunlich genaues Bild von dir.
+          <b>Tippe nacheinander auf die Puzzleteile</b> und schau, was Google daraus schließt.</p>
+
+        <div class="profile-builder">
+          <div class="pb-clues" role="list">
+            <button class="pb-clue" type="button" data-target="pb-l1" aria-pressed="false">
+              <span class="pb-ico" aria-hidden="true">🔎</span><span class="pb-lbl">Deine Suchwörter</span>
+              <span class="pb-state" aria-hidden="true">+</span></button>
+            <button class="pb-clue" type="button" data-target="pb-l2" aria-pressed="false">
+              <span class="pb-ico" aria-hidden="true">⏰</span><span class="pb-lbl">Wann &amp; wie oft du suchst</span>
+              <span class="pb-state" aria-hidden="true">+</span></button>
+            <button class="pb-clue" type="button" data-target="pb-l3" aria-pressed="false">
+              <span class="pb-ico" aria-hidden="true">📍</span><span class="pb-lbl">Wo du bist</span>
+              <span class="pb-state" aria-hidden="true">+</span></button>
+            <button class="pb-clue" type="button" data-target="pb-l4" aria-pressed="false">
+              <span class="pb-ico" aria-hidden="true">📱</span><span class="pb-lbl">Welches Gerät du nutzt</span>
+              <span class="pb-state" aria-hidden="true">+</span></button>
+            <button class="pb-clue" type="button" data-target="pb-l5" aria-pressed="false">
+              <span class="pb-ico" aria-hidden="true">🔗</span><span class="pb-lbl">YouTube · Maps · Gmail</span>
+              <span class="pb-state" aria-hidden="true">+</span></button>
+          </div>
+
+          <div class="pb-arrow" aria-hidden="true"><span class="pb-right">➡️</span><span class="pb-down">⬇️</span></div>
+
+          <div class="pb-card">
+            <div class="pb-card-head"><span aria-hidden="true">🪪</span><span>Steckbrief: Das glaubt Google über dich</span></div>
+            <ul id="pb-lines" aria-live="polite">
+              <li class="pb-empty" id="pb-empty">Noch nichts aufgedeckt &ndash; tippe links auf ein Puzzleteil.</li>
+              <li class="pb-line" id="pb-l1"><span class="pb-line-ico" aria-hidden="true">⚽</span><span>Mag <b>Fußball, Minecraft und Tiervideos</b>.</span></li>
+              <li class="pb-line" id="pb-l2"><span class="pb-line-ico" aria-hidden="true">🕒</span><span>Ist meist <b>nach 15 Uhr</b> online &ndash; wohl direkt nach der Schule.</span></li>
+              <li class="pb-line" id="pb-l3"><span class="pb-line-ico" aria-hidden="true">🏫</span><span>Wohnt in einer <b>bestimmten Stadt</b>, oft in der Nähe einer Schule.</span></li>
+              <li class="pb-line" id="pb-l4"><span class="pb-line-ico" aria-hidden="true">🚌</span><span>Tippt viel <b>von unterwegs</b> mit einem Handy.</span></li>
+              <li class="pb-line" id="pb-l5"><span class="pb-line-ico" aria-hidden="true">🎮</span><span>Sucht <b>Wege zum Sportverein</b> und schaut gern <b>Gaming-Videos</b>.</span></li>
+            </ul>
+            <div class="pb-summary" id="pb-summary">
+              🎉 <b>Fertig!</b> Aus lauter kleinen Krümeln ist ein ziemlich genaues Bild entstanden:
+              etwa <b>11 Jahre alt, sportbegeistert und spielt gern</b>. Kein Krümel war für sich schlimm &ndash;
+              erst zusammen verraten sie so viel. <b>Genau darum lohnt es sich, sparsam mit seinen Daten zu sein.</b>
+            </div>
+          </div>
+        </div>
+        <button class="pb-reset" type="button" id="pb-reset">↺ Nochmal / Alles zeigen</button>
 
         <h3 class="cardgroup-title">🧩 Wozu werden diese Daten benutzt?</h3>
         <div class="steps">
@@ -863,6 +954,45 @@ document.getElementById("btnClear").addEventListener("click", () => {
     save();
   }
 });
+
+/* ============================================================
+   Profil-Baukasten (Station 3): Datenkrümel → Steckbrief
+   ============================================================ */
+(function(){
+  const clues = [...document.querySelectorAll(".pb-clue")];
+  if(!clues.length) return;
+  const emptyEl = document.getElementById("pb-empty");
+  const summaryEl = document.getElementById("pb-summary");
+  const resetBtn = document.getElementById("pb-reset");
+
+  function revealCount(){ return clues.filter(c => c.getAttribute("aria-pressed") === "true").length; }
+  function refresh(){
+    const n = revealCount();
+    if(emptyEl) emptyEl.classList.toggle("hide", n > 0);
+    summaryEl.classList.toggle("show", n === clues.length);
+    resetBtn.textContent = n === clues.length ? "↺ Zurücksetzen" : "👁 Alles zeigen";
+  }
+  function setClue(clue, on){
+    const line = document.getElementById(clue.dataset.target);
+    clue.setAttribute("aria-pressed", on ? "true" : "false");
+    const state = clue.querySelector(".pb-state");
+    if(state) state.textContent = on ? "✓" : "+";
+    if(line) line.classList.toggle("show", on);
+  }
+
+  clues.forEach(clue => {
+    clue.addEventListener("click", () => {
+      setClue(clue, clue.getAttribute("aria-pressed") !== "true");
+      refresh();
+    });
+  });
+  resetBtn.addEventListener("click", () => {
+    const showAll = revealCount() < clues.length;
+    clues.forEach(c => setClue(c, showAll));
+    refresh();
+  });
+  refresh();
+})();
 </script>
 </body>
 </html>
