@@ -37,6 +37,34 @@
   .stamp.task.done{background:#fff;color:#8a5616;}
   .stamp:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
 
+  /* ===== Stationsmenü als ☰-Drawer (wie im Maus-Führerschein) ===== */
+  .navbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:40px;height:40px;
+    border-radius:10px;font-size:1.2rem;cursor:pointer;display:grid;place-items:center;font-family:inherit;}
+  .navbtn:hover{background:rgba(255,255,255,.28);}
+  .navbtn:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .stationnow{margin-right:auto;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);color:#fff;
+    border-radius:999px;padding:6px 14px;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap;
+    max-width:60vw;overflow:hidden;text-overflow:ellipsis;font-family:inherit;}
+  .stationnow:hover{background:rgba(255,255,255,.26);}
+  .stationnow:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(7,40,53,.5);z-index:59;display:none;}
+  .drawer-backdrop.open{display:block;}
+  .drawer{position:fixed;left:0;top:0;bottom:0;width:min(300px,86vw);z-index:60;display:flex;flex-direction:column;
+    background:linear-gradient(160deg,var(--ocean-deep),var(--ocean-mid));box-shadow:6px 0 24px rgba(0,0,0,.3);
+    transform:translateX(-100%);transition:transform .25s ease;}
+  .drawer.open{transform:none;}
+  .drawer-head{display:flex;align-items:center;gap:8px;padding:14px 14px 10px;color:#fff;font-weight:700;font-size:1rem;
+    border-bottom:1px solid rgba(255,255,255,.18);}
+  .drawer-head .drawer-progress{margin-left:auto;font-size:.76rem;font-weight:600;background:rgba(255,255,255,.15);
+    border-radius:999px;padding:3px 9px;}
+  .drawer-x{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:30px;height:30px;
+    border-radius:8px;font-size:1.1rem;cursor:pointer;display:grid;place-items:center;font-family:inherit;}
+  .drawer-x:hover{background:rgba(255,255,255,.3);}
+  #drawer .progress{flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;
+    overflow-y:auto;gap:6px;padding:10px;flex:1;}
+  #drawer .stamp{justify-content:flex-start;width:100%;font-size:.86rem;padding:9px 12px;}
+  #drawer .stamp .dot{width:22px;height:22px;font-size:.8rem;}
+
   main{flex:1;display:flex;justify-content:center;padding:22px 18px 30px;}
   .card{background:var(--card);width:min(980px,100%);border-radius:var(--radius);box-shadow:var(--shadow);
     overflow:hidden;display:flex;flex-direction:column;min-height:520px;}
@@ -121,7 +149,7 @@
   /* ===== Aufgaben ===== */
   .sheet h2{color:var(--ocean-deep);font-size:1.25rem;margin:0 0 4px;display:flex;align-items:center;gap:10px;font-weight:700;}
   .sheet .subline{color:var(--ink-soft);font-size:.92rem;margin:0 0 16px;}
-  .meta{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:16px;}
+  .meta{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:24px;}
   .meta .fld{display:flex;align-items:center;gap:8px;font-size:.92rem;}
   .meta .fld label{font-weight:700;color:var(--ocean-deep);white-space:nowrap;}
   .meta .fld input{border:none;border-bottom:1.5px solid var(--ink-soft);background:transparent;font-family:inherit;
@@ -182,8 +210,9 @@
   .footbar{display:flex;align-items:center;gap:12px;padding:14px 24px;border-top:1px solid var(--line);background:#fbfdfe;flex-wrap:wrap;}
   .stationcount{font-size:.88rem;color:var(--ink-soft);white-space:nowrap;}
   .stationcount b{color:var(--ocean-mid);}
-  .exporttools{display:none;gap:9px;flex-wrap:wrap;align-items:center;flex:1;justify-content:center;}
+  .exporttools{display:none;gap:7px;flex-wrap:nowrap;align-items:center;flex:1;justify-content:center;}
   .exporttools.show{display:flex;}
+  .exporttools .btn{padding:6px 11px;font-size:.8rem;white-space:nowrap;}
   .footspacer{flex:1;}
   .btn{font-family:inherit;font-size:.95rem;font-weight:600;border-radius:10px;padding:10px 18px;cursor:pointer;
     border:0;transition:.16s;display:inline-flex;align-items:center;gap:7px;}
@@ -204,8 +233,7 @@
   @media (max-width:680px){
     .brand small{display:none;}
     .steps{grid-template-columns:1fr;}
-    .progress{order:3;flex-basis:100%;}
-    .exporttools{order:5;flex-basis:100%;}
+    .exporttools{order:5;flex-basis:100%;overflow-x:auto;}
   }
   @media (prefers-reduced-motion:reduce){
     .station.active{animation:none;}
@@ -235,7 +263,8 @@
 
 <header class="app">
   <div class="brand"><span class="glyph">🔍</span><span>Suchmaschinen richtig nutzen<small>Clever suchen · Quellen prüfen · Datenschutz</small></span></div>
-  <nav class="progress" id="progress" aria-label="Stationen"></nav>
+  <button class="navbtn" id="navBtn" aria-label="Stationen öffnen" aria-expanded="false">☰</button>
+  <button class="stationnow" id="stationNow" aria-label="Aktuelle Station">Station 1</button>
 </header>
 
 <main>
@@ -304,7 +333,55 @@
           nicht unbedingt die besten! Schau also nicht nur auf das erste Ergebnis.</div>
       </section>
 
-      <!-- Station 3 -->
+      <!-- Station 3: Was weiß Google über dich? -->
+      <section class="station" id="st-google" data-title="Was weiß Google über dich?">
+        <p>Suchmaschinen wie <b>Google</b> sind kostenlos &ndash; trotzdem verdient die Firma dahinter sehr viel Geld.
+          Wie geht das? Ganz einfach: Du bezahlst nicht mit Geld, sondern mit deinen <b>Daten</b>. Bei jeder
+          Suche sammelt Google viele Informationen über dich.</p>
+
+        <h3 class="cardgroup-title">🔎 Diese Informationen sammelt Google</h3>
+        <ul class="ticks cross">
+          <li><b>Was du suchst:</b> jedes Suchwort, das du eingibst &ndash; auch private oder peinliche Fragen.</li>
+          <li><b>Wann und wie oft</b> du suchst und auf welche Ergebnisse du klickst.</li>
+          <li><b>Wo du bist:</b> über dein Handy oder deinen Internet-Anschluss lässt sich dein ungefährer Standort erkennen.</li>
+          <li><b>Welches Gerät</b> du benutzt (Handy, Tablet, Computer) und welchen Browser.</li>
+          <li><b>Daten aus anderen Diensten:</b> Wenn du angemeldet bist, kommen Informationen aus YouTube, Google Maps oder Gmail dazu.</li>
+        </ul>
+
+        <h3 class="cardgroup-title">🧩 Wozu werden diese Daten benutzt?</h3>
+        <div class="steps">
+          <div class="step">
+            <span class="snum">Grund 1</span>
+            <div class="ico">🎯</div>
+            <h3>Werbung</h3>
+            <p>Aus deinen Suchen entsteht ein <b>Profil</b> über dich. Damit zeigt Google dir passende Werbung &ndash;
+              so verdient die Firma ihr Geld.</p>
+          </div>
+          <div class="step">
+            <span class="snum">Grund 2</span>
+            <div class="ico">🫧</div>
+            <h3>Filterblase</h3>
+            <p>Google zeigt dir vor allem, was dir vermutlich gefällt. So siehst du manchmal nur noch <b>eine
+              Meinung</b> &ndash; das nennt man &bdquo;Filterblase&ldquo;.</p>
+          </div>
+          <div class="step">
+            <span class="snum">Grund 3</span>
+            <div class="ico">💾</div>
+            <h3>Speichern</h3>
+            <p>Die Daten werden <b>lange gespeichert</b>. Was du heute suchst, kann noch viele Jahre gespeichert bleiben.</p>
+          </div>
+        </div>
+
+        <div class="note warn">⚠️ <b>Darum ist das wichtig:</b> Deine Suchen verraten viel über dich &ndash; über deine
+          Interessen, Sorgen und dein Zuhause. Diese Informationen sind wertvoll und sollten <b>dir</b> gehören,
+          nicht einer fremden Firma.</div>
+
+        <div class="note good">✅ <b>Deshalb gibt es Alternativen:</b> Es gibt Suchmaschinen, die <b>viel weniger Daten</b>
+          über dich sammeln und dich nicht auf Schritt und Tritt verfolgen. Welche das sind, lernst du auf der
+          nächsten Station kennen.</div>
+      </section>
+
+      <!-- Station 4 -->
       <section class="station" id="st-alternativen" data-title="Datenschutzfreundliche Alternativen zu Google">
         <p>Google merkt sich sehr viel über dich: wonach du suchst, wo du bist und was dich interessiert.
           Es gibt Suchmaschinen, die <b>weniger Daten über dich sammeln</b> &ndash; oder die extra für Kinder
@@ -434,17 +511,16 @@
           eigenen aus! Lies die Information, verstehe sie und schreibe sie dann mit <b>eigenen Worten</b> auf.</div>
       </section>
 
-      <!-- Station 9: Aufgabe 1 -->
-      <section class="station sheet task" id="st-aufgabe1" data-title="Aufgabe 1: Informationen im Internet finden">
-        <h2>📝 Aufgabe 1: Informationen im Internet finden</h2>
-        <p class="subline">Fülle das Blatt am Computer aus und speichere es am Ende als Word- oder PDF-Datei.</p>
-
+      <!-- Station 10: Aufgaben 1–3 auf einer Seite -->
+      <section class="station sheet task" id="st-aufgaben" data-title="Aufgaben">
         <div class="meta">
           <div class="fld name"><label for="mName">Name:</label><input id="mName" type="text" autocomplete="off"></div>
           <div class="fld klasse"><label for="mKlasse">Klasse:</label><input id="mKlasse" type="text" autocomplete="off"></div>
           <div class="fld datum"><label for="mDatum">Datum:</label><input id="mDatum" type="text" placeholder="TT.MM.JJJJ" autocomplete="off"></div>
         </div>
 
+        <h2>📝 Aufgabe 1: Informationen im Internet finden</h2>
+        <p class="subline">Fülle das Blatt am Computer aus und speichere es am Ende als Word- oder PDF-Datei.</p>
         <div class="task-intro">
           <b>Aufgabe:</b> Suche mithilfe einer Suchmaschine zu jeder Frage eine passende Webseite.
           Schreibe die <b>URL als Quelle</b> auf und beantworte die Frage <b>in eigenen Worten</b>.
@@ -452,13 +528,9 @@
           <b>Wichtig:</b> Nutze keine KI-Antwort direkt &ndash; <b>lies die Webseite selbst</b> und
           formuliere die Antwort in deinen eigenen Worten!
         </div>
-
         <div id="questions"></div>
-      </section>
 
-      <!-- Station 10: Aufgabe 2 -->
-      <section class="station sheet task" id="st-aufgabe2" data-title="Aufgabe 2: Gute Suchbegriffe finden">
-        <h2>🔑 Aufgabe 2: Gute Suchbegriffe finden</h2>
+        <h2 style="margin-top:32px;">🔑 Aufgabe 2: Gute Suchbegriffe finden</h2>
         <p class="subline">Übe Schritt 2 aus dem Vorgehen: aus einer ganzen Frage die wichtigen Schlüsselwörter herausziehen.</p>
         <div class="task-intro">
           <b>Aufgabe:</b> Lange Sätze sind schlechte Suchwörter. Schreibe zu jeder Frage <b>2&ndash;3
@@ -467,11 +539,8 @@
           Beispiel: &bdquo;Wie hoch ist der höchste Berg der Welt?&ldquo; &nbsp;→&nbsp; <b>höchster Berg Welt</b>
         </div>
         <div id="keywords"></div>
-      </section>
 
-      <!-- Station 11: Aufgabe 3 -->
-      <section class="station sheet task" id="st-aufgabe3" data-title="Aufgabe 3: Quellen bewerten">
-        <h2>🔎 Aufgabe 3: Quellen bewerten</h2>
+        <h2 style="margin-top:32px;">🔎 Aufgabe 3: Quellen bewerten</h2>
         <p class="subline">Nicht jede Internetseite ist gleich gut. Gehe die Checkliste durch und hake ab, was auf eine deiner gefundenen Quellen zutrifft.</p>
         <div class="quellname">
           <label for="quelleName">✏️ Welche Quelle bewertest du? (Schreibe den Namen oder die URL auf)</label>
@@ -482,7 +551,7 @@
           wahrscheinlich. Bei nur wenigen Häkchen solltest du besser eine andere Seite suchen.</div>
       </section>
 
-      <!-- Station 12: Für Schnelle -->
+      <!-- Station 11: Für Schnelle -->
       <section class="station sheet task" id="st-schnelle" data-title="Für Schnelle: Such-Detektiv">
         <span class="bonus-badge">🚀 Für Schnelle &ndash; Zusatzaufgabe</span>
         <h2>🕵️ Such-Detektiv</h2>
@@ -529,10 +598,17 @@
 
 <footer class="sitefooter">
   <p>© 2026 Wolfgang Schneider</p>
-  <p>Dieses Werk ist lizenziert unter
-    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>
-    (Namensnennung &ndash; Nicht kommerziell &ndash; Weitergabe unter gleichen Bedingungen).</p>
 </footer>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <span>Stationen</span>
+    <span class="drawer-progress" id="drawerProgress"></span>
+    <button class="drawer-x" id="drawerClose" aria-label="Schließen">×</button>
+  </div>
+  <nav class="progress" id="progress" aria-label="Stationen"></nav>
+</aside>
 
 <script>
 "use strict";
@@ -602,12 +678,18 @@ CHECKS.forEach((text, i) => {
    Stationen-Navigation
    ============================================================ */
 const stations = [...document.querySelectorAll(".station")];
-const STAMP_LABELS = ["Suchmaschine?","So funktioniert's","Alternativen","Such-Tipps","KI-Antworten","Quellen","Seriös?",
-  "Schritt für Schritt","Aufgabe 1","Aufgabe 2","Aufgabe 3","Für Schnelle"];
+const STAMP_LABELS = ["Suchmaschine?","So funktioniert's","Google & Daten","Alternativen","Such-Tipps","KI-Antworten",
+  "Quellen","Seriös?","Schritt für Schritt","Aufgaben","Für Schnelle"];
 const progressEl = document.getElementById("progress");
 const stationTitle = document.getElementById("stationTitle");
 const stationLbl = document.getElementById("stationLbl");
 const stationCount = document.getElementById("stationCount");
+const stationNow = document.getElementById("stationNow");
+const drawerProgress = document.getElementById("drawerProgress");
+const navBtn = document.getElementById("navBtn");
+const drawer = document.getElementById("drawer");
+const drawerBackdrop = document.getElementById("drawerBackdrop");
+const drawerClose = document.getElementById("drawerClose");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 const exportTools = document.getElementById("exportTools");
@@ -618,7 +700,7 @@ stations.forEach((st, i) => {
   b.className = "stamp" + (st.classList.contains("task") ? " task" : "");
   b.type = "button";
   b.innerHTML = '<span class="dot">' + (i + 1) + '</span><span>' + (STAMP_LABELS[i] || ("Station " + (i + 1))) + '</span>';
-  b.addEventListener("click", () => goTo(i));
+  b.addEventListener("click", () => { closeDrawer(); goTo(i); });
   progressEl.appendChild(b);
 });
 const stamps = [...progressEl.children];
@@ -634,6 +716,8 @@ function goTo(i){
   stationTitle.textContent = st.dataset.title;
   stationLbl.textContent = "Station " + (current + 1) + " von " + stations.length;
   stationCount.innerHTML = "Station <b>" + (current + 1) + "</b> von " + stations.length;
+  stationNow.textContent = "Station " + (current + 1) + " · " + (STAMP_LABELS[current] || st.dataset.title);
+  drawerProgress.textContent = (current + 1) + " / " + stations.length;
   prevBtn.disabled = current === 0;
   nextBtn.style.visibility = current === stations.length - 1 ? "hidden" : "visible";
   exportTools.classList.toggle("show", st.classList.contains("task"));
@@ -641,6 +725,22 @@ function goTo(i){
 }
 prevBtn.addEventListener("click", () => goTo(current - 1));
 nextBtn.addEventListener("click", () => goTo(current + 1));
+
+/* ---- Stationsmenü (Drawer) öffnen/schließen ---- */
+function openDrawer(){
+  drawer.classList.add("open"); drawerBackdrop.classList.add("open");
+  navBtn.setAttribute("aria-expanded", "true"); drawer.setAttribute("aria-hidden", "false");
+  const a = progressEl.querySelector(".stamp.active"); if(a) a.scrollIntoView({ block: "nearest" });
+}
+function closeDrawer(){
+  drawer.classList.remove("open"); drawerBackdrop.classList.remove("open");
+  navBtn.setAttribute("aria-expanded", "false"); drawer.setAttribute("aria-hidden", "true");
+}
+navBtn.addEventListener("click", openDrawer);
+drawerClose.addEventListener("click", closeDrawer);
+drawerBackdrop.addEventListener("click", closeDrawer);
+document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeDrawer(); });
+
 goTo(0);
 
 /* ============================================================
