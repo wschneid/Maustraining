@@ -412,7 +412,7 @@ const PARTS = {
 const STATIONS = [
   {id:"start",     short:"Start",        icon:"⌨️"},
   {id:"klesson",   short:"Tasten-Schule",icon:"🔑", part:1, title:"Die wichtigen Tasten", desc:"Funktionstasten kennenlernen"},
-  {id:"kquiz",     short:"Tasten-Quiz",  icon:"❓", part:1, title:"Tasten-Quiz",      desc:"Benennen & Funktion erklären"},
+  {id:"kquiz",     short:"Tasten-Quiz",  icon:"❓", part:1, title:"Tasten-Quiz",      desc:"Benennen, erklären & finden"},
   {id:"kfind",     short:"Tasten",       icon:"🔎", part:1, title:"Tasten finden",    desc:"Die leuchtende Taste drücken"},
   {id:"kshift",    short:"Groß",         icon:"⬆️", part:1, title:"Großbuchstaben",   desc:"Mit Umschalt groß tippen"},
   {id:"karrows",   short:"Pfeile",       icon:"🕹️", part:1, title:"Pfeiltasten-Reise",desc:"Mit den Pfeilen navigieren"},
@@ -984,27 +984,34 @@ SCREENS.klesson=(stage)=>{
   show();
 };
 
-/* ---------- Tasten-Quiz: benennen & Funktion erklären ---------- */
+/* ---------- Tasten-Quiz: benennen, Funktion erklären & finden ---------- */
 SCREENS.kquiz=(stage)=>{
   const N=stationNumber("kquiz");
-  setInstruction(`Station ${N} · Tasten-Quiz ❓`,"Jetzt zeigst du, was du kannst: Tasten <b>benennen</b> und ihre <b>Aufgabe</b> erkennen.");
+  setInstruction(`Station ${N} · Tasten-Quiz ❓`,"Jetzt zeigst du, was du kannst: <b>alle</b> Funktionstasten <b>benennen</b>, ihre <b>Aufgabe</b> erkennen und sie auf der Tastatur <b>finden</b>.");
   const qHost=mk("typebox");
   const kbHost=mk("kbwrap"); const kb=buildKeyboard();
   stage.appendChild(qHost); stage.appendChild(kbHost); kbHost.appendChild(kb.el);
-  const TOTAL=dCount(8,6); const pressable=FUNC_KEYS.filter(k=>k.press);
-  let done=0,fault=false,answered=false;
   const rand=a=>a[(Math.random()*a.length)|0];
+  /* Fragenliste: jede eingeführte Funktionstaste kommt mindestens einmal dran.
+     Bei drückbaren Tasten wird zufällig zwischen benennen, Funktion und finden
+     gewählt; nicht drückbare Tasten (z. B. Windows-Taste) werden nur benannt. */
+  const queue=shuffle(FUNC_KEYS.map(k=>{
+    const types = k.press ? ["name","func","find"] : ["name"];
+    return {k, type:rand(types)};
+  }));
+  const TOTAL=queue.length;
+  let done=0,fault=false,answered=false;
   setCounter(`0/${TOTAL}`,"richtig");
   function good(){
     sfx.good();done++;registerAttempt(true);setCounter(`${done}/${TOTAL}`,"richtig");
-    if(done>=TOTAL){ kb.clearHighlight(); completeStation("kquiz","Super! Du kannst die Tasten benennen und erklären. ❓🎉",{perfect:!fault}); }
+    if(done>=TOTAL){ kb.clearHighlight(); completeStation("kquiz","Super! Du kannst alle Tasten benennen, erklären und finden. ❓🎉",{perfect:!fault}); }
     else { setHint("Richtig! 👍","good"); later(nextQ,800); }
   }
   function nextQ(){
     answered=false; qHost.innerHTML=""; kb.clearHighlight(); setKeyHandler(null);
-    if(Math.random()<0.5){
+    const {k,type}=queue[done];
+    if(type==="name"){
       /* Benennen: Taste leuchtet, Name auswählen */
-      const k=rand(FUNC_KEYS);
       kb.highlight(k.hi||[k.tok]);
       const opts=shuffle([k, ...shuffle(FUNC_KEYS.filter(x=>x!==k)).slice(0,3)]);
       qHost.appendChild(mk("quizq","Welche Taste leuchtet gerade? Wie heißt sie?"));
@@ -1013,9 +1020,8 @@ SCREENS.kquiz=(stage)=>{
         b.onclick=()=>pick(b,o===k,grid); grid.appendChild(b); });
       qHost.appendChild(grid);
       setHint("Tippe auf den richtigen Namen.","");
-    } else {
+    } else if(type==="func"){
       /* Funktion → Taste drücken */
-      const k=rand(pressable);
       qHost.appendChild(mk("quizq",`Welche Taste macht das?<br><span style="font-weight:600;color:var(--ink-soft);font-size:1rem;">„${k.what.replace(/<\/?b>/g,"")}“</span>`));
       qHost.appendChild(mk("statbar","Drücke die passende Taste auf deiner Tastatur."));
       setHint("Drücke die Taste, die das macht.","");
@@ -1023,6 +1029,16 @@ SCREENS.kquiz=(stage)=>{
         if(answered)return; const tok=specialToken(e); if(!tok)return;
         if(tok===k.tok){ answered=true; kb.highlight(k.hi||[k.tok]); kb.flash(k.hi?e.key:k.tok,true); good(); }
         else { kb.flash(e.key,false);sfx.soft();fault=true; setHint(`Noch nicht. Gesucht ist die Taste für „${k.what.replace(/<\/?b>/g,"")}“.`,"warn"); }
+      });
+    } else {
+      /* Finden: Name gegeben → passende Taste auf der Tastatur drücken */
+      qHost.appendChild(mk("quizq",`Finde diese Taste auf der Tastatur:<br><span style="font-weight:700;color:var(--ocean-mid);font-size:1.15rem;">${k.sym} ${k.name}</span>`));
+      qHost.appendChild(mk("statbar","Drücke die genannte Taste auf deiner Tastatur."));
+      setHint(`Drücke die <b>${k.name}</b>.`,"");
+      setKeyHandler(e=>{
+        if(answered)return; const tok=specialToken(e); if(!tok)return;
+        if(tok===k.tok){ answered=true; kb.highlight(k.hi||[k.tok]); kb.flash(k.hi?e.key:k.tok,true); good(); }
+        else { kb.flash(e.key,false);sfx.soft();fault=true; setHint(`Das war nicht die <b>${k.name}</b>. Such sie noch einmal und drücke sie.`,"warn"); }
       });
     }
   }
