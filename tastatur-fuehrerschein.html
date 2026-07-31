@@ -215,6 +215,28 @@
   .bigkey.go{background:var(--hint);animation:pop .35s;}
   @keyframes pop{0%{transform:scale(1);}45%{transform:scale(1.16);}100%{transform:scale(1);}}
 
+  /* ===== Zehn-Finger-Lehrgang: Landkarte ===== */
+  .startbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px;}
+  .lmapsum{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;background:var(--ocean-pale);
+    border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:0 auto 14px;max-width:520px;}
+  .lmapsum .s b{display:block;font-size:1.3rem;color:var(--ocean-mid);text-align:center;}
+  .lmapsum .s span{font-size:.76rem;color:var(--ink-soft);}
+  .lmapgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:12px;max-width:840px;margin:0 auto;}
+  .ltile{background:#fff;border:2px solid var(--line);border-radius:14px;padding:13px 14px;text-align:left;
+    cursor:pointer;font-family:inherit;transition:border-color .12s,transform .08s;}
+  .ltile:hover{border-color:var(--ocean-bright);transform:translateY(-2px);}
+  .ltile.done{background:var(--ocean-pale);border-color:var(--ocean-mid);}
+  .ltile.next{border-color:var(--hint);box-shadow:0 0 0 3px var(--hint-soft);}
+  .ltile .top{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+  .ltile .no{font-size:1.15rem;}
+  .ltile .ttl{font-weight:700;color:var(--ocean-deep);font-size:.92rem;}
+  .ltile .keys{font-size:.8rem;color:var(--ink-soft);margin-bottom:5px;}
+  .ltile .keys b{color:var(--ocean-mid);letter-spacing:2px;}
+  .ltile .stars{font-size:1rem;letter-spacing:2px;}
+  .ltile .best{font-size:.73rem;color:var(--ink-soft);margin-top:3px;}
+  .ltile .tag{display:inline-block;font-size:.7rem;font-weight:700;color:#8a5616;background:var(--hint-soft);
+    border:1px solid #f0d9b8;border-radius:999px;padding:1px 8px;margin-left:auto;}
+
   /* ===== Zehn-Finger-Lehrgang: Lektionen ===== */
   .lessonbar{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
   .lstep{font-size:.78rem;padding:4px 11px;border-radius:999px;background:var(--ocean-pale);
@@ -443,7 +465,8 @@ const STATIONS = [
   {id:"kfix",      short:"Korrigieren",  icon:"⌫", part:1, title:"Korrigier-Werkstatt",desc:"Rücktaste & Entf-Taste"},
   {id:"kcombo",    short:"Kombi",        icon:"🎹", part:1, title:"Kombi-Tasten",     desc:"Strg + C · V · Z"},
   {id:"exam1",     short:"Teil-1-Prüfung",icon:"🥇",part:1, title:"Teil-1-Prüfung",   desc:"Die Tasten sitzen!"},
-  /* Zehn-Finger-Lehrgang: je Lektion zwei neue Tasten (Phase 2a: Grundreihe) */
+  /* Zehn-Finger-Lehrgang: Landkarte + je Lektion zwei neue Tasten (Phase 2a: Grundreihe) */
+  {id:"lessonmap", short:"Landkarte",    icon:"🗺️", part:2, title:"Lektions-Landkarte", desc:"Dein Weg durch den Lehrgang"},
   {id:"l1",        short:"f j",          icon:"1️⃣", part:2, title:"Lektion 1 · f und j", desc:"Zeigefinger – Grundstellung"},
   {id:"l2",        short:"d k",          icon:"2️⃣", part:2, title:"Lektion 2 · d und k", desc:"Mittelfinger"},
   {id:"l3",        short:"s l",          icon:"3️⃣", part:2, title:"Lektion 3 · s und l", desc:"Ringfinger"},
@@ -464,10 +487,13 @@ const STATIONS = [
   {id:"kspace",    short:"Weltraum",     icon:"🚀", part:2, title:"Wort-Weltraum",    desc:"Wort-Asteroiden abtippen"},
   {id:"exam",      short:"Prüfung",      icon:"🏆", title:"Prüfung",          desc:"Alles zusammen!"}
 ];
-/* Nummerierung zählt nur echte Übungsstationen – Prüfungen und die Lektionen
-   des Lehrgangs bleiben aussen vor (Lektionen zählen „Lektion x von y“). */
+/* Nummerierung zählt nur echte Übungsstationen. Prüfungen, die Lektionen des
+   Lehrgangs (die zählen „Lektion x von y“) und die Landkarte als Übersichts-
+   seite bleiben aussen vor – so verschieben sich die Stationsnummern nicht,
+   wenn der Lehrgang wächst. */
 const isExamId = id => id==="exam" || id==="exam1";
-const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&!isExamId(s.id)&&!isLessonId(s.id)).findIndex(s=>s.id===id)+1;
+const isHubId  = id => id==="lessonmap";
+const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&!isExamId(s.id)&&!isLessonId(s.id)&&!isHubId(s.id)).findIndex(s=>s.id===id)+1;
 /* Erste/letzte echte Station eines Teils (für Überschriften & Übergang) */
 const firstOfPart = p => (STATIONS.find(s=>s.part===p)||{}).id;
 const lastOfPart  = p => { const l=STATIONS.filter(s=>s.part===p); return l.length?l[l.length-1].id:undefined; };
@@ -762,6 +788,50 @@ const state = Object.assign({
   reduced: matchMedia("(prefers-reduced-motion:reduce)").matches
 }, defaultGamify());
 
+/* ============================================================
+   Fortschritt speichern (localStorage)
+   ------------------------------------------------------------
+   Der Lehrgang läuft über mehrere Sitzungen – deshalb merkt sich der Trainer
+   Stationen, Lektionen, XP, Abzeichen und die Einstellungen. Alles läuft in
+   try/catch: Ist localStorage gesperrt (Schul-PC, privater Modus), funktioniert
+   der Trainer weiter, nur eben ohne Speichern.
+   ============================================================ */
+const SAVE_KEY="tastaturfs.v1";
+const SAVE_FIELDS=["current","done","xp","level","coins","badges","lessons","stats","difficulty","sound","fingers"];
+const KNOWN_IDS=new Set(STATIONS.map(s=>s.id));
+function saveState(){
+  try{
+    const o={v:1}; SAVE_FIELDS.forEach(k=>o[k]=state[k]);
+    localStorage.setItem(SAVE_KEY,JSON.stringify(o));
+  }catch(e){/* Speichern nicht möglich – kein Grund abzubrechen */}
+}
+function readSave(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY); if(!raw) return null;
+    const o=JSON.parse(raw);
+    return (o && o.v===1) ? o : null;
+  }catch(e){ return null; }
+}
+function loadState(){
+  const o=readSave(); if(!o) return false;
+  SAVE_FIELDS.forEach(k=>{ if(o[k]!==undefined && o[k]!==null) state[k]=o[k]; });
+  /* Ältere Stände können Stationen enthalten, die es nicht mehr gibt –
+     die werden einfach als „noch nicht gemacht“ behandelt. */
+  const done={}; Object.keys(state.done||{}).forEach(id=>{ if(KNOWN_IDS.has(id)) done[id]=true; });
+  state.done=done;
+  const les={}; Object.keys(state.lessons||{}).forEach(id=>{ if(KNOWN_IDS.has(id)) les[id]=state.lessons[id]; });
+  state.lessons=les;
+  if(!KNOWN_IDS.has(state.current)) state.current="start";
+  resumeTarget = (state.current!=="start") ? state.current : null;
+  return true;
+}
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} resumeTarget=null; }
+/* Station, auf der das Kind zuletzt war. Wird beim Laden gemerkt, weil der
+   Trainer danach auf der Startseite beginnt und state.current überschreibt. */
+let resumeTarget=null;
+/* Gibt es einen Stand, bei dem sich Weitermachen lohnt? */
+function hasProgress(){ return Object.keys(state.done||{}).length>0; }
+
 let _raf=null, _timers=[];
 function stopLoop(){ if(_raf){cancelAnimationFrame(_raf);_raf=null;} _timers.forEach(clearTimeout);_timers.forEach(clearInterval);_timers=[]; }
 function later(fn,ms){ const t=setTimeout(fn,ms);_timers.push(t);return t; }
@@ -975,6 +1045,7 @@ function go(id){
   if(id!=="start" && id!=="exam_done" && !isExamId(id) && id!=="teil2start"){ showSkip(true,()=>go(nextStationId())); }
   (SCREENS[id]||SCREENS.start)(stage);
   $("main").scrollTop=0;
+  saveState();
 }
 function nextStationId(){ const i=STATIONS.findIndex(s=>s.id===state.current); return STATIONS[Math.min(i+1,STATIONS.length-1)].id; }
 function completeStation(id,msg,opts){
@@ -986,6 +1057,7 @@ function completeStation(id,msg,opts){
     if(opts&&opts.perfect){ state.stats.perfectStations[id]=true; unlock("flawless"); }
     checkStationBadges(id);
   }
+  saveState();
   const next=nextStationId();showReplay(true);
   if(id==="exam"){ showNext(true,"Urkunde anzeigen 🏆"); $("#nextBtn").onclick=()=>go("exam_done"); }
   else if(id===lastOfPart(1)){ showNext(true,"Teil 1 geschafft – weiter ›"); $("#nextBtn").onclick=()=>go("teil2start"); }
@@ -1022,9 +1094,23 @@ SCREENS.start=(stage)=>{
   const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:true});
   kb.highlight(["a","s","d","f","j","k","l","ö"]); kbHost.appendChild(kb.el);
   wrap.appendChild(kbHost);
-  const btn=document.createElement("button");btn.className="btn btn-primary";btn.id="goStart";
-  btn.style.cssText="font-size:1.1rem;padding:13px 34px;margin-top:18px;";btn.textContent="Los geht’s ›";
-  wrap.appendChild(btn);
+  const row=mk("startbtns");
+  /* Gespeicherter Stand? Dann ist „Weiter machen“ der Hauptknopf –
+     „Von vorne“ bleibt daneben stehen und löscht nichts. */
+  const resume = resumeTarget && hasProgress() ? resumeTarget : null;
+  if(resume){
+    const st=STATIONS.find(s=>s.id===resume)||{short:"deiner Station"};
+    const rb=document.createElement("button");rb.className="btn btn-primary";
+    rb.style.cssText="font-size:1.1rem;padding:13px 34px;";
+    rb.innerHTML=`Weiter machen ›<br><span style="font-size:.76rem;opacity:.85;font-weight:400;">bei „${st.short}“</span>`;
+    rb.addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go(resume); });
+    row.appendChild(rb);
+  }
+  const btn=document.createElement("button");btn.className=resume?"btn btn-ghost":"btn btn-primary";btn.id="goStart";
+  btn.style.cssText="font-size:1.1rem;padding:13px 34px;";
+  btn.textContent = resume ? "Von vorne ›" : "Los geht’s ›";
+  row.appendChild(btn);
+  wrap.appendChild(row);
   stage.appendChild(wrap);
   btn.addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go("klesson"); });
 };
@@ -1451,6 +1537,55 @@ SCREENS.exam1=(stage)=>{
   activate(1); stepKey();
 };
 
+/* ---------- Lektions-Landkarte ----------
+   Übersicht über den Lehrgang: was ist geschafft, wie viele Sterne, wo geht es
+   weiter. Die Lektionen sind bewusst nicht gesperrt – im Trainer kann man
+   ohnehin überall hinspringen; die Landkarte empfiehlt nur die nächste. */
+function lessonStars(no){ return (state.lessons["l"+no]||{}).stars||0; }
+function nextLessonNo(){ const open=LESSONS.find(L=>!state.done["l"+L.no]); return open?open.no:null; }
+/* Höchste zusammenhängend geschaffte Lektion – daraus ergibt sich, wie viele
+   Tasten das Kind schon gelernt hat. */
+function lessonsDoneCount(){ return LESSONS.filter(L=>state.done["l"+L.no]).length; }
+function learnedSoFar(){
+  const nos=LESSONS.filter(L=>state.done["l"+L.no]).map(L=>L.no);
+  return nos.length ? learnedKeys(Math.max(...nos)) : new Set();
+}
+SCREENS.lessonmap=(stage)=>{
+  setInstruction("Lektions-Landkarte 🗺️",
+    "Hier siehst du deinen Weg durch den <b>Zehn-Finger-Lehrgang</b>. Jede Lektion bringt dir zwei neue Tasten bei. "+
+    "Klicke eine Lektion an, um sie zu üben – geschaffte darfst du jederzeit wiederholen.");
+  showSkip(false);
+  const doneCount=lessonsDoneCount();
+  const starSum=LESSONS.reduce((n,L)=>n+lessonStars(L.no),0);
+  const nextNo=nextLessonNo();
+
+  stage.appendChild(mk("lmapsum",
+    `<div class="s"><b>${doneCount}/${LESSONS.length}</b><span>Lektionen</span></div>
+     <div class="s"><b>${starSum}/${LESSONS.length*3}</b><span>Sterne ⭐</span></div>
+     <div class="s"><b>${learnedSoFar().size}</b><span>gelernte Tasten</span></div>`));
+
+  const grid=mk("lmapgrid"); stage.appendChild(grid);
+  LESSONS.forEach(L=>{
+    const id="l"+L.no, rec=state.lessons[id], done=!!state.done[id], stars=lessonStars(L.no);
+    const t=document.createElement("button");
+    t.className="ltile"+(done?" done":"")+(L.no===nextNo?" next":"");
+    t.innerHTML=
+      `<div class="top"><span class="no">${L.icon}</span><span class="ttl">${L.title}</span>`+
+      (L.no===nextNo?`<span class="tag">dran</span>`:``)+`</div>
+       <div class="keys">${L.keys.length?`neue Tasten <b>${L.keys.join(" ")}</b>`:`Wiederholung – blind`}</div>
+       <div class="stars">${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</div>`+
+      (rec?`<div class="best">Bestwert: ${rec.apm} Anschläge/Min · ${rec.quote} % Treffer</div>`
+         :`<div class="best">noch nicht geübt</div>`);
+    t.addEventListener("click",()=>go(id));
+    grid.appendChild(t);
+  });
+
+  setHint(nextNo?`Empfohlen: <b>Lektion ${nextNo}</b>.`
+                :"Alle Lektionen geschafft – super! Du kannst jede jederzeit wiederholen.","good");
+  if(nextNo){ showNext(true,`Lektion ${nextNo} starten ›`); $("#nextBtn").onclick=()=>go("l"+nextNo); }
+  else { showNext(true,"Weiter ›"); $("#nextBtn").onclick=()=>go(nextStationId()); }
+};
+
 /* ---------- Lektions-Engine (Zehn-Finger-Lehrgang) ----------
    Ablauf jeder Lektion: Aufwärmen → Silben → Wörter → Wortkette → Zeugnis.
    Schritte ohne Übungsstoff entfallen (in den ersten Lektionen gibt es noch
@@ -1562,6 +1697,9 @@ function lessonScreen(L){
       stage.appendChild(z);
       setCounter(null);
       completeStation(id,`Lektion ${L.no} geschafft! ${"⭐".repeat(stars)}`,{perfect:errs===0});
+      /* completeStation blendet „Überspringen“ aus – danach nutzen wir den
+         Knopf als Rückweg zur Landkarte. */
+      showSkip(true,()=>go("lessonmap"),"🗺️ Landkarte");
     }
     markSteps(); nextItem();
   };
@@ -2187,14 +2325,24 @@ SCREENS.lernzettel=(stage)=>{
 $("#gearBtn").addEventListener("click",()=>{$("#overlay").style.display="flex";});
 $("#closeSet").addEventListener("click",()=>{$("#overlay").style.display="none";});
 $("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay")$("#overlay").style.display="none";});
-$("#soundChk").addEventListener("change",e=>{state.sound=e.target.checked;if(state.sound){if(audioCtx)audioCtx.resume&&audioCtx.resume();sfx.step();}});
+$("#soundChk").addEventListener("change",e=>{state.sound=e.target.checked;if(state.sound){if(audioCtx)audioCtx.resume&&audioCtx.resume();sfx.step();}saveState();});
 $("#fingerChk").addEventListener("change",e=>{ state.fingers=e.target.checked; go(state.current); });
 $("#diffSel").addEventListener("change",e=>{ state.difficulty=e.target.value; $("#overlay").style.display="none"; go(state.current); });
 $("#resetBtn").addEventListener("click",()=>{
+  if(!confirm("Wirklich den ganzen Fortschritt löschen? Stationen, Lektionen, Sterne und Abzeichen sind dann weg.")) return;
   state.done={};Object.assign(state,defaultGamify());
+  /* Alten Eintrag entfernen; das folgende go("start") legt einen sauberen an. */
+  clearSave();
   refreshProgress();refreshHUD();$("#overlay").style.display="none";go("start");
 });
 
+/* Gespeicherten Stand laden und die Einstellungen in die Oberfläche übernehmen.
+   Gestartet wird trotzdem immer auf der Startseite – dort gibt es dann den
+   Knopf „Weiter machen“. So landet niemand ungefragt mitten in einer Übung. */
+loadState();
+$("#soundChk").checked=!!state.sound;
+$("#fingerChk").checked=!!state.fingers;
+$("#diffSel").value=state.difficulty;
 buildProgress();refreshHUD();
 go("start");
 </script>

@@ -464,7 +464,7 @@ Die Stufe ist pro Lektion vorgegeben, in den Einstellungen aber
 | Phase | Inhalt | Ergebnis |
 |---|---|---|
 | **2a** ✅ | `LESSONS[]`, `learnedKeys()`, Wortfilter, `lessonScreen()` mit Lektionen 1–6 | Grundreihe als echter Lehrgang spielbar |
-| **2b** | `lessonmap` (Landkarte, Sterne 80/85 %), `localStorage`-Persistenz, APM/Quote-Zeugnis | Kurs über mehrere Sitzungen nutzbar |
+| **2b** ✅ | `lessonmap` (Landkarte, Sterne 80/85 %), `localStorage`-Persistenz, APM/Quote-Zeugnis | Kurs über mehrere Sitzungen nutzbar |
 | **2c** | Lektionen 7–18 (obere/untere Reihe), Blind-Stufen 2 und 3 | vollständiges Alphabet blind |
 | **2d** | `state.keyStats` + automatische Wiederholungs-Lektionen („Wackelkandidaten“) | gezieltes Nachüben schwacher Tasten |
 | **2e** | Lektionen 19–22 (Umschalt-Gegenhand, Zahlen, Sonderzeichen, Abschluss) | Kurs komplett |
@@ -569,3 +569,55 @@ Nummern der bestehenden Stationen nicht: „Station 8 · Grundreihe“ heißt we
 Kurs-Profil der Kurzvariante (2f) und der Umbau der Spiele zu Teil 3 (2g).
 Die alten Stationen `khome`/`ktop`/`kbottom`/`kfingers` bleiben wie geplant
 zunächst als Schnelldurchlauf erhalten.
+
+---
+
+## 18. Phase 2b umgesetzt (Stand 2026-07-31)
+
+### Fortschritt speichern (`localStorage`)
+
+- Gespeichert werden unter dem Schlüssel `tastaturfs.v1`: Stationen (`done`),
+  Lektions-Bestwerte (`lessons`), XP/Level/Münzen, Abzeichen, Statistik und die
+  Einstellungen (Schwierigkeit, Ton, Fingerfarben).
+- Gesichert wird bei jedem Stationswechsel (`go()`), bei jedem Abschluss
+  (`completeStation()`) und bei Einstellungsänderungen.
+- **Robust gegen Schul-PCs:** Alle Zugriffe laufen in `try/catch`. Ist
+  `localStorage` gesperrt (privater Modus, restriktive Richtlinie), läuft der
+  Trainer normal weiter – nur eben ohne Speichern. Getestet mit komplett
+  blockiertem `localStorage`: keine Fehler.
+- **Robust gegen alte/kaputte Stände:** Ein unlesbarer Eintrag wird ignoriert
+  (frischer Start). Stationen und Lektionen, die es nicht mehr gibt, werden beim
+  Laden herausgefiltert; zeigt `current` auf eine unbekannte Station, beginnt der
+  Trainer auf der Startseite. Damit ist der in Abschnitt 15 geforderte Umgang mit
+  Altständen erfüllt.
+- **Kein ungefragter Sprung:** Gestartet wird immer auf der Startseite. Gibt es
+  einen Stand, steht dort **„Weiter machen ›“** (mit dem Namen der letzten
+  Station) neben **„Von vorne ›“** – Letzteres löscht nichts.
+- **Zurücksetzen** fragt jetzt nach (`confirm`), bevor es Stand und Speicher
+  löscht.
+
+### Lektions-Landkarte (`lessonmap`)
+
+- Neue Übersichtsseite am Anfang von Teil 2 mit Kopfzeile
+  **Lektionen · Sterne · gelernte Tasten** und einer Kachel je Lektion.
+- Jede Kachel zeigt Nummer, Titel, die neuen Tasten, die erreichten **Sterne**
+  (⭐/☆) und den **Bestwert** (Anschläge/Min · Trefferquote).
+- Die nächste offene Lektion ist mit **„dran“** markiert und hervorgehoben; der
+  Hauptknopf startet sie direkt.
+- **Bewusst keine Sperren:** Im Trainer kann man über die Fortschrittsleiste
+  ohnehin überall hinspringen – die Landkarte *empfiehlt* die nächste Lektion,
+  statt die anderen zu verriegeln. Das passt zur Entscheidung, auch die
+  Spielwiese frei zugänglich zu lassen.
+- Nach jeder Lektion führt ein Knopf **„🗺️ Landkarte“** zurück zur Übersicht.
+
+### Numerierung bleibt stabil
+
+Die Landkarte ist – wie die Prüfungen und die Lektionen – aus der
+Stationsnummerierung ausgenommen (`isHubId`). „Station 8 · Grundreihe“ heißt
+deshalb weiterhin so, obwohl Teil 2 um sieben Bildschirme gewachsen ist.
+
+### Getestet
+
+Alle 32 Bildschirme fehlerfrei; Fortschritt übersteht einen Reload
+(Stationen, Sterne, XP, Abzeichen, Einstellungen); blockiertes und beschädigtes
+`localStorage`, veraltete IDs und das Zurücksetzen geprüft.
