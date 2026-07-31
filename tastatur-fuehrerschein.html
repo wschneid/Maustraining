@@ -110,7 +110,9 @@
   footer.sitefooter a{color:#fff;text-decoration:underline;}
 
   /* ===== Bildschirm-Tastatur ===== */
-  .kbwrap{margin-top:auto;display:flex;justify-content:center;width:100%;overflow-x:auto;padding-top:10px;}
+  /* Die Tastatur wird per JS (kb.fit) auf die Breite des Bereichs herunterskaliert –
+     dadurch bleibt sie auch in der schmalen Prüfungsspalte vollständig sichtbar. */
+  .kbwrap{margin-top:auto;display:flex;justify-content:center;width:100%;overflow:hidden;padding-top:10px;}
   .keyboard{display:inline-flex;flex-direction:column;gap:6px;align-items:center;padding:14px;border-radius:14px;
     background:linear-gradient(160deg,#0d5775,#0a4d68);box-shadow:inset 0 0 40px rgba(0,0,0,.25);}
   .krow{display:flex;gap:6px;justify-content:center;}
@@ -275,6 +277,10 @@
   .lernzettel td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:top;}
   .lernzettel td.sym{font-size:1.05rem;text-align:center;width:44px;font-weight:700;color:var(--ocean-deep);}
   .lernzettel td.nm{font-weight:600;color:var(--ocean-deep);width:150px;}
+  .lernzettel .lz-syms{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:5px 10px;}
+  .lernzettel .lz-sym{font-size:.79rem;color:var(--ink-soft);white-space:nowrap;}
+  .lernzettel .lz-sym b{color:var(--ocean-deep);}
+  .lernzettel .lz-symch{font-weight:700;color:var(--ocean-mid);}
   .lernzettel .lz-combos{display:flex;flex-wrap:wrap;gap:8px;}
   .lernzettel .lz-combo{background:var(--hint-soft);border:1px solid #f0d9b8;border-radius:10px;padding:6px 11px;font-size:.82rem;color:#8a5616;}
   .lernzettel .lz-combo b{color:var(--ocean-deep);}
@@ -471,6 +477,30 @@ const FUNNY_SENTENCES = [
 ];
 
 /* ============================================================
+   Sonderzeichen, die mit Umschalt ⇧ erzeugt werden
+   ch = erzeugtes Zeichen, base = Grundtaste auf der Bildschirm-Tastatur
+   ============================================================ */
+const SYMBOL_KEYS = [
+  {ch:"!", base:"1", name:"Ausrufezeichen"},
+  {ch:'"', base:"2", name:"Anführungszeichen"},
+  {ch:"§", base:"3", name:"Paragraf"},
+  {ch:"$", base:"4", name:"Dollarzeichen"},
+  {ch:"%", base:"5", name:"Prozent"},
+  {ch:"&", base:"6", name:"Und-Zeichen"},
+  {ch:"/", base:"7", name:"Schrägstrich"},
+  {ch:"(", base:"8", name:"Klammer auf"},
+  {ch:")", base:"9", name:"Klammer zu"},
+  {ch:"=", base:"0", name:"Gleichzeichen"},
+  {ch:"?", base:"ß", name:"Fragezeichen"},
+  {ch:";", base:",", name:"Semikolon"},
+  {ch:":", base:".", name:"Doppelpunkt"},
+  {ch:"_", base:"-", name:"Unterstrich"}
+];
+/* Beschriftung einer Grundtaste: groß schreiben, aber „ß“ bleibt „ß“
+   (ß.toUpperCase() ergäbe „SS“ – auf der Tastatur steht aber ein ß). */
+const symLabel = b => { const u=(b||"").toUpperCase(); return u.length===b.length ? u : b; };
+
+/* ============================================================
    Wesentliche Funktions- & Steuertasten (für Lehr-Tour + Quiz)
    tok = Token (siehe specialToken), press = drückbar im Browser?
    ============================================================ */
@@ -560,14 +590,41 @@ function buildKeyboard(opts={}){
     el.appendChild(r);
   });
   const find = ch => map[ch] || map[(ch||"").toLowerCase()];
-  return {
+  const api = {
     el, map,
     flash(ch,ok){ const b=find(ch); if(!b)return; b.classList.remove("ok","bad"); void b.offsetWidth; b.classList.add(ok?"ok":"bad"); setTimeout(()=>b.classList.remove("ok","bad"),360); },
     press(ch){ const b=find(ch); if(!b)return; b.classList.add("press"); setTimeout(()=>b.classList.remove("press"),110); },
     highlight(chars){ (chars||[]).forEach(c=>{const b=find(c); if(b)b.classList.add("hot");}); },
-    clearHighlight(){ Object.values(map).forEach(b=>b.classList.remove("hot")); }
+    clearHighlight(){ Object.values(map).forEach(b=>b.classList.remove("hot")); },
+    /* Skaliert die Tastatur so, dass sie immer komplett in ihren Bereich passt
+       (z. B. in die schmale Spalte der Prüfung). Die negativen Ränder sorgen dafür,
+       dass auch der Platzbedarf im Layout der verkleinerten Größe entspricht. */
+    fit(){
+      const host = el.parentElement; if(!host) return;
+      el.style.transform=""; el.style.marginRight=""; el.style.marginBottom="";
+      const natW=el.offsetWidth, natH=el.offsetHeight;
+      const avail=host.clientWidth;
+      if(!natW||!natH||!avail) return;
+      const s=Math.min(1, avail/natW);
+      if(s>=1) return;
+      el.style.transformOrigin="top left";
+      el.style.transform=`scale(${s})`;
+      el.style.marginRight = -(natW-natW*s)+"px";
+      el.style.marginBottom = -(natH-natH*s)+"px";
+    }
   };
+  KEYBOARDS.push(api);
+  requestAnimationFrame(()=>api.fit());
+  return api;
 }
+/* Alle aktuell sichtbaren Tastaturen; verwaiste werden beim Neu-Anpassen entfernt. */
+const KEYBOARDS=[];
+function fitKeyboards(){
+  for(let i=KEYBOARDS.length-1;i>=0;i--){
+    if(!KEYBOARDS[i].el.isConnected) KEYBOARDS.splice(i,1); else KEYBOARDS[i].fit();
+  }
+}
+addEventListener("resize",fitKeyboards);
 function fingerLegend(){
   const order=["lp","lr","lm","li","ri","rm","rr","rp"];
   return `<div class="fingerlegend">`+order.map(f=>`<span class="fl"><span class="sw" style="background:${FINGERS[f].c}"></span>${FINGERS[f].n}</span>`).join("")+`</div>`;
@@ -1447,33 +1504,16 @@ SCREENS.ksymbols=(stage)=>{
   info.style.maxWidth="640px";info.style.margin="0 auto 6px";stage.appendChild(info);
   const kbHost=mk("kbwrap"); const kb=buildKeyboard();
   kbHost.appendChild(kb.el); stage.appendChild(kbHost);
-  /* ch = erzeugtes Zeichen, base = Taste auf der Bildschirm-Tastatur (mit Umschalt). */
-  const KEYS=[
-    {ch:"!", base:"1", name:"Ausrufezeichen"},
-    {ch:'"', base:"2", name:"Anführungszeichen"},
-    {ch:"§", base:"3", name:"Paragraf"},
-    {ch:"$", base:"4", name:"Dollarzeichen"},
-    {ch:"%", base:"5", name:"Prozent"},
-    {ch:"&", base:"6", name:"Und-Zeichen"},
-    {ch:"/", base:"7", name:"Schrägstrich"},
-    {ch:"(", base:"8", name:"Klammer auf"},
-    {ch:")", base:"9", name:"Klammer zu"},
-    {ch:"=", base:"0", name:"Gleichzeichen"},
-    {ch:"?", base:"ß", name:"Fragezeichen"},
-    {ch:";", base:",", name:"Semikolon"},
-    {ch:":", base:".", name:"Doppelpunkt"},
-    {ch:"_", base:"-", name:"Unterstrich"}
-  ];
   const TOTAL=dCount(8,6); let done=0,target=null,fault=false;
   /* Mischbeutel: jede Runde ein anderes Zeichen, ohne sofortige Wiederholung. */
   let bag=[];
-  const draw=()=>{ if(!bag.length) bag=shuffle(KEYS.slice()); return bag.pop(); };
+  const draw=()=>{ if(!bag.length) bag=shuffle(SYMBOL_KEYS.slice()); return bag.pop(); };
   setCounter(`0/${TOTAL}`,"gefunden");
   function pick(){
     kb.clearHighlight();
     target=draw();
     kb.highlight([target.base,"Shift"]);
-    setHint(`<b>Umschalt ⇧ + ${target.base.toUpperCase()}</b> ergibt <b>${target.ch}</b> (${target.name}).`,"");
+    setHint(`<b>Umschalt ⇧ + ${symLabel(target.base)}</b> ergibt <b>${target.ch}</b> (${target.name}).`,"");
   }
   setKeyHandler(e=>{
     if(e.key==="Shift") return;           /* Umschalt allein: auf das Zeichen warten */
@@ -1489,7 +1529,7 @@ SCREENS.ksymbols=(stage)=>{
       setHint(`Fast! Halte dabei <b>Umschalt ⇧</b> gedrückt – dann wird aus <b>${target.base}</b> ein <b>${target.ch}</b>.`,"warn");
     } else {
       sfx.soft();registerAttempt(false);fault=true;
-      setHint(`Das war <b>${ch}</b>. Gesucht ist <b>${target.ch}</b> (${target.name}) – mit <b>Umschalt ⇧ + ${target.base.toUpperCase()}</b>.`,"warn");
+      setHint(`Das war <b>${ch}</b>. Gesucht ist <b>${target.ch}</b> (${target.name}) – mit <b>Umschalt ⇧ + ${symLabel(target.base)}</b>.`,"warn");
     }
   });
   pick();
@@ -1806,17 +1846,19 @@ SCREENS.kspace=(stage)=>{
 
 /* ---------- Prüfung ---------- */
 SCREENS.exam=(stage)=>{
-  setInstruction("Prüfung 🏆","Zeig, was du kannst: eine Taste finden, ein Wort tippen und einen Satz schreiben!");
+  setInstruction("Prüfung 🏆","Zeig, was du kannst: eine Taste finden, ein Sonderzeichen tippen, ein Wort tippen und einen Satz schreiben!");
   showSkip(false);
+  const STEPS=4;
   const wrap=mk("examwrap");
   const desk=mk("examdesk");
   const list=mk("checklist",`<h3>Deine Aufgaben</h3><ol>
     <li id="ex1">Eine leuchtende Taste drücken</li>
-    <li id="ex2">Ein Wort fehlerfrei tippen</li>
-    <li id="ex3">Einen Satz tippen</li></ol>`);
+    <li id="ex2">Ein Sonderzeichen mit Umschalt tippen</li>
+    <li id="ex3">Ein Wort fehlerfrei tippen</li>
+    <li id="ex4">Einen Satz tippen</li></ol>`);
   wrap.appendChild(desk); wrap.appendChild(list); stage.appendChild(wrap);
   let step=1, fault=false;
-  function activate(n){ for(let i=1;i<=3;i++){ const li=$("#ex"+i); li.classList.toggle("active",i===n); li.classList.toggle("done",i<n); } step=n; }
+  function activate(n){ for(let i=1;i<=STEPS;i++){ const li=$("#ex"+i); li.classList.toggle("active",i===n); li.classList.toggle("done",i<n); } step=n; }
 
   function stepKey(){
     desk.innerHTML="";
@@ -1825,8 +1867,23 @@ SCREENS.exam=(stage)=>{
     kb.highlight([target]);
     setHint(`Schritt 1: Drücke die leuchtende Taste <b>${target.toUpperCase()}</b>.`,"");
     setKeyHandler(e=>{ const ch=getChar(e); if(ch==null)return; kb.press(ch);
-      if(ch.toLowerCase()===target){ kb.flash(target,true);sfx.good();activate(2);stepWord(); }
+      if(ch.toLowerCase()===target){ kb.flash(target,true);sfx.good();activate(2);stepSymbol(); }
       else { kb.flash(ch,false);sfx.soft();fault=true; setHint(`Gesucht: <b>${target.toUpperCase()}</b>.`,"warn"); } });
+  }
+  function stepSymbol(){
+    desk.innerHTML="";
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
+    const sym=SYMBOL_KEYS[(Math.random()*SYMBOL_KEYS.length)|0];
+    kb.highlight([sym.base,"Shift"]);
+    setHint(`Schritt 2: Tippe <b>${sym.ch}</b> (${sym.name}) – mit <b>Umschalt ⇧ + ${symLabel(sym.base)}</b>.`,"");
+    setKeyHandler(e=>{
+      if(e.key==="Shift") return;
+      const ch=getChar(e); if(ch==null)return;
+      if(ch===sym.ch){ kb.flash(sym.base,true);sfx.good();kb.clearHighlight();activate(3);stepWord(); }
+      else if(ch===sym.base){ kb.flash(sym.base,false);sfx.soft();fault=true;
+        setHint(`Fast! Halte dabei <b>Umschalt ⇧</b> gedrückt – dann wird aus <b>${sym.base}</b> ein <b>${sym.ch}</b>.`,"warn"); }
+      else { sfx.soft();fault=true; setHint(`Gesucht: <b>${sym.ch}</b> (${sym.name}) – <b>Umschalt ⇧ + ${symLabel(sym.base)}</b>.`,"warn"); }
+    });
   }
   function stepWord(){
     desk.innerHTML="";
@@ -1834,8 +1891,8 @@ SCREENS.exam=(stage)=>{
     const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
     const word=WORDS[(Math.random()*WORDS.length)|0];
     const typer=buildTyper(box,word,{kb,onChar:(idx,err)=>{if(err)fault=true;},
-      onDone:()=>{ sfx.good();kb.clearHighlight();activate(3);stepSentence(); }});
-    setHint("Schritt 2: Tippe das Wort ab. Groß mit <b>Umschalt ⇧</b>.","");
+      onDone:()=>{ sfx.good();kb.clearHighlight();activate(4);stepSentence(); }});
+    setHint("Schritt 3: Tippe das Wort ab. Groß mit <b>Umschalt ⇧</b>.","");
     setKeyHandler(e=>typer.feed(e));
   }
   function stepSentence(){
@@ -1844,9 +1901,9 @@ SCREENS.exam=(stage)=>{
     const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
     const text=SENTENCES[(Math.random()*SENTENCES.length)|0];
     const typer=buildTyper(box,text,{kb,onChar:(idx,err)=>{if(err)fault=true;},
-      onDone:()=>{ kb.clearHighlight(); $("#ex3").classList.add("done"); $("#ex3").classList.remove("active");
+      onDone:()=>{ kb.clearHighlight(); $("#ex"+STEPS).classList.add("done"); $("#ex"+STEPS).classList.remove("active");
         completeStation("exam","Prüfung mit Bravour bestanden! 🏆",{perfect:!fault}); }});
-    setHint("Schritt 3: Tippe den ganzen Satz.","");
+    setHint("Schritt 4: Tippe den ganzen Satz.","");
     setKeyHandler(e=>typer.feed(e));
   }
   activate(1); stepKey();
@@ -1885,11 +1942,16 @@ SCREENS.lernzettel=(stage)=>{
     const what=k.what.replace(/<[^>]+>/g,""); /* HTML-Auszeichnung für die Tabelle entfernen */
     return `<tr><td class="sym">${k.sym}</td><td class="nm">${k.name}</td><td>${what}</td></tr>`;
   }).join("");
+  /* Sonderzeichen als kompakte Chips: Umschalt + Grundtaste = Zeichen */
+  const symChips=SYMBOL_KEYS.map(s=>
+    `<span class="lz-sym"><b>⇧ + ${symLabel(s.base)}</b> = <span class="lz-symch">${s.ch}</span> ${s.name}</span>`).join("");
   const z=mk("lernzettel","");
   z.innerHTML=`<h1>Tastatur-Lernzettel</h1>
-    <div class="lz-sub">⌨️ Die wichtigsten Tasten, die Grundreihe und die Finger – zum Nachschlagen</div>
+    <div class="lz-sub">⌨️ Die wichtigsten Tasten, die Sonderzeichen, die Grundreihe und die Finger – zum Nachschlagen</div>
     <h2>🔑 Die wichtigen Tasten</h2>
     <table><tbody>${keyRows}</tbody></table>
+    <h2>❗ Sonderzeichen – mit Umschalt ⇧</h2>
+    <div class="lz-syms">${symChips}</div>
     <h2>🎹 Praktische Tasten-Kombis</h2>
     <div class="lz-combos">
       <span class="lz-combo"><b>Strg + C</b> · Kopieren</span>

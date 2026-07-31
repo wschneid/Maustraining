@@ -256,3 +256,185 @@ danach Phase 2 und 3 – jeweils getrennt, wie beim Word-Trainer.
   Wird die Grundtaste ohne Umschalt gedrückt, gibt es einen gezielten Hinweis.
   Eingeordnet direkt nach `knumbers`, neues Abzeichen **`symbol_pro`
   („Sonderzeichen-Profi“)**.
+- **Sonderzeichen in Prüfung & Lernzettel übernommen:** Die Abschlussprüfung
+  (`SCREENS.exam`) hat jetzt **vier** Schritte – neu ist „Ein Sonderzeichen mit
+  Umschalt tippen“ (Schritt 2). Der druckbare **Lernzettel** bekam den Abschnitt
+  „❗ Sonderzeichen – mit Umschalt ⇧“ mit allen 14 Kombinationen. Die Zeichen­
+  tabelle liegt dafür jetzt zentral als `SYMBOL_KEYS` vor und wird von Station,
+  Prüfung und Lernzettel gemeinsam genutzt.
+- **Bugfix Tastenbeschriftung „ß“:** `"ß".toUpperCase()` liefert in JavaScript
+  `"SS"` – im Lernzettel stand deshalb „⇧ + SS = ?“. Neuer Helfer `symLabel()`
+  schreibt nur groß, wenn sich die Länge nicht ändert; jetzt steht dort korrekt
+  **„⇧ + ß = ?“**.
+- **Bugfix abgeschnittene Tastatur in den Prüfungen:** Die Bildschirm-Tastatur ist
+  ein fest bemaßtes Element (~790 px). In den Prüfungen sitzt sie in der schmalen
+  Spalte `.examdesk` (`flex:2` neben der Aufgabenliste, ~430–590 px), wodurch
+  `overflow-x:auto` sie rechts **abschnitt** – Entf, Enter, rechte Umschalt- und
+  Strg-Taste waren nicht sichtbar. Neu skaliert `kb.fit()` die Tastatur per
+  `transform:scale()` auf die verfügbare Breite; negative Ränder sorgen dafür,
+  dass auch der Platzbedarf im Layout stimmt. Die Anpassung läuft automatisch
+  beim Aufbau (`requestAnimationFrame`) und bei `resize`. Damit ist die Tastatur
+  in **allen** Stationen und Prüfungen und auf jeder Fenstergröße vollständig
+  sichtbar (geprüft bei 1280/900/420 px).
+
+---
+
+# Teil 2 → vollwertiger Zehn-Finger-Kurs (Plan)
+
+> Wieder **nur Plan, kein Code.** Aufbauend auf dem, was schon läuft.
+
+## 10. Ausgangslage: was Teil 2 heute ist – und was ihm zum Kurs fehlt
+
+Teil 2 besteht aus 12 Stationen, die inhaltlich das Richtige abdecken
+(Grundreihe → obere → untere Reihe → Finger → Zahlen → Sonderzeichen → Wörter →
+Sätze → vier Tipp-Spiele). Als **Lehrgang** hat er aber systematische Lücken:
+
+| # | Lücke | Warum das für einen Zehn-Finger-Kurs zählt |
+|---|---|---|
+| 1 | **Zu große Lernschritte.** `khome`/`ktop`/`kbottom` führen eine *ganze Reihe auf einmal* ein. | Etablierte Lehrgänge führen **2 Tasten pro Lektion** ein (erst `f j`, dann `d k`, …). Nur so entsteht Muskelgedächtnis statt Suchen. |
+| 2 | **Übungstexte enthalten ungelernte Tasten.** `kwords`/`ksentence` ziehen aus dem vollen Vorrat. | In einem Kurs darf eine Übung **nur bereits gelernte Tasten** enthalten – sonst muss das Kind zwangsläufig hinsehen. |
+| 3 | **Kein Blindschreiben.** Die Zieltaste leuchtet immer auf der Bildschirm-Tastatur. | Blind tippen ist *der* Kern des Systems. Ohne Abgewöhnen des Hinsehens bleibt es Zwei-Finger-Suchen mit Farbcode. |
+| 4 | **Keine Kennzahlen.** Nur „geschafft/nicht geschafft“. | Ein Kurs braucht **Anschläge/Minute** und **Trefferquote %**, um Fortschritt zu zeigen und zu motivieren. |
+| 5 | **Keine Wiederholung.** Jede Station wird einmal gespielt und ist „done“. | Tippen lernt man durch **verteiltes Wiederholen**, nicht durch einmaliges Durchspielen. |
+| 6 | **Kein Lernstand pro Taste.** Fehler verpuffen. | Ohne Fehlerstatistik kann der Kurs nicht gezielt die *schwachen* Tasten nachüben. |
+| 7 | **Umschalt ohne Gegenhand-Regel.** `kshift` nimmt jede Umschalt-Taste an. | Korrekt ist: Großbuchstabe links → **rechte** Umschalttaste (und umgekehrt). Das gehört zum System dazu. |
+| 8 | **Keine Ergonomie.** Haltung/Handposition kommen nur als Randnotiz vor. | Sitzhaltung, Handhaltung und Pausen gehören in jeden ernsthaften Kurs. |
+
+## 11. Zielbild
+
+Teil 2 wird vom „Stationen-Parcours“ zum **Lehrgang mit Lektionen**:
+
+- **~20 kurze Lektionen** à 3–6 Minuten, jede führt **2 neue Tasten** ein.
+- Jede Lektion folgt derselben Dramaturgie:
+  **Aufwärmen** (Einzeltasten) → **Silben** (`fjf jfj`) → **Wörter** (nur aus
+  gelernten Tasten) → **Satz** → **Tipp-Zeugnis** (Tempo, Treffer, Sterne).
+- **Blind-Stufen** steigern sich über den Kurs: Highlight → ohne Highlight →
+  Tastatur ausgeblendet.
+- **Fehler-Radar** merkt sich pro Taste die Trefferquote und baut daraus
+  automatische Wiederholungs-Lektionen.
+- Die vier **Tipp-Spiele** bleiben – aber als **Teil 3 „Spielwiese"**, spielbar,
+  sobald die nötigen Tasten gelernt sind. Das trennt *Lernen* von *Spielen*,
+  ohne Vorhandenes wegzuwerfen.
+
+### Neue Gliederung
+
+| Teil | Inhalt | Stationen |
+|---|---|---|
+| Teil 1 · Tasten-Schule | wie heute | `klesson` … `exam1` |
+| **Teil 2 · Zehn-Finger-Lehrgang** | **Lektions-Landkarte mit ~20 Lektionen** | neu: `lessonmap` + Lektions-Engine |
+| **Teil 3 · Spielwiese** | die vier Tipp-Spiele | `kraindrop`, `kreflex`, `krace`, `kspace` |
+| Abschluss | Prüfung + Urkunde + Lernzettel | `exam`, `exam_done`, `lernzettel` |
+
+## 12. Der Lektionsplan (Vorschlag)
+
+Reihenfolge nach dem bewährten Prinzip *Zeigefinger → Mittel → Ring → klein*,
+danach Reihenwechsel. **Fett** = neue Tasten der Lektion.
+
+| Lektion | Neue Tasten | Schwerpunkt |
+|---|---|---|
+| 1 | **f j** | Grundstellung finden, Tastenmarkierungen ertasten |
+| 2 | **d k** | Mittelfinger |
+| 3 | **s l** | Ringfinger |
+| 4 | **a ö** | kleiner Finger – Grundreihe komplett |
+| 5 | **g h** | Zeigefinger-Streckung nach innen |
+| 6 | *Wdh.* | Grundreihe blind, erste echte Wörter (`falls`, `Hals`, `flach`) |
+| 7 | **e i** | obere Reihe, Mittelfinger |
+| 8 | **r u** | Zeigefinger hoch |
+| 9 | **w o** | Ringfinger hoch |
+| 10 | **q p** | kleiner Finger hoch |
+| 11 | **t z** | Zeigefinger-Streckung oben |
+| 12 | **ü ä** | Umlaute |
+| 13 | *Wdh.* | Grund- + obere Reihe gemischt |
+| 14 | **v m** | untere Reihe, Zeigefinger |
+| 15 | **c ,** | Mittelfinger runter |
+| 16 | **x .** | Ringfinger runter |
+| 17 | **y -** | kleiner Finger runter |
+| 18 | **b n** | Zeigefinger-Streckung unten – Alphabet komplett |
+| 19 | **⇧ (Gegenhand)** | Großschreibung mit der *anderen* Hand |
+| 20 | **Zahlen** | Zahlenreihe 1–0 |
+| 21 | **Sonderzeichen** | `! ? : ; " ( )` … (baut auf `ksymbols` auf) |
+| 22 | *Abschluss* | freier Text, Tempo-Messung, „Tipp-Führerschein Teil 2“ |
+
+**Wichtig:** Der Wortvorrat jeder Lektion wird **aus den bis dahin gelernten
+Tasten gefiltert** – technisch ein Filter über eine Wortliste
+(`word => [...word.toLowerCase()].every(c => gelernt.has(c))`). Für die frühen
+Lektionen ergänzen wir bewusst **Silben und Kunstwörter** (`fjf`, `jaja`,
+`Salat` ab L3), weil echte Wörter aus vier Buchstaben rar sind.
+
+## 13. Technische Bausteine
+
+Nichts davon erfordert ein Framework; alles baut auf Vorhandenem auf.
+
+| Baustein | Neu/vorhanden | Aufgabe |
+|---|---|---|
+| `LESSONS[]` | **neu** | Lektionsdefinition: `{id, keys:["f","j"], type:"drill"/"repeat", ziel:{apm, quote}}` |
+| `lessonEngine()` | **neu** | Generischer Ablauf Aufwärmen→Silben→Wörter→Satz; nutzt intern `buildTyper()` |
+| `learnedKeys(lessonId)` | **neu** | Menge aller bis dahin gelernten Tasten → Grundlage der Wortfilter |
+| `SYLLABLES` / gefilterte Wortlisten | **neu** | Übungsstoff je Lektion, aus `WORDS`/`FUNNY_WORDS` gefiltert + Silben |
+| `buildTyper()` | vorhanden | bleibt die Tipp-Engine, ergänzt um Tempo-/Quotenrückgabe (`secs`, `errors` gibt es schon) |
+| `buildKeyboard({fingers})` | vorhanden | ergänzt um **Blind-Stufe** (`hint:"key"/"finger"/"none"`) |
+| `state.keyStats` | **neu** | `{ "f": {ok, fail}, … }` → Fehler-Radar & Wiederholungs-Lektionen |
+| `state.lessons` | **neu** | pro Lektion `{sterne, bestApm, bestQuote}` |
+| `localStorage` | teilweise | Lehrgang **muss** speichern – ein Kurs über 22 Lektionen läuft über mehrere Sitzungen |
+| `lessonmap` Screen | **neu** | Landkarte mit Lektionskacheln, Sternen, „weiter wo du warst“ |
+| `LEVELS`/`BADGES` | vorhanden | neue Abzeichen je Meilenstein (Grundreihe blind, Alphabet komplett, 100 APM …) |
+
+### Kennzahlen, kindgerecht
+
+- **Anschläge pro Minute (APM)** statt WPM – für Kinder greifbarer und ohne
+  Wörter-Definition. Anzeige: „Du schaffst **84 Anschläge pro Minute**.“
+- **Trefferquote** in Prozent, plus die drei häufigsten Fehlertasten.
+- **Sterne pro Lektion:** ⭐ geschafft · ⭐⭐ ≥ 90 % Treffer · ⭐⭐⭐ ≥ 95 % Treffer
+  **und** Zieltempo der Lektion erreicht. Sterne sind der Anreiz zum
+  Wiederholen – genau das, was heute fehlt.
+
+### Blind-Stufen
+
+| Stufe | Anzeige | Ab Lektion |
+|---|---|---|
+| 1 | Zieltaste leuchtet auf der Bildschirm-Tastatur | 1–5 |
+| 2 | Nur der **Finger** wird angezeigt (Farbpunkt), keine Taste | 6–13 |
+| 3 | Tastatur ausgeblendet, nur der Text | ab 14, und in allen Wdh.-Lektionen |
+
+Die Stufe ist pro Lektion vorgegeben, in den Einstellungen aber
+**übersteuerbar** (Barrierefreiheit, schwächere Kinder).
+
+## 14. Roadmap
+
+| Phase | Inhalt | Ergebnis |
+|---|---|---|
+| **2a** | `LESSONS[]`, `learnedKeys()`, Wortfilter, `lessonEngine()` mit Lektionen 1–6 | Grundreihe als echter Lehrgang spielbar |
+| **2b** | `lessonmap` (Landkarte, Sterne), `localStorage`-Persistenz, APM/Quote-Zeugnis | Kurs über mehrere Sitzungen nutzbar |
+| **2c** | Lektionen 7–18 (obere/untere Reihe), Blind-Stufen 2 und 3 | vollständiges Alphabet blind |
+| **2d** | `state.keyStats` + automatische Wiederholungs-Lektionen („Wackelkandidaten“) | gezieltes Nachüben schwacher Tasten |
+| **2e** | Lektionen 19–22 (Umschalt-Gegenhand, Zahlen, Sonderzeichen, Abschluss) | Kurs komplett |
+| **2f** | Umbau der Spiele zu **Teil 3**, Ergonomie-Seite, Abzeichen, Urkunde erweitert | Feinschliff |
+
+Jede Phase ist ein **eigener PR** – wie bisher.
+
+## 15. Migration & Rückwärtskompatibilität
+
+- Die heutigen Stationen `khome`/`ktop`/`kbottom`/`kfingers` gehen **in den
+  Lektionen auf**. Vorschlag: sie bleiben zunächst als „Schnelldurchlauf“
+  erhalten und werden erst in Phase 2f entfernt, damit nie ein halbfertiger
+  Stand ausgeliefert wird.
+- `kwords`/`ksentence` werden zu **Wiederholungs-Lektionen** mit gefiltertem
+  Vorrat statt freiem Vorrat.
+- `knumbers`/`ksymbols` werden zu den Lektionen 20/21 – Inhalt bleibt, nur die
+  Einbettung ändert sich.
+- Gespeicherter Fortschritt alter Stände: unbekannte Lektions-IDs einfach als
+  „noch nicht gemacht“ behandeln.
+
+## 16. Offene Fragen
+
+1. **Umfang der Lektionen:** 22 Lektionen sind ein echter Kurs (≈ 2 Schul­stunden
+   plus Übung). Soll es eine **Kurzvariante** (z. B. 12 Lektionen ohne
+   Zwischenwiederholungen) für den Einsatz in einer Doppelstunde geben?
+2. **Teil 3 „Spielwiese“:** Spiele **freischalten** (erst ab bestimmter Lektion)
+   oder von Anfang an frei zugänglich lassen?
+3. **Sterne-Schwellen:** Sind 90 % / 95 % Trefferquote für die Zielgruppe
+   (Grundschule/Unterstufe) realistisch, oder lieber 85 % / 92 %?
+4. **Zieltempo:** Welcher APM-Wert gilt am Kursende als „bestanden“? Vorschlag:
+   **60 APM bei ≥ 90 % Treffer** – bewusst niedrig gehalten.
+5. **Klausur-Datei:** Soll `tastatur-klausur.html` um einen Lektions-Test
+   (Papierform) ergänzt werden?
