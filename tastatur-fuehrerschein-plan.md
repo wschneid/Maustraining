@@ -226,3 +226,16 @@ danach Phase 2 und 3 – jeweils getrennt, wie beim Word-Trainer.
 - **Klausur-Datei:** neue eigenständige Datei **`tastatur-klausur.html`** mit
   unbeschrifteter QWERTZ-Tastatur zum Ausfüllen, Umschalter „Lösung anzeigen“
   und „Finger-Farben“, Name-/Klasse-/Datum-Feldern, druckoptimiert (Querformat).
+
+## 8. Nachtrag (Stand 2026-07-31): Station 3 „Tasten finden“ erweitert
+
+- **Mehr Tasten in Station 3 (`kfind`):** Die Übung „Tasten finden“ prüfte bisher
+  nur Buchstaben. Jetzt sind zusätzlich die **Funktions- & Steuertasten aus
+  Station 1 (`klesson`) und Station 2 (`kquiz`)** enthalten – direkt aus
+  `FUNC_KEYS` gezogen (alle mit `press:true`: Leertaste, Enter, Rücktaste, Entf,
+  Umschalt, Feststell, Tab, Esc, Strg, Alt, Pfeiltasten). So wird das in Teil 1
+  gelernte Tasten-Wissen auch beim Finden auf der echten Tastatur geübt.
+- **Umsetzung:** gemeinsamer Aufgaben-Pool aus Buchstaben + `FUNC_KEYS`, ein
+  „Mischbeutel“ (`shuffle`) für Abwechslung und garantiertes Vorkommen der
+  Spezialtasten; Treffer-/Fehler-Erkennung über `getChar` bzw. `specialToken`,
+  Hinweise nennen Sondertasten mit ihrem Namen.

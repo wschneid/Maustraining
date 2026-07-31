@@ -915,29 +915,53 @@ SCREENS.teil2start=(stage)=>{
 SCREENS.kfind=(stage)=>{
   const N=stationNumber("kfind");
   setInstruction(`Station ${N} · Tasten finden 🔎`,
-    "Eine Taste leuchtet <b>orange</b> auf. Finde sie auf deiner echten Tastatur und drücke sie!");
+    "Eine Taste leuchtet <b>orange</b> auf. Finde sie auf deiner echten Tastatur und drücke sie! "+
+    "Jetzt sind auch die <b>wichtigen Tasten</b> aus Teil 1 dabei – Leertaste, Enter, Umschalt, Pfeile und mehr.");
   const kbHost=mk("kbwrap"); const kb=buildKeyboard();
   kbHost.appendChild(kb.el); stage.appendChild(kbHost);
-  const POOL=["a","s","d","f","j","k","l","ö","e","r","u","i","o","n","m","t","w","g","h","b"];
-  const TOTAL=dCount(7,5); let done=0,target=null,fault=false;
+  /* Buchstaben aus allen drei Reihen … */
+  const LETTERS=["a","s","d","f","j","k","l","ö","e","r","u","i","o","n","m","t","w","g","h","b"];
+  const letterItems=LETTERS.map(c=>({letter:true, ch:c, hi:[c], label:c.toUpperCase()}));
+  /* … plus die drückbaren Funktions- & Steuertasten aus Station 1 & 2 (FUNC_KEYS). */
+  const specialItems=FUNC_KEYS.filter(k=>k.press).map(k=>({letter:false, tok:k.tok, hi:k.hi||[k.tok], label:k.name}));
+  const POOL=letterItems.concat(specialItems);
+  const TOTAL=dCount(9,6); let done=0,target=null,fault=false;
+  /* Mischbeutel: sorgt für Abwechslung und dafür, dass auch die Spezialtasten drankommen. */
+  let bag=[];
+  const draw=()=>{ if(!bag.length) bag=shuffle(POOL.slice()); return bag.pop(); };
   setCounter(`0/${TOTAL}`,"gefunden");
   function pick(){
     kb.clearHighlight();
-    target=POOL[(Math.random()*POOL.length)|0];
-    kb.highlight([target]);
-    setHint(`Drücke die Taste <b>${target.toUpperCase()}</b>.`,"");
+    target=draw();
+    kb.highlight(target.hi);
+    setHint(`Drücke die Taste <b>${target.label}</b>.`,"");
+  }
+  /* Zeigt die gedrückte Taste an – als Buchstabe oder als Name der Sondertaste. */
+  function pressedLabel(e,ch){
+    if(ch!=null) return ch.toUpperCase();
+    const tok=specialToken(e); if(!tok) return "diese Taste";
+    const fk=FUNC_KEYS.find(k=>k.tok===tok); return fk?fk.name:tok;
+  }
+  /* Lässt die tatsächlich gedrückte Taste aufleuchten (auch Sondertasten). */
+  function flashPressed(e,ch,ok){
+    if(ch!=null){ kb.flash(ch,ok); return; }
+    const tok=specialToken(e); if(!tok) return;
+    kb.flash(tok==="Arrow"?e.key:tok, ok);
   }
   setKeyHandler(e=>{
-    const ch=getChar(e); if(ch==null) return;
-    kb.press(ch);
-    if(ch.toLowerCase()===target){
-      kb.flash(target,true);sfx.good();done++;registerAttempt(true);
+    const ch=getChar(e), tok=specialToken(e);
+    if(ch==null && tok==null) return;
+    if(ch!=null) kb.press(ch);
+    const correct = target.letter ? (ch!=null && ch.toLowerCase()===target.ch)
+                                  : (tok===target.tok);
+    if(correct){
+      flashPressed(e,ch,true);sfx.good();done++;registerAttempt(true);
       setCounter(`${done}/${TOTAL}`,"gefunden");
       if(done>=TOTAL){ kb.clearHighlight(); completeStation("kfind","Klasse! Du findest die Tasten super! 🎉",{perfect:!fault}); }
       else { setHint("Richtig! 👍","good"); later(pick,450); }
     } else {
-      kb.flash(ch,false);sfx.soft();registerAttempt(false);fault=true;
-      setHint(`Das war <b>${ch.toUpperCase()}</b>. Suche die orange Taste <b>${target.toUpperCase()}</b>.`,"warn");
+      flashPressed(e,ch,false);sfx.soft();registerAttempt(false);fault=true;
+      setHint(`Das war <b>${pressedLabel(e,ch)}</b>. Suche die orange Taste <b>${target.label}</b>.`,"warn");
     }
   });
   pick();
