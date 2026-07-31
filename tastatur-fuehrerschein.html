@@ -516,6 +516,16 @@ const LESSON_WORDS = [
   "schnell","langsam","bin","kann","dann","denn","wann","nicht","aber","haben",
   "neben","bunt","gern","schon","noch","wenn","danken","binden","freundlich"
 ];
+/* Sätze für die letzten Lektionen: erst ab der Umschalt-Lektion möglich, weil
+   ein Satz mit einem Großbuchstaben beginnt und mit einem Satzzeichen endet. */
+const LESSON_SENTENCES = [
+  "Die Sonne scheint hell.",
+  "Der Hund bellt laut.",
+  "Wir lernen tippen.",
+  "Mein Ball ist rot.",
+  "Die Katze schläft gern.",
+  "Heute wird es warm."
+];
 const LESSONS = [
   /* --- Grundreihe --- */
   {no:1, keys:["f","j"], title:"die Zeigefinger", icon:"🖐️",
@@ -573,7 +583,44 @@ const LESSONS = [
    warm:["yyyy","----","y-y-"], sylls:["yyy","---","y-y","-y-","typ","sys","hy-","y-a"], blind:3, apm:46},
   {no:18, keys:["b","n"], title:"strecken nach unten innen", icon:"⬇️",
    grip:"Die letzten beiden Buchstaben: Der Zeigefinger streckt sich nach innen unten – <b>b</b> und <b>n</b>. Danach kennst du das <b>ganze Alphabet</b>!",
-   warm:["bbbb","nnnn","bnbn"], sylls:["bbb","nnn","bnb","nbn","ban","neb","bin","nun"], blind:3, apm:48}
+   warm:["bbbb","nnnn","bnbn"], sylls:["bbb","nnn","bnb","nbn","ban","neb","bin","nun"], blind:3, apm:48},
+  /* --- Großschreibung, Zahlen, Sonderzeichen, Abschluss ---
+     Neuer Stoff bekommt wieder die Finger-Anzeige (Stufe 2); die
+     Abschluss-Lektion läuft komplett blind. */
+  {no:19, keys:["⇧"], title:"Groß mit der Gegenhand", icon:"⇧",
+   intro:"Neu ist die <b>Umschalttaste ⇧</b>. Die Regel: Du nimmst immer die Umschalttaste der <b>anderen</b> Hand.",
+   grip:"Buchstabe mit der <b>linken</b> Hand → <b>rechte</b> Umschalttaste. Buchstabe mit der <b>rechten</b> Hand → "+
+        "<b>linke</b> Umschalttaste. So bleibt jede Hand für ihre Aufgabe frei.",
+   warm:["AAAA","LLLL"], sylls:["Aa","Ss","Dd","Ff","Jj","Kk","Ll","Öö"],
+   words:["Anna","Otto","Hallo","Schule","Blume","Garten","Tastatur"],
+   chain:"Die Sonne scheint hell.", chainLabel:"Erster Satz",
+   shiftRule:true, blind:2, apm:36},
+  {no:20, keys:["1","2","3","4","5","6","7","8","9","0","ß"], title:"die Zahlenreihe", icon:"🔢",
+   intro:"Neu ist die <b>Zahlenreihe</b> ganz oben – dazu das <b>ß</b>.",
+   grip:"Die Zahlen liegen über der oberen Reihe. Jeder Finger holt die Zahl über seinen Tasten: der linke kleine "+
+        "Finger die <b>1</b>, der rechte kleine Finger die <b>0</b> und das <b>ß</b>.",
+   warm:["1111","0000"], sylls:["123","890","147","258","369","1234567890","aß","ßa"],
+   /* eigener Stoff statt der allgemeinen Wortliste – sonst würde die
+      Zahlen-Lektion Kleinbuchstaben üben statt Ziffern */
+   words:["12","345","6789","2026","90","1000"], wordLabel:"Zahlen",
+   chain:"12 34 56 78 90", chainLabel:"Zahlenkette",
+   blind:2, apm:28},
+  {no:21, keys:["!","?",":",";","(",")"], title:"die Sonderzeichen", icon:"❗",
+   intro:"Neu sind die <b>Sonderzeichen</b> – die holst du mit der <b>Umschalttaste ⇧</b>.",
+   grip:"Über den Zahlen wohnen die Sonderzeichen. Umschalt ⇧ mit der Gegenhand halten und die Zahl drücken: "+
+        "<b>⇧+1</b> ergibt <b>!</b>, <b>⇧+ß</b> ergibt <b>?</b>, <b>⇧+.</b> ergibt <b>:</b>",
+   warm:["!!!!","????"], sylls:["!?!","?!?",":;:",";:;","(:)","()()"],
+   words:["ja!","wie?","(gut)","so:","oh!","was?"], wordLabel:"Zeichen im Wort",
+   chain:"Hallo! Wie geht es dir?", chainLabel:"Satz mit Satzzeichen",
+   shiftRule:true, blind:2, apm:30},
+  {no:22, keys:[], title:"Abschluss: freier Text", icon:"🏁", repeat:true,
+   intro:"Keine neuen Tasten mehr – jetzt zeigst du, was du kannst: <b>ganze Sätze</b>, ohne auf die Tasten zu schauen.",
+   grip:"Alles zusammen: Buchstaben, Großschreibung und Satzzeichen. Schau auf den Bildschirm, nicht auf deine Hände – "+
+        "und lieber ruhig und richtig als hektisch.",
+   warm:["asdf jklö"], sylls:["Die","Der","Wir","Mein"],
+   words:LESSON_SENTENCES, wordLabel:"Sätze", wordCount:3,
+   chain:"Wir lernen tippen. Die Sonne scheint hell.", chainLabel:"Freier Text",
+   shiftRule:true, blind:3, apm:45}
 ];
 const isLessonId = id => /^l\d+$/.test(id);
 const lessonByNo = no => LESSONS.find(l=>l.no===no);
@@ -848,6 +895,15 @@ function buildTyper(host, text, o={}){
     if(started===0) started=performance.now();
     const want=text[idx];                 /* die Taste, die gefragt war */
     if(ch===want){
+      /* Gegenhand-Regel: Das Zeichen stimmt, aber die falsche (oder keine)
+         Umschalttaste war gedrückt – das zählt als Fehler, damit sich die
+         richtige Technik einschleift. */
+      if(o.shiftRule && !o.shiftRule(want)){
+        noteKey(want,false); o.onKey && o.onKey(want,false);
+        errors++; spans[idx].classList.add("bad"); sfx.soft();
+        o.onChar && o.onChar(idx,errors);
+        return;
+      }
       noteKey(want,true); o.onKey && o.onKey(want,true);
       spans[idx].classList.add("ok"); spans[idx].classList.remove("bad"); idx++;
       sfx.step(); if(o.kb) o.kb.flash(ch,true);
@@ -978,6 +1034,41 @@ function specialToken(e){
   if(k&&k.indexOf("Arrow")===0)return "Arrow"; /* Pfeiltasten als Gruppe */
   return null;
 }
+/* ---- Welche Umschalttaste ist gedrückt? ----
+   Für die Gegenhand-Regel reicht e.shiftKey nicht – wir müssen wissen, ob die
+   linke oder die rechte Umschalttaste gehalten wird. Das sagt e.location
+   (1 = links, 2 = rechts). */
+const shiftDown={left:false,right:false};
+function setShift(e,down){
+  if(e.key!=="Shift") return;
+  if(e.location===1) shiftDown.left=down;
+  else if(e.location===2) shiftDown.right=down;
+  else { shiftDown.left=down; shiftDown.right=down; }  /* Browser ohne location */
+}
+document.addEventListener("keydown",e=>setShift(e,true),true);
+document.addEventListener("keyup",  e=>setShift(e,false),true);
+addEventListener("blur",()=>{ shiftDown.left=shiftDown.right=false; });
+/* Grundtaste eines Zeichens, das mit Umschalt getippt wird (sonst null). */
+function shiftBase(ch){
+  if(ch==null||ch.length!==1) return null;
+  if(/[A-ZÄÖÜ]/.test(ch)) return ch.toLowerCase();
+  const sym=SYMBOL_KEYS.find(s=>s.ch===ch);
+  return sym?sym.base:null;
+}
+/* Welche Hand bedient eine Taste? */
+function keyHand(ch){
+  const k=findKeyDef(ch); if(!k) return null;
+  return k.f[0]==="l" ? "left" : k.f[0]==="r" ? "right" : null;
+}
+/* Die Gegenhand-Regel: linke Hand tippt den Buchstaben → rechte Umschalttaste. */
+function shiftSideFor(ch){
+  const hand=keyHand(shiftBase(ch));
+  return hand==="left" ? "right" : hand==="right" ? "left" : null;
+}
+function shiftSideOk(ch){
+  const need=shiftSideFor(ch);
+  return need ? shiftDown[need] : true;
+}
 document.addEventListener("keydown",e=>{
   if(!_keyHandler) return;
   if([" ","Backspace","Tab","Enter","'","/","Escape","Alt"].includes(e.key) || (e.key&&e.key.indexOf("Arrow")===0)) e.preventDefault();
@@ -1026,6 +1117,8 @@ const BADGES = {
   toprow_lesson: {icon:"⬆️", title:"Obere Reihe gelernt"},
   alphabet_pro:  {icon:"🔤", title:"Alphabet komplett"},
   radar_clear:   {icon:"🎯", title:"Wackelkandidaten gemeistert"},
+  shift_hand:    {icon:"⇧", title:"Gegenhand-Regel"},
+  course_done:   {icon:"🏁", title:"Lehrgang abgeschlossen"},
   home_row:      {icon:"🖐️", title:"Grundreihen-Held"},
   toprow_hero:   {icon:"⬆️", title:"Obere-Reihe-Held"},
   bottomrow_hero:{icon:"⬇️", title:"Untere-Reihe-Held"},
@@ -1110,6 +1203,8 @@ function checkStationBadges(id){
   if(id==="l6")unlock("blind_typer");
   if(id==="l12")unlock("toprow_lesson");
   if(id==="l18")unlock("alphabet_pro");
+  if(id==="l19")unlock("shift_hand");
+  if(id==="l22")unlock("course_done");
   if(id==="khome")unlock("home_row");
   if(id==="ktop")unlock("toprow_hero");
   if(id==="kbottom")unlock("bottomrow_hero");
@@ -1738,10 +1833,11 @@ SCREENS.lessonmap=(stage)=>{
 const STAR2_QUOTE = 80;   /* ⭐⭐ ab dieser Trefferquote in Prozent */
 const STAR3_QUOTE = 85;   /* ⭐⭐⭐ ab dieser Quote UND dem Zieltempo der Lektion */
 
-function lessonChain(words,sylls){
-  /* Wortkette: übt zugleich die Leertaste. Wenn es noch keine Wörter gibt,
-     werden Silben aneinandergereiht. */
-  const src = words.length>=4 ? shuffle(words.slice()).slice(0,4) : sylls.slice(0,3);
+function lessonChain(L,words){
+  /* Wortkette: übt zugleich die Leertaste. Lektionen mit eigenem Abschluss
+     (Zahlenkette, Satz mit Satzzeichen …) geben ihn direkt vor. */
+  if(L.chain) return L.chain;
+  const src = words.length>=4 ? shuffle(words.slice()).slice(0,4) : L.sylls.slice(0,3);
   return src.join(" ");
 }
 function lessonSteps(L){
@@ -1750,8 +1846,9 @@ function lessonSteps(L){
     {label:"Aufwärmen", items:L.warm.slice()},
     {label:"Silben",    items:L.sylls.slice()}
   ];
-  if(words.length>=3) steps.push({label:"Wörter", items:shuffle(words.slice()).slice(0,5)});
-  steps.push({label:"Wortkette", items:[lessonChain(words,L.sylls)]});
+  if(words.length>=3) steps.push({label:L.wordLabel||"Wörter",
+    items:shuffle(words.slice()).slice(0,L.wordCount||5)});
+  steps.push({label:L.chainLabel||"Wortkette", items:[lessonChain(L,words)]});
   return steps;
 }
 function lessonScreen(L){
@@ -1783,7 +1880,9 @@ function lessonScreen(L){
       const c=text[idx];
       if(c==null){ fingerBox.innerHTML=""; return; }
       if(c===" "){ fingerBox.innerHTML=`<span class="dot" style="background:${FINGERS.th.c}"></span> Daumen · Leertaste`; return; }
-      fingerBox.innerHTML=`<span class="dot" style="background:${fingerColor(c)}"></span> ${fingerName(c)}`;
+      const base=shiftBase(c), side=L.shiftRule?shiftSideFor(c):null;
+      const shiftTxt = side ? `<b>${side==="left"?"linke":"rechte"} Umschalt ⇧</b> + ` : "";
+      fingerBox.innerHTML=`<span class="dot" style="background:${fingerColor(base||c)}"></span> ${shiftTxt}${fingerName(base||c)}`;
     }
 
     let si=0, ii=0, chars=0, errs=0, t0=0, tEnd=0;
@@ -1805,6 +1904,13 @@ function lessonScreen(L){
       showFinger(text,0);
       const typer=buildTyper(box,text,{
         kb: showKey ? kb : null,
+        shiftRule: L.shiftRule ? (want=>{
+          if(shiftSideOk(want)) return true;
+          const need=shiftSideFor(want);
+          setHint(`Fast! <b>${want}</b> holst du mit der <b>${need==="left"?"linken":"rechten"} Umschalttaste ⇧</b> `+
+                  `– also mit der <b>anderen</b> Hand.`,"warn");
+          return false;
+        }) : null,
         onChar:(idx)=>{ if(t0===0) t0=performance.now(); showFinger(text,idx); },
         onKey:(want,ok)=>{ if(!ok && want!==" ") missed[want]=(missed[want]||0)+1; },
         onDone:(res)=>{

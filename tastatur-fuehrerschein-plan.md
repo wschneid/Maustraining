@@ -467,7 +467,7 @@ Die Stufe ist pro Lektion vorgegeben, in den Einstellungen aber
 | **2b** ✅ | `lessonmap` (Landkarte, Sterne 80/85 %), `localStorage`-Persistenz, APM/Quote-Zeugnis | Kurs über mehrere Sitzungen nutzbar |
 | **2c** ✅ | Lektionen 7–18 (obere/untere Reihe), Blind-Stufen 2 und 3 | vollständiges Alphabet blind |
 | **2d** ✅ | `state.keyStats` + automatische Wiederholungs-Lektionen („Wackelkandidaten“) | gezieltes Nachüben schwacher Tasten |
-| **2e** | Lektionen 19–22 (Umschalt-Gegenhand, Zahlen, Sonderzeichen, Abschluss) | Kurs komplett |
+| **2e** ✅ | Lektionen 19–22 (Umschalt-Gegenhand, Zahlen, Sonderzeichen, Abschluss) | Kurs komplett |
 | **2f** | **Kurs-Profil „Kurz · 12 Lektionen“** (`COURSE_SHORT`) + Umschalter | Doppelstunden-Variante nutzbar |
 | **2g** | Umbau der Spiele zu **Teil 3** (frei zugänglich), Ergonomie-Seite, Abzeichen, Urkunde erweitert | Feinschliff |
 
@@ -750,3 +750,76 @@ ersten. Aufgefallen ist das erst im Test, der den Radar wirklich leergespielt ha
 Radar-Erkennung mit gezielt verhauenen Tasten, Verlauf bis zum Leerräumen,
 Leerzustand, Persistenz der `keyStats` über einen Reload, alle Bildschirme
 fehlerfrei, Wortfilter der 18 Lektionen weiterhin sauber.
+
+---
+
+## 21. Phase 2e umgesetzt (Stand 2026-07-31)
+
+Der Lehrgang ist **inhaltlich komplett**: **22 Lektionen**, danach sind alle
+Buchstaben (inkl. ä ö ü **ß**), alle Ziffern, die Großschreibung und die
+Satzzeichen geübt – alles automatisch geprüft.
+
+| Lektion | Neu | Schwerpunkt | Blind |
+|---|---|---|---|
+| 19 | **⇧** | Großbuchstaben mit der **Gegenhand** | 2 |
+| 20 | **1–0 ß** | Zahlenreihe | 2 |
+| 21 | **! ? : ; ( )** | Sonderzeichen mit Umschalt | 2 |
+| 22 | *(keine)* | Abschluss: freier Text, ganze Sätze | 3 |
+
+### Die Gegenhand-Regel (Lektion 19 und 21)
+
+Das ist die einzige echte **neue Mechanik** der Phase: Bisher prüfte der Trainer
+nur, *welches Zeichen* ankommt. Für die Gegenhand-Regel muss er wissen, *welche*
+Umschalttaste gehalten wird – und `e.shiftKey` sagt das nicht.
+
+- Gelöst über **`e.location`** (1 = links, 2 = rechts), mitgeführt in
+  `shiftDown` per `keydown`/`keyup`; ein `blur` setzt den Zustand zurück, damit
+  ein Fensterwechsel keine „klemmende“ Umschalttaste hinterlässt. Browser ohne
+  `location` setzen beide Seiten – dort greift die Regel großzügig statt falsch.
+- **Regel:** Buchstabe der linken Hand → **rechte** Umschalttaste und umgekehrt.
+  Die Hand kommt aus der Fingerzuordnung in `KEY_ROWS`; für Sonderzeichen wird
+  über `SYMBOL_KEYS` erst die **Grundtaste** bestimmt (`!` → `1` → links →
+  rechte Umschalttaste).
+- **Durchgesetzt** über einen neuen optionalen Haken `shiftRule` in
+  `buildTyper()`: Stimmt das Zeichen, war aber die falsche (oder keine)
+  Umschalttaste gedrückt, zählt das als **Fehler** mit gezieltem Hinweis
+  („… holst du mit der **rechten** Umschalttaste ⇧ – also mit der **anderen**
+  Hand“). Nur so schleift sich die Technik ein.
+- Die Finger-Anzeige nennt in diesen Lektionen zusätzlich die Umschaltseite:
+  „rechte Umschalt ⇧ + linker kleiner Finger“.
+
+### Sätze sind jetzt möglich
+
+Ab Lektion 19 gibt es Großbuchstaben, ab 21 Satzzeichen – erst damit sind
+**echte Sätze** möglich (siehe die Abweichung in Abschnitt 17). Lektion 19
+endet deshalb mit „Die Sonne scheint hell.“, Lektion 21 mit
+„Hallo! Wie geht es dir?“, Lektion 22 besteht ganz aus Sätzen.
+
+### Neue Bausteine in der Engine
+
+`lessonSteps()` versteht jetzt `L.chain` (fester Abschluss statt zufälliger
+Wortkette) sowie `L.wordLabel` / `L.chainLabel` / `L.wordCount`. Damit heißen
+die Schritte da, wo es passt: „Zahlen → Zahlenkette“, „Zeichen im Wort → Satz
+mit Satzzeichen“, „Sätze → Freier Text“.
+
+### Beim Testen aufgefallen
+
+Die Lektionen 20 und 21 zogen ihren Wörter-Schritt zunächst aus der allgemeinen
+Wortliste – die Zahlen-Lektion hätte also **Kleinbuchstaben** geübt statt
+Ziffern. Beide haben jetzt eigenen Stoff (`12 345 6789 2026` bzw.
+`ja! wie? (gut) so:`).
+
+### Erweiterte Prüfung
+
+Der Testlauf prüft jetzt zusätzlich, dass **vor** Lektion 19 **kein**
+Übungsstoff die Umschalttaste braucht (kein Großbuchstabe, kein Sonderzeichen).
+Ergebnis: sauber – ebenso wie „keine ungelernten Tasten“ über alle 22 Lektionen.
+
+### Neue Abzeichen
+
+`shift_hand` („Gegenhand-Regel“) und `course_done` („Lehrgang abgeschlossen“).
+
+### Offen bleibt
+
+Phase **2f** (Kurzvariante mit 12 Lektionen) und **2g** (Spiele als Teil 3,
+Ergonomie-Seite, Urkunde um den Lehrgang erweitern).
