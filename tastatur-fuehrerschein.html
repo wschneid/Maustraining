@@ -110,7 +110,9 @@
   footer.sitefooter a{color:#fff;text-decoration:underline;}
 
   /* ===== Bildschirm-Tastatur ===== */
-  .kbwrap{margin-top:auto;display:flex;justify-content:center;width:100%;overflow-x:auto;padding-top:10px;}
+  /* Die Tastatur wird per JS (kb.fit) auf die Breite des Bereichs herunterskaliert –
+     dadurch bleibt sie auch in der schmalen Prüfungsspalte vollständig sichtbar. */
+  .kbwrap{margin-top:auto;display:flex;justify-content:center;width:100%;overflow:hidden;padding-top:10px;}
   .keyboard{display:inline-flex;flex-direction:column;gap:6px;align-items:center;padding:14px;border-radius:14px;
     background:linear-gradient(160deg,#0d5775,#0a4d68);box-shadow:inset 0 0 40px rgba(0,0,0,.25);}
   .krow{display:flex;gap:6px;justify-content:center;}
@@ -213,6 +215,58 @@
   .bigkey.go{background:var(--hint);animation:pop .35s;}
   @keyframes pop{0%{transform:scale(1);}45%{transform:scale(1.16);}100%{transform:scale(1);}}
 
+  /* ===== Zehn-Finger-Lehrgang: Landkarte ===== */
+  .startbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px;}
+  .lmapsum{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;background:var(--ocean-pale);
+    border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin:0 auto 14px;max-width:520px;}
+  .lmapsum .s b{display:block;font-size:1.3rem;color:var(--ocean-mid);text-align:center;}
+  .lmapsum .s span{font-size:.76rem;color:var(--ink-soft);}
+  .lmapgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:12px;max-width:840px;margin:0 auto;}
+  .ltile{background:#fff;border:2px solid var(--line);border-radius:14px;padding:13px 14px;text-align:left;
+    cursor:pointer;font-family:inherit;transition:border-color .12s,transform .08s;}
+  .ltile:hover{border-color:var(--ocean-bright);transform:translateY(-2px);}
+  .ltile.done{background:var(--ocean-pale);border-color:var(--ocean-mid);}
+  .ltile.next{border-color:var(--hint);box-shadow:0 0 0 3px var(--hint-soft);}
+  .ltile .top{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+  .ltile .no{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--ocean-mid);color:#fff;
+    display:grid;place-items:center;font-size:.8rem;font-weight:700;}
+  .ltile.done .no{background:var(--ocean-deep);}
+  .ltile .ttl{font-weight:700;color:var(--ocean-deep);font-size:.92rem;}
+  .ltile .keys{font-size:.8rem;color:var(--ink-soft);margin-bottom:5px;}
+  .ltile .keys b{color:var(--ocean-mid);letter-spacing:2px;}
+  .ltile .stars{font-size:1rem;letter-spacing:2px;}
+  .ltile .best{font-size:.73rem;color:var(--ink-soft);margin-top:3px;}
+  .ltile .tag{display:inline-block;font-size:.7rem;font-weight:700;color:#8a5616;background:var(--hint-soft);
+    border:1px solid #f0d9b8;border-radius:999px;padding:1px 8px;margin-left:auto;}
+
+  .lmapweak{max-width:840px;margin:0 auto 12px;background:var(--hint-soft);border:1px solid #f0d9b8;
+    border-radius:12px;padding:11px 14px;font-size:.85rem;color:#8a5616;}
+  .lmapweak .keys{display:inline-flex;gap:5px;flex-wrap:wrap;vertical-align:middle;margin:0 4px;}
+  .wkey{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 5px;border-radius:6px;
+    background:#fff;border:1px solid #e0b98a;font-weight:700;color:#8a5616;}
+  .lmapweak button{margin-left:6px;}
+  .zeugnis .zkeys{margin-top:10px;font-size:.82rem;color:var(--ink-soft);}
+  .zeugnis .zkey{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;margin:0 2px;
+    border-radius:6px;background:var(--ocean-pale);border:1px solid var(--line);font-weight:700;color:var(--ocean-deep);}
+
+  /* ===== Zehn-Finger-Lehrgang: Lektionen ===== */
+  .lessonbar{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+  .lstep{font-size:.78rem;padding:4px 11px;border-radius:999px;background:var(--ocean-pale);
+    border:1px solid var(--line);color:var(--ink-soft);}
+  .lstep.active{background:var(--ocean-bright);color:#fff;border-color:var(--ocean-bright);font-weight:700;}
+  .lstep.done{background:#fff;color:var(--ocean-mid);}
+  .lfinger{text-align:center;font-size:.92rem;color:var(--ink-soft);min-height:24px;margin:2px 0 4px;}
+  .lfinger .dot{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:-2px;margin-right:6px;}
+  .zeugnis{background:#fff;border:2px solid var(--ocean-mid);border-radius:14px;padding:18px 20px;
+    max-width:420px;margin:8px auto;text-align:center;}
+  .zeugnis h3{margin:0 0 4px;color:var(--ocean-deep);font-size:1.1rem;}
+  .zeugnis .stars{font-size:1.9rem;letter-spacing:4px;margin:6px 0;}
+  .zeugnis .vals{display:flex;gap:20px;justify-content:center;margin-top:10px;}
+  .zeugnis .val{flex:1;}
+  .zeugnis .val b{display:block;font-size:1.35rem;color:var(--ocean-mid);}
+  .zeugnis .val span{font-size:.76rem;color:var(--ink-soft);}
+  .zeugnis .note{margin-top:10px;font-size:.83rem;color:var(--ink-soft);}
+
   /* ===== Prüfung ===== */
   .examwrap{flex:1;display:flex;gap:18px;flex-wrap:wrap;}
   .examdesk{flex:2;min-width:300px;display:flex;flex-direction:column;}
@@ -275,6 +329,10 @@
   .lernzettel td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:top;}
   .lernzettel td.sym{font-size:1.05rem;text-align:center;width:44px;font-weight:700;color:var(--ocean-deep);}
   .lernzettel td.nm{font-weight:600;color:var(--ocean-deep);width:150px;}
+  .lernzettel .lz-syms{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:5px 10px;}
+  .lernzettel .lz-sym{font-size:.79rem;color:var(--ink-soft);white-space:nowrap;}
+  .lernzettel .lz-sym b{color:var(--ocean-deep);}
+  .lernzettel .lz-symch{font-weight:700;color:var(--ocean-mid);}
   .lernzettel .lz-combos{display:flex;flex-wrap:wrap;gap:8px;}
   .lernzettel .lz-combo{background:var(--hint-soft);border:1px solid #f0d9b8;border-radius:10px;padding:6px 11px;font-size:.82rem;color:#8a5616;}
   .lernzettel .lz-combo b{color:var(--ocean-deep);}
@@ -382,6 +440,16 @@
       </div>
       <div class="setrow"><label class="switch"><input type="checkbox" id="fingerChk"> Fingerfarben auf der Tastatur zeigen</label>
         <div class="help">Färbt jede Taste in der Farbe des Fingers ein, der sie drücken soll.</div></div>
+      <div class="setrow">
+        <label for="blindSel">Hilfe in den Lektionen</label>
+        <div class="help">Im Lehrgang wird die Hilfe von Lektion zu Lektion weniger: erst leuchtet die Taste,
+          dann nur noch der Finger, zuletzt gar nichts. Hier kannst du mehr Hilfe einstellen.</div>
+        <select id="blindSel" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);font-family:inherit;font-size:.95rem;">
+          <option value="auto">Wie in der Lektion vorgesehen</option>
+          <option value="key">Immer die Taste zeigen</option>
+          <option value="finger">Immer den Finger zeigen</option>
+        </select>
+      </div>
       <div class="setrow"><label class="switch"><input type="checkbox" id="soundChk" checked> Töne abspielen</label></div>
       <div class="setrow"><div class="infobox">💡 <b>Tipp:</b> Lege deine Finger locker auf die Grundreihe
         (links <b>a&nbsp;s&nbsp;d&nbsp;f</b>, rechts <b>j&nbsp;k&nbsp;l&nbsp;ö</b>). Auf <b>F</b> und <b>J</b> spürst du kleine Erhebungen –
@@ -398,6 +466,174 @@ const $ = (s,el=document)=>el.querySelector(s);
 const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
 const mk = (cls,html)=>{const d=document.createElement("div");if(cls)d.className=cls;if(html!=null)d.innerHTML=html;return d;};
 const shuffle = a=>{for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+/* ============================================================
+   Zehn-Finger-Lehrgang (Teil 2) – Lektionen
+   ------------------------------------------------------------
+   Jede Lektion führt zwei neue Tasten ein. Der Übungsstoff wird über
+   learnedKeys()/lessonWords() auf die bis dahin gelernten Tasten
+   gefiltert: In einer Lektion kommt nie eine Taste vor, die noch nicht
+   dran war – sonst müsste das Kind zwangsläufig auf die Tastatur schauen.
+
+   Alles ist kleingeschrieben: Die Umschalttaste kommt erst in einer
+   späteren Lektion, vorher gibt es also weder Großbuchstaben noch echte
+   Sätze (die mit einem Großbuchstaben beginnen müssten). Statt eines
+   Satzes endet jede Lektion mit einer „Wortkette“ – die übt zugleich
+   die Leertaste.
+   ============================================================ */
+/* Gemeinsamer Wortvorrat des Lehrgangs: ausschließlich klein geschriebene
+   Wörter (Verben, Adjektive, Artikel, Partikeln). Der Filter blendet je
+   Lektion automatisch frei, was tippbar ist – späte Wörter tauchen also
+   von selbst auf, sobald ihre Tasten gelernt sind. */
+const LESSON_WORDS = [
+  /* Grundreihe (Lektion 1–6) */
+  "als","lass","falls","dass","das","da","lag","half","sah",
+  /* + e i (7) */
+  "alle","alles","edel","hell","heile","ideal","leise","seid","sieh","fies",
+  "dies","diese","eilig","heilig","gefiel",
+  /* + r u (8) */
+  "hier","ruhig","sauer","graue","riesig","gerade","fuhr","dauerhaft","reif",
+  /* + w o (9) */
+  "wo","wohl","froh","los","oder","wieder","hallo","also","sowieso","woher",
+  /* + q p (10) */
+  "quer","prall","piepsig","plus",
+  /* + t z (11) */
+  "gut","toll","oft","hat","hast","kalt","jetzt","letzte","dort","stark",
+  "trotz","zart","sitzt","putzt","lustig","fertig","weiter","weit","tut",
+  /* + ü ä (12) */
+  "für","früh","spät","später","wäre","hätte","kühl","häufig","täglich","prüft",
+  /* + v m (14) */
+  "vor","viel","volle","warum","immer","kommt","mit","mehr","müde","vom",
+  "wovor","murmelt",
+  /* + c , (15) */
+  "auch","doch","macht","lacht","richtig","schade","sicher","schlau","welche",
+  "durch","manche","solche",
+  /* + x . (16) */
+  "exakt","extra","fixe",
+  /* + y - (17) */
+  "typisch",   /* y ist im Deutschen selten – es wird vor allem in den Silben geübt */
+  /* + b n (18) – ab hier ist das Alphabet komplett */
+  "schnell","langsam","bin","kann","dann","denn","wann","nicht","aber","haben",
+  "neben","bunt","gern","schon","noch","wenn","danken","binden","freundlich"
+];
+/* Sätze für die letzten Lektionen: erst ab der Umschalt-Lektion möglich, weil
+   ein Satz mit einem Großbuchstaben beginnt und mit einem Satzzeichen endet. */
+const LESSON_SENTENCES = [
+  "Die Sonne scheint hell.",
+  "Der Hund bellt laut.",
+  "Wir lernen tippen.",
+  "Mein Ball ist rot.",
+  "Die Katze schläft gern.",
+  "Heute wird es warm."
+];
+const LESSONS = [
+  /* --- Grundreihe --- */
+  {no:1, keys:["f","j"], title:"die Zeigefinger", icon:"🖐️",
+   grip:"Lege die Finger auf <b>a s d f</b> und <b>j k l ö</b>. Auf <b>f</b> und <b>j</b> spürst du kleine Erhebungen – dort liegen die Zeigefinger.",
+   warm:["ffff","jjjj","fjfj"], sylls:["fff","jjj","fjf","jfj","ffjj","jjff"], blind:1, apm:20},
+  {no:2, keys:["d","k"], title:"die Mittelfinger", icon:"🖐️",
+   grip:"Neben den Zeigefingern liegen die <b>Mittelfinger</b>: links auf <b>d</b>, rechts auf <b>k</b>.",
+   warm:["dddd","kkkk","dkdk"], sylls:["ddd","kkk","dkd","kdk","fdk","jkd"], blind:1, apm:22},
+  {no:3, keys:["s","l"], title:"die Ringfinger", icon:"🖐️",
+   grip:"Die <b>Ringfinger</b> kommen dazu: links auf <b>s</b>, rechts auf <b>l</b>.",
+   warm:["ssss","llll","slsl"], sylls:["sss","lll","sls","lsl","dsl","lkf"], blind:1, apm:25},
+  {no:4, keys:["a","ö"], title:"die kleinen Finger", icon:"🖐️",
+   grip:"Zum Schluss die <b>kleinen Finger</b>: links auf <b>a</b>, rechts auf <b>ö</b>. Jetzt liegt die ganze Grundreihe unter deinen Händen!",
+   warm:["aaaa","öööö","aöaö"], sylls:["aaa","ööö","aöa","öaö","asdf","jklö"], blind:1, apm:28},
+  {no:5, keys:["g","h"], title:"strecken nach innen", icon:"🖐️",
+   grip:"Für <b>g</b> und <b>h</b> streckt sich der Zeigefinger nach innen – und kommt danach sofort wieder zurück auf <b>f</b> bzw. <b>j</b>.",
+   warm:["gggg","hhhh","ghgh"], sylls:["ggg","hhh","ghg","hgh","fgf","jhj"], blind:1, apm:30},
+  {no:6, keys:[], title:"Grundreihe blind", icon:"🙈", repeat:true,
+   grip:"Jetzt ohne Hilfe: Die Tastatur zeigt nur noch den <b>Finger</b>, nicht mehr die Taste. Schau auf den Bildschirm, nicht auf deine Hände!",
+   warm:["asdf","jklö"], sylls:["asdfg","hjklö","asdfjklö","fjdksla"], blind:2, apm:35},
+  /* --- obere Reihe --- */
+  {no:7, keys:["e","i"], title:"hoch mit den Mittelfingern", icon:"⬆️",
+   grip:"Die <b>obere Reihe</b> beginnt: Der Mittelfinger geht von <b>d</b> hoch auf <b>e</b>, rechts von <b>k</b> hoch auf <b>i</b> – und danach wieder zurück.",
+   warm:["eeee","iiii","eiei"], sylls:["eee","iii","eie","iei","dei","kie","lei","sie"], blind:2, apm:32},
+  {no:8, keys:["r","u"], title:"hoch mit den Zeigefingern", icon:"⬆️",
+   grip:"Der Zeigefinger geht von <b>f</b> hoch auf <b>r</b>, rechts von <b>j</b> hoch auf <b>u</b>.",
+   warm:["rrrr","uuuu","ruru"], sylls:["rrr","uuu","rur","uru","fur","jur","are","rue"], blind:2, apm:34},
+  {no:9, keys:["w","o"], title:"hoch mit den Ringfingern", icon:"⬆️",
+   grip:"Der Ringfinger geht von <b>s</b> hoch auf <b>w</b>, rechts von <b>l</b> hoch auf <b>o</b>.",
+   warm:["wwww","oooo","wowo"], sylls:["www","ooo","wow","owo","sow","low","dow","wol"], blind:2, apm:36},
+  {no:10, keys:["q","p"], title:"hoch mit den kleinen Fingern", icon:"⬆️",
+   grip:"Der kleine Finger geht von <b>a</b> hoch auf <b>q</b>, rechts von <b>ö</b> hoch auf <b>p</b>. Das ist der weiteste Weg – bleib locker.",
+   warm:["qqqq","pppp","qpqp"], sylls:["qqq","ppp","qpq","pqp","aqu","pol","pil","qua"], blind:2, apm:38},
+  {no:11, keys:["t","z"], title:"strecken nach oben innen", icon:"⬆️",
+   grip:"Wie bei <b>g</b> und <b>h</b>: Der Zeigefinger streckt sich nach innen – oben sind das <b>t</b> und <b>z</b>.",
+   warm:["tttt","zzzz","tztz"], sylls:["ttt","zzz","tzt","ztz","tat","zit","tor","zug"], blind:2, apm:40},
+  {no:12, keys:["ü","ä"], title:"die Umlaute", icon:"⬆️",
+   grip:"Rechts außen wohnen die Umlaute: <b>ü</b> in der oberen Reihe, <b>ä</b> gleich neben dem <b>ö</b>. Beide holt der <b>rechte kleine Finger</b>.",
+   warm:["üüüü","ääää","üäüä"], sylls:["üüü","äää","üäü","äüä","für","spä","küh","hät"], blind:2, apm:42},
+  {no:13, keys:[], title:"obere Reihe blind", icon:"🔁", repeat:true,
+   grip:"Wiederholung: Grundreihe und obere Reihe gemischt – weiterhin nur mit <b>Finger</b>-Anzeige.",
+   warm:["asdfg","hjklö"], sylls:["qwert","zuiop","asdfg","hjklö","quere","teile"], blind:2, apm:44},
+  /* --- untere Reihe (ab hier ohne Tastatur-Hilfe) --- */
+  {no:14, keys:["v","m"], title:"runter mit den Zeigefingern", icon:"⬇️",
+   grip:"Jetzt <b>ohne Tastatur auf dem Bildschirm</b>! Der Zeigefinger geht von <b>f</b> runter auf <b>v</b>, rechts von <b>j</b> runter auf <b>m</b>.",
+   warm:["vvvv","mmmm","vmvm"], sylls:["vvv","mmm","vmv","mvm","vor","mit","vom","mal"], blind:3, apm:42},
+  {no:15, keys:["c",","], title:"runter mit den Mittelfingern", icon:"⬇️",
+   grip:"Der Mittelfinger geht von <b>d</b> runter auf <b>c</b>, rechts von <b>k</b> runter auf das <b>Komma</b>.",
+   warm:["cccc",",,,,","c,c,"], sylls:["ccc",",,,","c,c",",c,","ach","ich","och","cha"], blind:3, apm:44},
+  {no:16, keys:["x","."], title:"runter mit den Ringfingern", icon:"⬇️",
+   grip:"Der Ringfinger geht von <b>s</b> runter auf <b>x</b>, rechts von <b>l</b> runter auf den <b>Punkt</b>.",
+   warm:["xxxx","....","x.x."], sylls:["xxx","...","x.x",".x.","axt","exa","ext","xas"], blind:3, apm:45},
+  {no:17, keys:["y","-"], title:"runter mit den kleinen Fingern", icon:"⬇️",
+   grip:"Der kleine Finger geht von <b>a</b> runter auf <b>y</b>, rechts holt er den <b>Bindestrich</b>. Das <b>y</b> ist selten – aber es gehört dazu.",
+   warm:["yyyy","----","y-y-"], sylls:["yyy","---","y-y","-y-","typ","sys","hy-","y-a"], blind:3, apm:46},
+  {no:18, keys:["b","n"], title:"strecken nach unten innen", icon:"⬇️",
+   grip:"Die letzten beiden Buchstaben: Der Zeigefinger streckt sich nach innen unten – <b>b</b> und <b>n</b>. Danach kennst du das <b>ganze Alphabet</b>!",
+   warm:["bbbb","nnnn","bnbn"], sylls:["bbb","nnn","bnb","nbn","ban","neb","bin","nun"], blind:3, apm:48},
+  /* --- Großschreibung, Zahlen, Sonderzeichen, Abschluss ---
+     Neuer Stoff bekommt wieder die Finger-Anzeige (Stufe 2); die
+     Abschluss-Lektion läuft komplett blind. */
+  {no:19, keys:["⇧"], title:"Groß mit der Gegenhand", icon:"⇧",
+   intro:"Neu ist die <b>Umschalttaste ⇧</b>. Die Regel: Du nimmst immer die Umschalttaste der <b>anderen</b> Hand.",
+   grip:"Buchstabe mit der <b>linken</b> Hand → <b>rechte</b> Umschalttaste. Buchstabe mit der <b>rechten</b> Hand → "+
+        "<b>linke</b> Umschalttaste. So bleibt jede Hand für ihre Aufgabe frei.",
+   warm:["AAAA","LLLL"], sylls:["Aa","Ss","Dd","Ff","Jj","Kk","Ll","Öö"],
+   words:["Anna","Otto","Hallo","Schule","Blume","Garten","Tastatur"],
+   chain:"Die Sonne scheint hell.", chainLabel:"Erster Satz",
+   shiftRule:true, blind:2, apm:36},
+  {no:20, keys:["1","2","3","4","5","6","7","8","9","0","ß"], title:"die Zahlenreihe", icon:"🔢",
+   intro:"Neu ist die <b>Zahlenreihe</b> ganz oben – dazu das <b>ß</b>.",
+   grip:"Die Zahlen liegen über der oberen Reihe. Jeder Finger holt die Zahl über seinen Tasten: der linke kleine "+
+        "Finger die <b>1</b>, der rechte kleine Finger die <b>0</b> und das <b>ß</b>.",
+   warm:["1111","0000"], sylls:["123","890","147","258","369","1234567890","aß","ßa"],
+   /* eigener Stoff statt der allgemeinen Wortliste – sonst würde die
+      Zahlen-Lektion Kleinbuchstaben üben statt Ziffern */
+   words:["12","345","6789","2026","90","1000"], wordLabel:"Zahlen",
+   chain:"12 34 56 78 90", chainLabel:"Zahlenkette",
+   blind:2, apm:28},
+  {no:21, keys:["!","?",":",";","(",")"], title:"die Sonderzeichen", icon:"❗",
+   intro:"Neu sind die <b>Sonderzeichen</b> – die holst du mit der <b>Umschalttaste ⇧</b>.",
+   grip:"Über den Zahlen wohnen die Sonderzeichen. Umschalt ⇧ mit der Gegenhand halten und die Zahl drücken: "+
+        "<b>⇧+1</b> ergibt <b>!</b>, <b>⇧+ß</b> ergibt <b>?</b>, <b>⇧+.</b> ergibt <b>:</b>",
+   warm:["!!!!","????"], sylls:["!?!","?!?",":;:",";:;","(:)","()()"],
+   words:["ja!","wie?","(gut)","so:","oh!","was?"], wordLabel:"Zeichen im Wort",
+   chain:"Hallo! Wie geht es dir?", chainLabel:"Satz mit Satzzeichen",
+   shiftRule:true, blind:2, apm:30},
+  {no:22, keys:[], title:"Abschluss: freier Text", icon:"🏁", repeat:true,
+   intro:"Keine neuen Tasten mehr – jetzt zeigst du, was du kannst: <b>ganze Sätze</b>, ohne auf die Tasten zu schauen.",
+   grip:"Alles zusammen: Buchstaben, Großschreibung und Satzzeichen. Schau auf den Bildschirm, nicht auf deine Hände – "+
+        "und lieber ruhig und richtig als hektisch.",
+   warm:["asdf jklö"], sylls:["Die","Der","Wir","Mein"],
+   words:LESSON_SENTENCES, wordLabel:"Sätze", wordCount:3,
+   chain:"Wir lernen tippen. Die Sonne scheint hell.", chainLabel:"Freier Text",
+   shiftRule:true, blind:3, apm:45}
+];
+const isLessonId = id => /^l\d+$/.test(id);
+const lessonByNo = no => LESSONS.find(l=>l.no===no);
+/* Alle Tasten, die bis einschließlich Lektion `no` eingeführt wurden. */
+function learnedKeys(no){
+  const s=new Set();
+  LESSONS.filter(l=>l.no<=no).forEach(l=>l.keys.forEach(k=>s.add(k)));
+  return s;
+}
+/* Enthält der Text nur erlaubte Tasten? (Leerzeichen zählen immer als erlaubt.) */
+function usesOnly(text,set){ return [...String(text).toLowerCase()].every(c=>c===" "||set.has(c)); }
+/* Wortvorrat einer Lektion: alles, was sich mit den gelernten Tasten tippen lässt. */
+function lessonWords(no){ const set=learnedKeys(no); return LESSON_WORDS.filter(w=>usesOnly(w,set)); }
 
 /* ============================================================
    Stationen
@@ -419,11 +655,19 @@ const STATIONS = [
   {id:"kfix",      short:"Korrigieren",  icon:"⌫", part:1, title:"Korrigier-Werkstatt",desc:"Rücktaste & Entf-Taste"},
   {id:"kcombo",    short:"Kombi",        icon:"🎹", part:1, title:"Kombi-Tasten",     desc:"Strg + C · V · Z"},
   {id:"exam1",     short:"Teil-1-Prüfung",icon:"🥇",part:1, title:"Teil-1-Prüfung",   desc:"Die Tasten sitzen!"},
+  /* Zehn-Finger-Lehrgang: Landkarte + je Lektion zwei neue Tasten (Phase 2a: Grundreihe) */
+  {id:"lessonmap", short:"Landkarte",    icon:"🗺️", part:2, title:"Lektions-Landkarte", desc:"Dein Weg durch den Lehrgang"},
+  ...LESSONS.map(L=>({
+    id:"l"+L.no, short:L.keys.length?L.keys.join(" "):"Wdh.", icon:L.icon, part:2,
+    title:`Lektion ${L.no} · ${L.title}`, desc:L.keys.length?("neue Tasten "+L.keys.join(" ")):"Wiederholung"
+  })),
+  {id:"lrepeat",   short:"Wackeln",      icon:"🎯", part:2, title:"Wackelkandidaten", desc:"schwache Tasten gezielt üben"},
   {id:"khome",     short:"Grundreihe",   icon:"🖐️", part:2, title:"Grundreihe",       desc:"a s d f · j k l ö"},
   {id:"ktop",      short:"Obere Reihe",  icon:"⬆️", part:2, title:"Obere Reihe",      desc:"q w e r t z u i o p"},
   {id:"kbottom",   short:"Untere Reihe", icon:"⬇️", part:2, title:"Untere Reihe",     desc:"y x c v b n m"},
   {id:"kfingers",  short:"Finger",       icon:"✋", part:2, title:"Finger-Training",  desc:"Den richtigen Finger nehmen"},
   {id:"knumbers",  short:"Zahlen",       icon:"🔢", part:2, title:"Zahlen & Zeichen", desc:"Zahlenreihe & Satzzeichen"},
+  {id:"ksymbols",  short:"Sonderzeichen",icon:"❗", part:2, title:"Sonderzeichen & Satzzeichen", desc:"Mit Umschalt: ! ? : ; …"},
   {id:"kwords",    short:"Wörter",       icon:"📝", part:2, title:"Wörter tippen",    desc:"Ganze Wörter abtippen"},
   {id:"ksentence", short:"Sätze",        icon:"📚", part:2, title:"Sätze tippen",     desc:"Tempo & Genauigkeit"},
   {id:"kraindrop", short:"Wortregen",    icon:"🌧️", part:2, title:"Wortregen",        desc:"Fallende Wörter abtippen"},
@@ -432,9 +676,13 @@ const STATIONS = [
   {id:"kspace",    short:"Weltraum",     icon:"🚀", part:2, title:"Wort-Weltraum",    desc:"Wort-Asteroiden abtippen"},
   {id:"exam",      short:"Prüfung",      icon:"🏆", title:"Prüfung",          desc:"Alles zusammen!"}
 ];
-/* Nummerierung zählt nur echte Übungsstationen – die Prüfungen bleiben aussen vor */
+/* Nummerierung zählt nur echte Übungsstationen. Prüfungen, die Lektionen des
+   Lehrgangs (die zählen „Lektion x von y“) und die Landkarte als Übersichts-
+   seite bleiben aussen vor – so verschieben sich die Stationsnummern nicht,
+   wenn der Lehrgang wächst. */
 const isExamId = id => id==="exam" || id==="exam1";
-const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&!isExamId(s.id)).findIndex(s=>s.id===id)+1;
+const isHubId  = id => id==="lessonmap" || id==="lrepeat";
+const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&!isExamId(s.id)&&!isLessonId(s.id)&&!isHubId(s.id)).findIndex(s=>s.id===id)+1;
 /* Erste/letzte echte Station eines Teils (für Überschriften & Übergang) */
 const firstOfPart = p => (STATIONS.find(s=>s.part===p)||{}).id;
 const lastOfPart  = p => { const l=STATIONS.filter(s=>s.part===p); return l.length?l[l.length-1].id:undefined; };
@@ -468,6 +716,31 @@ const FUNNY_SENTENCES = [
   "Der Igel isst im Iglu eine Erdbeere.",
   "Süße Schnecken schlürfen Schokolade."
 ];
+
+
+/* ============================================================
+   Sonderzeichen, die mit Umschalt ⇧ erzeugt werden
+   ch = erzeugtes Zeichen, base = Grundtaste auf der Bildschirm-Tastatur
+   ============================================================ */
+const SYMBOL_KEYS = [
+  {ch:"!", base:"1", name:"Ausrufezeichen"},
+  {ch:'"', base:"2", name:"Anführungszeichen"},
+  {ch:"§", base:"3", name:"Paragraf"},
+  {ch:"$", base:"4", name:"Dollarzeichen"},
+  {ch:"%", base:"5", name:"Prozent"},
+  {ch:"&", base:"6", name:"Und-Zeichen"},
+  {ch:"/", base:"7", name:"Schrägstrich"},
+  {ch:"(", base:"8", name:"Klammer auf"},
+  {ch:")", base:"9", name:"Klammer zu"},
+  {ch:"=", base:"0", name:"Gleichzeichen"},
+  {ch:"?", base:"ß", name:"Fragezeichen"},
+  {ch:";", base:",", name:"Semikolon"},
+  {ch:":", base:".", name:"Doppelpunkt"},
+  {ch:"_", base:"-", name:"Unterstrich"}
+];
+/* Beschriftung einer Grundtaste: groß schreiben, aber „ß“ bleibt „ß“
+   (ß.toUpperCase() ergäbe „SS“ – auf der Tastatur steht aber ein ß). */
+const symLabel = b => { const u=(b||"").toUpperCase(); return u.length===b.length ? u : b; };
 
 /* ============================================================
    Wesentliche Funktions- & Steuertasten (für Lehr-Tour + Quiz)
@@ -559,14 +832,41 @@ function buildKeyboard(opts={}){
     el.appendChild(r);
   });
   const find = ch => map[ch] || map[(ch||"").toLowerCase()];
-  return {
+  const api = {
     el, map,
     flash(ch,ok){ const b=find(ch); if(!b)return; b.classList.remove("ok","bad"); void b.offsetWidth; b.classList.add(ok?"ok":"bad"); setTimeout(()=>b.classList.remove("ok","bad"),360); },
     press(ch){ const b=find(ch); if(!b)return; b.classList.add("press"); setTimeout(()=>b.classList.remove("press"),110); },
     highlight(chars){ (chars||[]).forEach(c=>{const b=find(c); if(b)b.classList.add("hot");}); },
-    clearHighlight(){ Object.values(map).forEach(b=>b.classList.remove("hot")); }
+    clearHighlight(){ Object.values(map).forEach(b=>b.classList.remove("hot")); },
+    /* Skaliert die Tastatur so, dass sie immer komplett in ihren Bereich passt
+       (z. B. in die schmale Spalte der Prüfung). Die negativen Ränder sorgen dafür,
+       dass auch der Platzbedarf im Layout der verkleinerten Größe entspricht. */
+    fit(){
+      const host = el.parentElement; if(!host) return;
+      el.style.transform=""; el.style.marginRight=""; el.style.marginBottom="";
+      const natW=el.offsetWidth, natH=el.offsetHeight;
+      const avail=host.clientWidth;
+      if(!natW||!natH||!avail) return;
+      const s=Math.min(1, avail/natW);
+      if(s>=1) return;
+      el.style.transformOrigin="top left";
+      el.style.transform=`scale(${s})`;
+      el.style.marginRight = -(natW-natW*s)+"px";
+      el.style.marginBottom = -(natH-natH*s)+"px";
+    }
   };
+  KEYBOARDS.push(api);
+  requestAnimationFrame(()=>api.fit());
+  return api;
 }
+/* Alle aktuell sichtbaren Tastaturen; verwaiste werden beim Neu-Anpassen entfernt. */
+const KEYBOARDS=[];
+function fitKeyboards(){
+  for(let i=KEYBOARDS.length-1;i>=0;i--){
+    if(!KEYBOARDS[i].el.isConnected) KEYBOARDS.splice(i,1); else KEYBOARDS[i].fit();
+  }
+}
+addEventListener("resize",fitKeyboards);
 function fingerLegend(){
   const order=["lp","lr","lm","li","ri","rm","rr","rp"];
   return `<div class="fingerlegend">`+order.map(f=>`<span class="fl"><span class="sw" style="background:${FINGERS[f].c}"></span>${FINGERS[f].n}</span>`).join("")+`</div>`;
@@ -593,13 +893,25 @@ function buildTyper(host, text, o={}){
     if(e.key==="Backspace"){ if(idx>0){ idx--; spans[idx].classList.remove("ok","bad"); refresh(); } return; }
     const ch=getChar(e); if(ch==null) return;
     if(started===0) started=performance.now();
-    if(ch===text[idx]){
+    const want=text[idx];                 /* die Taste, die gefragt war */
+    if(ch===want){
+      /* Gegenhand-Regel: Das Zeichen stimmt, aber die falsche (oder keine)
+         Umschalttaste war gedrückt – das zählt als Fehler, damit sich die
+         richtige Technik einschleift. */
+      if(o.shiftRule && !o.shiftRule(want)){
+        noteKey(want,false); o.onKey && o.onKey(want,false);
+        errors++; spans[idx].classList.add("bad"); sfx.soft();
+        o.onChar && o.onChar(idx,errors);
+        return;
+      }
+      noteKey(want,true); o.onKey && o.onKey(want,true);
       spans[idx].classList.add("ok"); spans[idx].classList.remove("bad"); idx++;
       sfx.step(); if(o.kb) o.kb.flash(ch,true);
       o.onChar && o.onChar(idx,errors);
       if(idx>=text.length){ o.onDone && o.onDone({secs:(performance.now()-started)/1000, errors, len:text.length}); return; }
       refresh();
     } else {
+      noteKey(want,false); o.onKey && o.onKey(want,false);
       errors++; spans[idx].classList.add("bad"); if(o.kb) o.kb.flash(ch,false); sfx.soft();
       o.onChar && o.onChar(idx,errors);
     }
@@ -612,13 +924,90 @@ function buildTyper(host, text, o={}){
    Spielzustand & Hilfen
    ============================================================ */
 function defaultGamify(){
-  return { xp:0, level:1, coins:0, badges:{}, stats:{ attempts:0, fails:0, streak:0, bestStreak:0, perfectStations:{} } };
+  return { xp:0, level:1, coins:0, badges:{}, lessons:{}, keyStats:{},
+           stats:{ attempts:0, fails:0, streak:0, bestStreak:0, perfectStations:{} } };
 }
 const state = Object.assign({
-  current:"start", done:{}, sound:true, difficulty:"mittel", fingers:false,
+  current:"start", done:{}, sound:true, difficulty:"mittel", fingers:false, blindHelp:"auto",
   mascotName:"Codi",
   reduced: matchMedia("(prefers-reduced-motion:reduce)").matches
 }, defaultGamify());
+
+/* ============================================================
+   Fehler-Radar: Trefferquote je Taste
+   ------------------------------------------------------------
+   Jede getippte Taste (aus allen Stationen, die buildTyper nutzen) wird
+   mitgezählt. Daraus ergeben sich die „Wackelkandidaten“ – die Tasten, die
+   noch am häufigsten danebengehen – und daraus wiederum eine gezielte
+   Wiederholungs-Lektion.
+   ============================================================ */
+const WEAK_MIN_TRIES = 4;   /* so oft muss eine Taste vorgekommen sein, damit sie zählt */
+const WEAK_QUOTE     = 90;  /* darunter gilt eine Taste als Wackelkandidat (in %) */
+const WEAK_MAX       = 5;   /* so viele Tasten übt die Wiederholungs-Lektion höchstens */
+const WEAK_WINDOW = 24;     /* so viele Anschläge je Taste zählen ungefähr */
+function noteKey(ch,ok){
+  if(ch==null||ch===" ") return;            /* die Leertaste ist kein Lernziel */
+  const k=ch.toLowerCase();
+  const st=state.keyStats[k]||(state.keyStats[k]={ok:0,fail:0});
+  ok ? st.ok++ : st.fail++;
+  /* Alte Anschläge verblassen: Sonst würde ein schwacher Start eine Taste für
+     immer als Wackelkandidat markieren – wer sich verbessert, soll das auch
+     im Radar sehen. */
+  if(st.ok+st.fail > WEAK_WINDOW){ st.ok=Math.round(st.ok*0.6); st.fail=Math.round(st.fail*0.6); }
+}
+function keyQuote(k){ const s=state.keyStats[k]; if(!s) return 100;
+  const n=s.ok+s.fail; return n? Math.round(s.ok/n*100) : 100; }
+/* Die schwächsten Tasten, schlechteste zuerst. */
+function weakKeys(max=WEAK_MAX){
+  return Object.keys(state.keyStats)
+    .filter(k=>{ const s=state.keyStats[k]; return (s.ok+s.fail)>=WEAK_MIN_TRIES && keyQuote(k)<WEAK_QUOTE; })
+    .sort((a,b)=>keyQuote(a)-keyQuote(b) || state.keyStats[b].fail-state.keyStats[a].fail)
+    .slice(0,max);
+}
+
+/* ============================================================
+   Fortschritt speichern (localStorage)
+   ------------------------------------------------------------
+   Der Lehrgang läuft über mehrere Sitzungen – deshalb merkt sich der Trainer
+   Stationen, Lektionen, XP, Abzeichen und die Einstellungen. Alles läuft in
+   try/catch: Ist localStorage gesperrt (Schul-PC, privater Modus), funktioniert
+   der Trainer weiter, nur eben ohne Speichern.
+   ============================================================ */
+const SAVE_KEY="tastaturfs.v1";
+const SAVE_FIELDS=["current","done","xp","level","coins","badges","lessons","keyStats","stats","difficulty","sound","fingers","blindHelp"];
+const KNOWN_IDS=new Set(STATIONS.map(s=>s.id));
+function saveState(){
+  try{
+    const o={v:1}; SAVE_FIELDS.forEach(k=>o[k]=state[k]);
+    localStorage.setItem(SAVE_KEY,JSON.stringify(o));
+  }catch(e){/* Speichern nicht möglich – kein Grund abzubrechen */}
+}
+function readSave(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY); if(!raw) return null;
+    const o=JSON.parse(raw);
+    return (o && o.v===1) ? o : null;
+  }catch(e){ return null; }
+}
+function loadState(){
+  const o=readSave(); if(!o) return false;
+  SAVE_FIELDS.forEach(k=>{ if(o[k]!==undefined && o[k]!==null) state[k]=o[k]; });
+  /* Ältere Stände können Stationen enthalten, die es nicht mehr gibt –
+     die werden einfach als „noch nicht gemacht“ behandelt. */
+  const done={}; Object.keys(state.done||{}).forEach(id=>{ if(KNOWN_IDS.has(id)) done[id]=true; });
+  state.done=done;
+  const les={}; Object.keys(state.lessons||{}).forEach(id=>{ if(KNOWN_IDS.has(id)) les[id]=state.lessons[id]; });
+  state.lessons=les;
+  if(!KNOWN_IDS.has(state.current)) state.current="start";
+  resumeTarget = (state.current!=="start") ? state.current : null;
+  return true;
+}
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} resumeTarget=null; }
+/* Station, auf der das Kind zuletzt war. Wird beim Laden gemerkt, weil der
+   Trainer danach auf der Startseite beginnt und state.current überschreibt. */
+let resumeTarget=null;
+/* Gibt es einen Stand, bei dem sich Weitermachen lohnt? */
+function hasProgress(){ return Object.keys(state.done||{}).length>0; }
 
 let _raf=null, _timers=[];
 function stopLoop(){ if(_raf){cancelAnimationFrame(_raf);_raf=null;} _timers.forEach(clearTimeout);_timers.forEach(clearInterval);_timers=[]; }
@@ -644,6 +1033,41 @@ function specialToken(e){
   if(k==="Delete")return "Delete";
   if(k&&k.indexOf("Arrow")===0)return "Arrow"; /* Pfeiltasten als Gruppe */
   return null;
+}
+/* ---- Welche Umschalttaste ist gedrückt? ----
+   Für die Gegenhand-Regel reicht e.shiftKey nicht – wir müssen wissen, ob die
+   linke oder die rechte Umschalttaste gehalten wird. Das sagt e.location
+   (1 = links, 2 = rechts). */
+const shiftDown={left:false,right:false};
+function setShift(e,down){
+  if(e.key!=="Shift") return;
+  if(e.location===1) shiftDown.left=down;
+  else if(e.location===2) shiftDown.right=down;
+  else { shiftDown.left=down; shiftDown.right=down; }  /* Browser ohne location */
+}
+document.addEventListener("keydown",e=>setShift(e,true),true);
+document.addEventListener("keyup",  e=>setShift(e,false),true);
+addEventListener("blur",()=>{ shiftDown.left=shiftDown.right=false; });
+/* Grundtaste eines Zeichens, das mit Umschalt getippt wird (sonst null). */
+function shiftBase(ch){
+  if(ch==null||ch.length!==1) return null;
+  if(/[A-ZÄÖÜ]/.test(ch)) return ch.toLowerCase();
+  const sym=SYMBOL_KEYS.find(s=>s.ch===ch);
+  return sym?sym.base:null;
+}
+/* Welche Hand bedient eine Taste? */
+function keyHand(ch){
+  const k=findKeyDef(ch); if(!k) return null;
+  return k.f[0]==="l" ? "left" : k.f[0]==="r" ? "right" : null;
+}
+/* Die Gegenhand-Regel: linke Hand tippt den Buchstaben → rechte Umschalttaste. */
+function shiftSideFor(ch){
+  const hand=keyHand(shiftBase(ch));
+  return hand==="left" ? "right" : hand==="right" ? "left" : null;
+}
+function shiftSideOk(ch){
+  const need=shiftSideFor(ch);
+  return need ? shiftDown[need] : true;
 }
 document.addEventListener("keydown",e=>{
   if(!_keyHandler) return;
@@ -688,10 +1112,18 @@ const BADGES = {
   corrector:     {icon:"⌫", title:"Fehler-Jäger"},
   combo_pro:     {icon:"🎹", title:"Kombi-Kenner"},
   key_master:    {icon:"🔑", title:"Tasten-Kenner"},
+  lesson_start:  {icon:"🎯", title:"Lehrgang gestartet"},
+  blind_typer:   {icon:"🙈", title:"Blindschreiber"},
+  toprow_lesson: {icon:"⬆️", title:"Obere Reihe gelernt"},
+  alphabet_pro:  {icon:"🔤", title:"Alphabet komplett"},
+  radar_clear:   {icon:"🎯", title:"Wackelkandidaten gemeistert"},
+  shift_hand:    {icon:"⇧", title:"Gegenhand-Regel"},
+  course_done:   {icon:"🏁", title:"Lehrgang abgeschlossen"},
   home_row:      {icon:"🖐️", title:"Grundreihen-Held"},
   toprow_hero:   {icon:"⬆️", title:"Obere-Reihe-Held"},
   bottomrow_hero:{icon:"⬇️", title:"Untere-Reihe-Held"},
   number_pro:    {icon:"🔢", title:"Zahlen-Kenner"},
+  symbol_pro:    {icon:"❗", title:"Sonderzeichen-Profi"},
   word_wizard:   {icon:"📝", title:"Wort-Zauberer"},
   sentence_star: {icon:"📚", title:"Satz-Star"},
   rain_hero:     {icon:"🌧️", title:"Regen-Held"},
@@ -767,10 +1199,17 @@ function checkStationBadges(id){
   if(id==="kfix")unlock("corrector");
   if(id==="kcombo")unlock("combo_pro");
   if(id==="exam1")unlock("key_master");
+  if(id==="l1")unlock("lesson_start");
+  if(id==="l6")unlock("blind_typer");
+  if(id==="l12")unlock("toprow_lesson");
+  if(id==="l18")unlock("alphabet_pro");
+  if(id==="l19")unlock("shift_hand");
+  if(id==="l22")unlock("course_done");
   if(id==="khome")unlock("home_row");
   if(id==="ktop")unlock("toprow_hero");
   if(id==="kbottom")unlock("bottomrow_hero");
   if(id==="knumbers")unlock("number_pro");
+  if(id==="ksymbols")unlock("symbol_pro");
   if(id==="kwords")unlock("word_wizard");
   if(id==="ksentence")unlock("sentence_star");
   if(id==="kraindrop")unlock("rain_hero");
@@ -798,6 +1237,9 @@ function buildProgress(){
   const nav=$("#progress");nav.innerHTML="";
   let lastPart=null;
   STATIONS.forEach(st=>{ if(st.id==="start")return;
+    /* Die einzelnen Lektionen stehen nicht in der Leiste – sonst würde sie mit
+       18 Einträgen überquellen. Zu ihnen führt die Landkarte. */
+    if(isLessonId(st.id)||st.id==="lrepeat")return;
     if(st.part && st.part!==lastPart){
       lastPart=st.part;
       const h=document.createElement("span");h.className="part-head";
@@ -827,6 +1269,7 @@ function go(id){
   if(id!=="start" && id!=="exam_done" && !isExamId(id) && id!=="teil2start"){ showSkip(true,()=>go(nextStationId())); }
   (SCREENS[id]||SCREENS.start)(stage);
   $("main").scrollTop=0;
+  saveState();
 }
 function nextStationId(){ const i=STATIONS.findIndex(s=>s.id===state.current); return STATIONS[Math.min(i+1,STATIONS.length-1)].id; }
 function completeStation(id,msg,opts){
@@ -838,6 +1281,11 @@ function completeStation(id,msg,opts){
     if(opts&&opts.perfect){ state.stats.perfectStations[id]=true; unlock("flawless"); }
     checkStationBadges(id);
   }
+  /* Zustandsabhängige Abzeichen jedes Mal prüfen – nicht nur beim ersten
+     Abschluss: Der Radar ist typischerweise erst nach mehreren Durchgängen
+     sauber, und checkStationBadges() läuft nur einmal. */
+  if(id==="lrepeat" && !weakKeys().length) unlock("radar_clear");
+  saveState();
   const next=nextStationId();showReplay(true);
   if(id==="exam"){ showNext(true,"Urkunde anzeigen 🏆"); $("#nextBtn").onclick=()=>go("exam_done"); }
   else if(id===lastOfPart(1)){ showNext(true,"Teil 1 geschafft – weiter ›"); $("#nextBtn").onclick=()=>go("teil2start"); }
@@ -874,9 +1322,23 @@ SCREENS.start=(stage)=>{
   const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:true});
   kb.highlight(["a","s","d","f","j","k","l","ö"]); kbHost.appendChild(kb.el);
   wrap.appendChild(kbHost);
-  const btn=document.createElement("button");btn.className="btn btn-primary";btn.id="goStart";
-  btn.style.cssText="font-size:1.1rem;padding:13px 34px;margin-top:18px;";btn.textContent="Los geht’s ›";
-  wrap.appendChild(btn);
+  const row=mk("startbtns");
+  /* Gespeicherter Stand? Dann ist „Weiter machen“ der Hauptknopf –
+     „Von vorne“ bleibt daneben stehen und löscht nichts. */
+  const resume = resumeTarget && hasProgress() ? resumeTarget : null;
+  if(resume){
+    const st=STATIONS.find(s=>s.id===resume)||{short:"deiner Station"};
+    const rb=document.createElement("button");rb.className="btn btn-primary";
+    rb.style.cssText="font-size:1.1rem;padding:13px 34px;";
+    rb.innerHTML=`Weiter machen ›<br><span style="font-size:.76rem;opacity:.85;font-weight:400;">bei „${st.short}“</span>`;
+    rb.addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go(resume); });
+    row.appendChild(rb);
+  }
+  const btn=document.createElement("button");btn.className=resume?"btn btn-ghost":"btn btn-primary";btn.id="goStart";
+  btn.style.cssText="font-size:1.1rem;padding:13px 34px;";
+  btn.textContent = resume ? "Von vorne ›" : "Los geht’s ›";
+  row.appendChild(btn);
+  wrap.appendChild(row);
   stage.appendChild(wrap);
   btn.addEventListener("click",()=>{ if(audioCtx)audioCtx.resume&&audioCtx.resume(); go("klesson"); });
 };
@@ -915,29 +1377,53 @@ SCREENS.teil2start=(stage)=>{
 SCREENS.kfind=(stage)=>{
   const N=stationNumber("kfind");
   setInstruction(`Station ${N} · Tasten finden 🔎`,
-    "Eine Taste leuchtet <b>orange</b> auf. Finde sie auf deiner echten Tastatur und drücke sie!");
+    "Eine Taste leuchtet <b>orange</b> auf. Finde sie auf deiner echten Tastatur und drücke sie! "+
+    "Jetzt sind auch die <b>wichtigen Tasten</b> aus Teil 1 dabei – Leertaste, Enter, Umschalt, Pfeile und mehr.");
   const kbHost=mk("kbwrap"); const kb=buildKeyboard();
   kbHost.appendChild(kb.el); stage.appendChild(kbHost);
-  const POOL=["a","s","d","f","j","k","l","ö","e","r","u","i","o","n","m","t","w","g","h","b"];
-  const TOTAL=dCount(7,5); let done=0,target=null,fault=false;
+  /* Buchstaben aus allen drei Reihen … */
+  const LETTERS=["a","s","d","f","j","k","l","ö","e","r","u","i","o","n","m","t","w","g","h","b"];
+  const letterItems=LETTERS.map(c=>({letter:true, ch:c, hi:[c], label:c.toUpperCase()}));
+  /* … plus die drückbaren Funktions- & Steuertasten aus Station 1 & 2 (FUNC_KEYS). */
+  const specialItems=FUNC_KEYS.filter(k=>k.press).map(k=>({letter:false, tok:k.tok, hi:k.hi||[k.tok], label:k.name}));
+  const POOL=letterItems.concat(specialItems);
+  const TOTAL=dCount(9,6); let done=0,target=null,fault=false;
+  /* Mischbeutel: sorgt für Abwechslung und dafür, dass auch die Spezialtasten drankommen. */
+  let bag=[];
+  const draw=()=>{ if(!bag.length) bag=shuffle(POOL.slice()); return bag.pop(); };
   setCounter(`0/${TOTAL}`,"gefunden");
   function pick(){
     kb.clearHighlight();
-    target=POOL[(Math.random()*POOL.length)|0];
-    kb.highlight([target]);
-    setHint(`Drücke die Taste <b>${target.toUpperCase()}</b>.`,"");
+    target=draw();
+    kb.highlight(target.hi);
+    setHint(`Drücke die Taste <b>${target.label}</b>.`,"");
+  }
+  /* Zeigt die gedrückte Taste an – als Buchstabe oder als Name der Sondertaste. */
+  function pressedLabel(e,ch){
+    if(ch!=null) return ch.toUpperCase();
+    const tok=specialToken(e); if(!tok) return "diese Taste";
+    const fk=FUNC_KEYS.find(k=>k.tok===tok); return fk?fk.name:tok;
+  }
+  /* Lässt die tatsächlich gedrückte Taste aufleuchten (auch Sondertasten). */
+  function flashPressed(e,ch,ok){
+    if(ch!=null){ kb.flash(ch,ok); return; }
+    const tok=specialToken(e); if(!tok) return;
+    kb.flash(tok==="Arrow"?e.key:tok, ok);
   }
   setKeyHandler(e=>{
-    const ch=getChar(e); if(ch==null) return;
-    kb.press(ch);
-    if(ch.toLowerCase()===target){
-      kb.flash(target,true);sfx.good();done++;registerAttempt(true);
+    const ch=getChar(e), tok=specialToken(e);
+    if(ch==null && tok==null) return;
+    if(ch!=null) kb.press(ch);
+    const correct = target.letter ? (ch!=null && ch.toLowerCase()===target.ch)
+                                  : (tok===target.tok);
+    if(correct){
+      flashPressed(e,ch,true);sfx.good();done++;registerAttempt(true);
       setCounter(`${done}/${TOTAL}`,"gefunden");
       if(done>=TOTAL){ kb.clearHighlight(); completeStation("kfind","Klasse! Du findest die Tasten super! 🎉",{perfect:!fault}); }
       else { setHint("Richtig! 👍","good"); later(pick,450); }
     } else {
-      kb.flash(ch,false);sfx.soft();registerAttempt(false);fault=true;
-      setHint(`Das war <b>${ch.toUpperCase()}</b>. Suche die orange Taste <b>${target.toUpperCase()}</b>.`,"warn");
+      flashPressed(e,ch,false);sfx.soft();registerAttempt(false);fault=true;
+      setHint(`Das war <b>${pressedLabel(e,ch)}</b>. Suche die orange Taste <b>${target.label}</b>.`,"warn");
     }
   });
   pick();
@@ -1098,7 +1584,7 @@ SCREENS.karrows=(stage)=>{
   const kbHost=mk("kbwrap"); const kb=buildKeyboard();
   stage.appendChild(grid); stage.appendChild(kbHost); kbHost.appendChild(kb.el);
   kb.highlight(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"]);
-  const TOTAL=dCount(4,3); let done=0, fault=false, mouse={x:0,y:0}, goal={x:0,y:0};
+  const TOTAL=dCount(4,3); let done=0, fault=false, busy=false, mouse={x:0,y:0}, goal={x:0,y:0};
   const idx=(x,y)=>y*COLS+x;
   function render(){
     cells.forEach(c=>{c.className="gridcell";c.textContent="";});
@@ -1108,16 +1594,18 @@ SCREENS.karrows=(stage)=>{
   function newRound(){
     do{ mouse={x:(Math.random()*COLS)|0,y:(Math.random()*ROWS)|0}; goal={x:(Math.random()*COLS)|0,y:(Math.random()*ROWS)|0}; }
     while(mouse.x===goal.x && mouse.y===goal.y);
-    render(); setHint("Steuere die Maus mit den Pfeiltasten zum Käse.","");
+    busy=false; render(); setHint("Steuere die Maus mit den Pfeiltasten zum Käse.","");
   }
   setCounter(`0/${TOTAL}`,"Käse");
   setKeyHandler(e=>{
     const k=e.key; if(!k||k.indexOf("Arrow")!==0) return;
+    if(busy) return; /* zwischen den Runden (und nach dem Ziel) keine weiteren Züge */
     let nx=mouse.x, ny=mouse.y;
     if(k==="ArrowUp")ny--; else if(k==="ArrowDown")ny++; else if(k==="ArrowLeft")nx--; else if(k==="ArrowRight")nx++;
     if(nx<0||nx>=COLS||ny<0||ny>=ROWS){ kb.flash(k,false); sfx.soft(); fault=true; setHint("Dort ist der Rand! Wähle eine andere Richtung.","warn"); return; }
     kb.flash(k,true); mouse={x:nx,y:ny}; sfx.step(); render();
     if(mouse.x===goal.x && mouse.y===goal.y){
+      busy=true; /* Ziel erreicht – Eingabe sperren, bis die nächste Runde startet */
       sfx.good(); done++; registerAttempt(true); setCounter(`${done}/${TOTAL}`,"Käse");
       if(done>=TOTAL){ kb.clearHighlight(); completeStation("karrows","Klasse gesteuert – die Pfeiltasten sitzen! 🕹️🎉",{perfect:!fault}); }
       else { setHint("Mmmh, Käse! 🧀 Auf zur nächsten Runde.","good"); later(newRound,650); }
@@ -1277,6 +1765,256 @@ SCREENS.exam1=(stage)=>{
   activate(1); stepKey();
 };
 
+/* ---------- Lektions-Landkarte ----------
+   Übersicht über den Lehrgang: was ist geschafft, wie viele Sterne, wo geht es
+   weiter. Die Lektionen sind bewusst nicht gesperrt – im Trainer kann man
+   ohnehin überall hinspringen; die Landkarte empfiehlt nur die nächste. */
+function lessonStars(no){ return (state.lessons["l"+no]||{}).stars||0; }
+function nextLessonNo(){ const open=LESSONS.find(L=>!state.done["l"+L.no]); return open?open.no:null; }
+/* Höchste zusammenhängend geschaffte Lektion – daraus ergibt sich, wie viele
+   Tasten das Kind schon gelernt hat. */
+function lessonsDoneCount(){ return LESSONS.filter(L=>state.done["l"+L.no]).length; }
+function learnedSoFar(){
+  const nos=LESSONS.filter(L=>state.done["l"+L.no]).map(L=>L.no);
+  return nos.length ? learnedKeys(Math.max(...nos)) : new Set();
+}
+SCREENS.lessonmap=(stage)=>{
+  setInstruction("Lektions-Landkarte 🗺️",
+    "Hier siehst du deinen Weg durch den <b>Zehn-Finger-Lehrgang</b>. Jede Lektion bringt dir zwei neue Tasten bei. "+
+    "Klicke eine Lektion an, um sie zu üben – geschaffte darfst du jederzeit wiederholen.");
+  showSkip(false);
+  const doneCount=lessonsDoneCount();
+  const starSum=LESSONS.reduce((n,L)=>n+lessonStars(L.no),0);
+  const nextNo=nextLessonNo();
+
+  stage.appendChild(mk("lmapsum",
+    `<div class="s"><b>${doneCount}/${LESSONS.length}</b><span>Lektionen</span></div>
+     <div class="s"><b>${starSum}/${LESSONS.length*3}</b><span>Sterne ⭐</span></div>
+     <div class="s"><b>${learnedSoFar().size}</b><span>gelernte Tasten</span></div>`));
+
+  /* Fehler-Radar: nur zeigen, wenn es wirklich etwas zu üben gibt. */
+  const weak=weakKeys();
+  if(weak.length){
+    const w=mk("lmapweak",
+      `🎯 <b>Wackelkandidaten:</b> Diese Tasten gehen dir noch am häufigsten daneben:
+       <span class="keys">${weak.map(k=>`<span class="wkey">${k}</span>`).join("")}</span>`);
+    const b=document.createElement("button"); b.className="btn btn-ghost btn-small";
+    b.textContent="gezielt üben ›"; b.addEventListener("click",()=>go("lrepeat"));
+    w.appendChild(b); stage.appendChild(w);
+  }
+
+  const grid=mk("lmapgrid"); stage.appendChild(grid);
+  LESSONS.forEach(L=>{
+    const id="l"+L.no, rec=state.lessons[id], done=!!state.done[id], stars=lessonStars(L.no);
+    const t=document.createElement("button");
+    t.className="ltile"+(done?" done":"")+(L.no===nextNo?" next":"");
+    t.innerHTML=
+      `<div class="top"><span class="no">${L.no}</span><span class="ttl">${L.icon} ${L.title}</span>`+
+      (L.no===nextNo?`<span class="tag">dran</span>`:``)+`</div>
+       <div class="keys">${L.keys.length?`neue Tasten <b>${L.keys.join(" ")}</b>`:`Wiederholung – blind`}</div>
+       <div class="stars">${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</div>`+
+      (rec?`<div class="best">Bestwert: ${rec.apm} Anschläge/Min · ${rec.quote} % Treffer</div>`
+         :`<div class="best">noch nicht geübt</div>`);
+    t.addEventListener("click",()=>go(id));
+    grid.appendChild(t);
+  });
+
+  setHint(nextNo?`Empfohlen: <b>Lektion ${nextNo}</b>.`
+                :"Alle Lektionen geschafft – super! Du kannst jede jederzeit wiederholen.","good");
+  if(nextNo){ showNext(true,`Lektion ${nextNo} starten ›`); $("#nextBtn").onclick=()=>go("l"+nextNo); }
+  else { showNext(true,"Weiter ›"); $("#nextBtn").onclick=()=>go(nextStationId()); }
+};
+
+/* ---------- Lektions-Engine (Zehn-Finger-Lehrgang) ----------
+   Ablauf jeder Lektion: Aufwärmen → Silben → Wörter → Wortkette → Zeugnis.
+   Schritte ohne Übungsstoff entfallen (in den ersten Lektionen gibt es noch
+   keine tippbaren Wörter). Am Ende zählt das Zeugnis Tempo (Anschläge pro
+   Minute) und Trefferquote und vergibt ein bis drei Sterne. */
+const STAR2_QUOTE = 80;   /* ⭐⭐ ab dieser Trefferquote in Prozent */
+const STAR3_QUOTE = 85;   /* ⭐⭐⭐ ab dieser Quote UND dem Zieltempo der Lektion */
+
+function lessonChain(L,words){
+  /* Wortkette: übt zugleich die Leertaste. Lektionen mit eigenem Abschluss
+     (Zahlenkette, Satz mit Satzzeichen …) geben ihn direkt vor. */
+  if(L.chain) return L.chain;
+  const src = words.length>=4 ? shuffle(words.slice()).slice(0,4) : L.sylls.slice(0,3);
+  return src.join(" ");
+}
+function lessonSteps(L){
+  const words=L.words||lessonWords(L.no);
+  const steps=[
+    {label:"Aufwärmen", items:L.warm.slice()},
+    {label:"Silben",    items:L.sylls.slice()}
+  ];
+  if(words.length>=3) steps.push({label:L.wordLabel||"Wörter",
+    items:shuffle(words.slice()).slice(0,L.wordCount||5)});
+  steps.push({label:L.chainLabel||"Wortkette", items:[lessonChain(L,words)]});
+  return steps;
+}
+function lessonScreen(L){
+  return (stage)=>{
+    const id=L.id||("l"+L.no);
+    const steps=lessonSteps(L);
+    /* Kurze Einordnung oben, der ausführliche Griff-Tipp steht im Kasten darunter. */
+    setInstruction(
+      L.headline || `Lektion ${L.no} von ${LESSONS.length} · ${L.title} ${L.icon}`,
+      L.intro || (L.keys.length
+        ? `Neu sind <b>${L.keys.join("</b> und <b>")}</b>. Tippe jede Zeile ab – erst einzeln, dann in Silben und Wörtern.`
+        : `Keine neuen Tasten – jetzt wird das Gelernte <b>blind</b> wiederholt.`));
+
+    const bar=mk("lessonbar"); stage.appendChild(bar);
+    steps.forEach((s,i)=>{ const c=mk("lstep",s.label); c.dataset.i=i; bar.appendChild(c); });
+    const info=mk("infobox",L.grip); info.style.maxWidth="640px"; info.style.margin="0 auto 8px";
+    stage.appendChild(info);
+    const box=mk("typebox"); stage.appendChild(box);
+    /* Blind-Stufe: 1 = Taste leuchtet, 2 = nur der Finger, 3 = gar keine Hilfe.
+       In den Einstellungen lässt sich mehr Hilfe erzwingen (Barrierefreiheit). */
+    const blind = state.blindHelp==="key" ? 1 : state.blindHelp==="finger" ? Math.min(L.blind,2) : L.blind;
+    const fingerBox=mk("lfinger"); if(blind===2) stage.appendChild(fingerBox);
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:blind===2});
+    if(blind<3){ kbHost.appendChild(kb.el); stage.appendChild(kbHost); }
+
+    const showKey = blind<2;
+    function showFinger(text,idx){
+      if(blind!==2) return;
+      const c=text[idx];
+      if(c==null){ fingerBox.innerHTML=""; return; }
+      if(c===" "){ fingerBox.innerHTML=`<span class="dot" style="background:${FINGERS.th.c}"></span> Daumen · Leertaste`; return; }
+      const base=shiftBase(c), side=L.shiftRule?shiftSideFor(c):null;
+      const shiftTxt = side ? `<b>${side==="left"?"linke":"rechte"} Umschalt ⇧</b> + ` : "";
+      fingerBox.innerHTML=`<span class="dot" style="background:${fingerColor(base||c)}"></span> ${shiftTxt}${fingerName(base||c)}`;
+    }
+
+    let si=0, ii=0, chars=0, errs=0, t0=0, tEnd=0;
+    const missed={};   /* Fehler je Taste – nur für das Zeugnis dieser Lektion */
+    const totalItems=steps.reduce((n,s)=>n+s.items.length,0);
+    let doneItems=0;
+    function markSteps(){
+      $$(".lstep",bar).forEach((c,i)=>{ c.classList.toggle("active",i===si); c.classList.toggle("done",i<si); });
+    }
+    function nextItem(){
+      if(si>=steps.length){ finish(); return; }
+      const step=steps[si];
+      if(ii>=step.items.length){ si++; ii=0; markSteps(); nextItem(); return; }
+      markSteps();
+      box.innerHTML="";
+      const text=step.items[ii];
+      setCounter(`${doneItems}/${totalItems}`,"Zeilen");
+      setHint(`${step.label}: tippe <b>${text.replace(/ /g,"␣")}</b>`,"");
+      showFinger(text,0);
+      const typer=buildTyper(box,text,{
+        kb: showKey ? kb : null,
+        shiftRule: L.shiftRule ? (want=>{
+          if(shiftSideOk(want)) return true;
+          const need=shiftSideFor(want);
+          setHint(`Fast! <b>${want}</b> holst du mit der <b>${need==="left"?"linken":"rechten"} Umschalttaste ⇧</b> `+
+                  `– also mit der <b>anderen</b> Hand.`,"warn");
+          return false;
+        }) : null,
+        onChar:(idx)=>{ if(t0===0) t0=performance.now(); showFinger(text,idx); },
+        onKey:(want,ok)=>{ if(!ok && want!==" ") missed[want]=(missed[want]||0)+1; },
+        onDone:(res)=>{
+          chars+=res.len; errs+=res.errors; tEnd=performance.now();
+          doneItems++; ii++; sfx.good();
+          setCounter(`${doneItems}/${totalItems}`,"Zeilen");
+          later(nextItem,320);
+        }
+      });
+      setKeyHandler(e=>typer.feed(e));
+    }
+    function finish(){
+      setKeyHandler(null); kb.clearHighlight(); fingerBox.innerHTML="";
+      const mins=Math.max((tEnd-t0)/60000, 1/60000);
+      const apm=Math.round(chars/mins);
+      const quote=Math.round(chars/Math.max(chars+errs,1)*100);
+      let stars=1;
+      if(quote>=STAR2_QUOTE) stars=2;
+      if(quote>=STAR3_QUOTE && apm>=L.apm) stars=3;
+      /* Bestwert merken */
+      state.lessons=state.lessons||{};
+      const prev=state.lessons[id]||{stars:0,apm:0,quote:0};
+      state.lessons[id]={stars:Math.max(prev.stars,stars),apm:Math.max(prev.apm,apm),quote:Math.max(prev.quote,quote)};
+
+      box.innerHTML=""; bar.remove(); info.remove(); kbHost.remove();
+      const note = stars===3 ? "Perfekt – Tempo und Treffer stimmen!"
+                 : stars===2 ? `Stark! Für den dritten Stern: ${STAR3_QUOTE} % Treffer und ${L.apm} Anschläge pro Minute.`
+                 : `Geschafft! Für den zweiten Stern brauchst du ${STAR2_QUOTE} % Treffer – übe die Lektion ruhig nochmal.`;
+      /* Die drei Tasten, die in dieser Lektion am häufigsten danebengingen. */
+      const top=Object.keys(missed).sort((a,b)=>missed[b]-missed[a]).slice(0,3);
+      const topHtml = top.length
+        ? `<div class="zkeys">Diese Tasten waren am schwersten:
+             ${top.map(k=>`<span class="zkey">${k===" "?"␣":k}</span>`).join("")}</div>`
+        : `<div class="zkeys">Keine Taste hat dir Probleme gemacht. 👏</div>`;
+      const z=mk("zeugnis",
+        `<h3>Dein Tipp-Zeugnis</h3>
+         <div class="stars">${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</div>
+         <div class="vals">
+           <div class="val"><b>${apm}</b><span>Anschläge<br>pro Minute</span></div>
+           <div class="val"><b>${quote} %</b><span>Treffer</span></div>
+           <div class="val"><b>${errs}</b><span>Fehler</span></div>
+         </div>
+         ${topHtml}
+         <div class="note">${note}</div>`);
+      stage.appendChild(z);
+      setCounter(null);
+      completeStation(id, L.doneMsg||`Lektion ${L.no} geschafft! ${"⭐".repeat(stars)}`,{perfect:errs===0});
+      /* completeStation blendet „Überspringen“ aus – danach nutzen wir den
+         Knopf als Rückweg zur Landkarte. */
+      showSkip(true,()=>go("lessonmap"),"🗺️ Landkarte");
+    }
+    markSteps(); nextItem();
+  };
+}
+LESSONS.forEach(L=>{ SCREENS["l"+L.no]=lessonScreen(L); });
+
+/* ---------- Wiederholungs-Lektion „Wackelkandidaten“ ----------
+   Baut aus den schwächsten Tasten des Fehler-Radars eine Lektion. Sie nutzt
+   dieselbe Engine – nur Übungsstoff und Kopfzeile werden dynamisch erzeugt. */
+const HOME_ANCHORS=["f","j","d","k","s","l","a","ö"];
+function weakLesson(){
+  const weak=weakKeys();
+  /* Wortstoff: bereits gelernte Tasten + Grundreihe + die Wackelkandidaten
+     selbst; ein Wort kommt nur dran, wenn es mindestens eine Wackeltaste übt. */
+  const safe=new Set([...learnedSoFar(), ...HOME_ANCHORS, ...weak]);
+  const words=LESSON_WORDS.filter(w=>usesOnly(w,safe) && weak.some(k=>w.toLowerCase().includes(k)));
+  const warm=weak.map(k=>k.repeat(4));
+  const sylls=[];
+  weak.forEach((k,i)=>{
+    const a=HOME_ANCHORS[i%HOME_ANCHORS.length], b=HOME_ANCHORS[(i+4)%HOME_ANCHORS.length];
+    sylls.push(k+k+k, a+k+a, k+b+k);
+  });
+  return {
+    id:"lrepeat", no:0, keys:[], icon:"🎯", title:"Wackelkandidaten", repeat:true, weak,
+    headline:"Wackelkandidaten 🎯",
+    intro:`Diese Tasten gehen dir noch am häufigsten daneben: `+
+          `<b>${weak.join("</b> · <b>")}</b>. Die üben wir jetzt gezielt.`,
+    grip:"Lass dir Zeit und achte darauf, dass der <b>richtige Finger</b> die Taste holt. "+
+         "Lieber langsam und richtig als schnell und daneben.",
+    warm, sylls: sylls.length?sylls:["asdf","jklö"], words,
+    blind:2, apm:30,
+    doneMsg:"Wackelkandidaten geübt – stark! 🎯"
+  };
+}
+SCREENS.lrepeat=(stage)=>{
+  const weak=weakKeys();
+  if(!weak.length){
+    /* Nichts zu üben – das ist eine gute Nachricht, keine leere Seite. */
+    setInstruction("Wackelkandidaten 🎯",
+      "Der Fehler-Radar hat <b>keine</b> Wackelkandidaten gefunden – alle deine Tasten sitzen sicher!");
+    setHint("Übe ein paar Lektionen; falls eine Taste zickt, taucht sie hier auf.","good");
+    const z=mk("zeugnis",
+      `<h3>Alles im grünen Bereich ✅</h3>
+       <div class="stars">🎯</div>
+       <div class="note">Der Radar meldet sich, sobald eine Taste öfter danebengeht.
+         Dann übst du hier genau diese Tasten – und nur die.</div>`);
+    stage.appendChild(z);
+    showSkip(true,()=>go("lessonmap"),"🗺️ Landkarte");
+    showNext(true,"Weiter ›"); $("#nextBtn").onclick=()=>go(nextStationId());
+    return;
+  }
+  lessonScreen(weakLesson())(stage);
+};
+
 /* ---------- Grundreihe ---------- */
 SCREENS.khome=(stage)=>{
   const N=stationNumber("khome");
@@ -1402,6 +2140,48 @@ SCREENS.knumbers=(stage)=>{
     } else {
       kb.flash(ch,false);sfx.soft();registerAttempt(false);fault=true;
       setHint(`Das war <b>${ch}</b>. Suche die orange Taste <b>${target}</b>.`,"warn");
+    }
+  });
+  pick();
+};
+
+/* ---------- Sonderzeichen & Satzzeichen (mit Umschalt) ---------- */
+SCREENS.ksymbols=(stage)=>{
+  const N=stationNumber("ksymbols");
+  setInstruction(`Station ${N} · Sonderzeichen & Satzzeichen ❗`,
+    "Über den Zahlen und bei den Satzzeichen wohnen viele <b>Sonderzeichen</b>. Du tippst sie mit gedrückter "+
+    "<b>Umschalt ⇧</b>-Taste. Drücke die leuchtende Taste – aber <b>zusammen mit Umschalt</b>!");
+  const info=mk("infobox",`Halte <b>Umschalt ⇧</b> gedrückt und drücke dann die leuchtende Taste. `+
+    `Beispiel: <b>Umschalt + 1</b> ergibt ein <b>!</b>, <b>Umschalt + ß</b> ein <b>?</b>.`);
+  info.style.maxWidth="640px";info.style.margin="0 auto 6px";stage.appendChild(info);
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard();
+  kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+  const TOTAL=dCount(8,6); let done=0,target=null,fault=false;
+  /* Mischbeutel: jede Runde ein anderes Zeichen, ohne sofortige Wiederholung. */
+  let bag=[];
+  const draw=()=>{ if(!bag.length) bag=shuffle(SYMBOL_KEYS.slice()); return bag.pop(); };
+  setCounter(`0/${TOTAL}`,"gefunden");
+  function pick(){
+    kb.clearHighlight();
+    target=draw();
+    kb.highlight([target.base,"Shift"]);
+    setHint(`<b>Umschalt ⇧ + ${symLabel(target.base)}</b> ergibt <b>${target.ch}</b> (${target.name}).`,"");
+  }
+  setKeyHandler(e=>{
+    if(e.key==="Shift") return;           /* Umschalt allein: auf das Zeichen warten */
+    const ch=getChar(e); if(ch==null) return;
+    if(ch===target.ch){
+      kb.flash(target.base,true);sfx.good();done++;registerAttempt(true);
+      setCounter(`${done}/${TOTAL}`,"gefunden");
+      if(done>=TOTAL){ kb.clearHighlight(); completeStation("ksymbols","Sonderzeichen gemeistert – super! ❗🎉",{perfect:!fault}); }
+      else { setHint("Richtig! 👍","good"); later(pick,450); }
+    } else if(ch===target.base){
+      /* richtige Taste, aber ohne Umschalt gedrückt */
+      kb.flash(target.base,false);sfx.soft();registerAttempt(false);fault=true;
+      setHint(`Fast! Halte dabei <b>Umschalt ⇧</b> gedrückt – dann wird aus <b>${target.base}</b> ein <b>${target.ch}</b>.`,"warn");
+    } else {
+      sfx.soft();registerAttempt(false);fault=true;
+      setHint(`Das war <b>${ch}</b>. Gesucht ist <b>${target.ch}</b> (${target.name}) – mit <b>Umschalt ⇧ + ${symLabel(target.base)}</b>.`,"warn");
     }
   });
   pick();
@@ -1718,17 +2498,19 @@ SCREENS.kspace=(stage)=>{
 
 /* ---------- Prüfung ---------- */
 SCREENS.exam=(stage)=>{
-  setInstruction("Prüfung 🏆","Zeig, was du kannst: eine Taste finden, ein Wort tippen und einen Satz schreiben!");
+  setInstruction("Prüfung 🏆","Zeig, was du kannst: eine Taste finden, ein Sonderzeichen tippen, ein Wort tippen und einen Satz schreiben!");
   showSkip(false);
+  const STEPS=4;
   const wrap=mk("examwrap");
   const desk=mk("examdesk");
   const list=mk("checklist",`<h3>Deine Aufgaben</h3><ol>
     <li id="ex1">Eine leuchtende Taste drücken</li>
-    <li id="ex2">Ein Wort fehlerfrei tippen</li>
-    <li id="ex3">Einen Satz tippen</li></ol>`);
+    <li id="ex2">Ein Sonderzeichen mit Umschalt tippen</li>
+    <li id="ex3">Ein Wort fehlerfrei tippen</li>
+    <li id="ex4">Einen Satz tippen</li></ol>`);
   wrap.appendChild(desk); wrap.appendChild(list); stage.appendChild(wrap);
   let step=1, fault=false;
-  function activate(n){ for(let i=1;i<=3;i++){ const li=$("#ex"+i); li.classList.toggle("active",i===n); li.classList.toggle("done",i<n); } step=n; }
+  function activate(n){ for(let i=1;i<=STEPS;i++){ const li=$("#ex"+i); li.classList.toggle("active",i===n); li.classList.toggle("done",i<n); } step=n; }
 
   function stepKey(){
     desk.innerHTML="";
@@ -1737,8 +2519,23 @@ SCREENS.exam=(stage)=>{
     kb.highlight([target]);
     setHint(`Schritt 1: Drücke die leuchtende Taste <b>${target.toUpperCase()}</b>.`,"");
     setKeyHandler(e=>{ const ch=getChar(e); if(ch==null)return; kb.press(ch);
-      if(ch.toLowerCase()===target){ kb.flash(target,true);sfx.good();activate(2);stepWord(); }
+      if(ch.toLowerCase()===target){ kb.flash(target,true);sfx.good();activate(2);stepSymbol(); }
       else { kb.flash(ch,false);sfx.soft();fault=true; setHint(`Gesucht: <b>${target.toUpperCase()}</b>.`,"warn"); } });
+  }
+  function stepSymbol(){
+    desk.innerHTML="";
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
+    const sym=SYMBOL_KEYS[(Math.random()*SYMBOL_KEYS.length)|0];
+    kb.highlight([sym.base,"Shift"]);
+    setHint(`Schritt 2: Tippe <b>${sym.ch}</b> (${sym.name}) – mit <b>Umschalt ⇧ + ${symLabel(sym.base)}</b>.`,"");
+    setKeyHandler(e=>{
+      if(e.key==="Shift") return;
+      const ch=getChar(e); if(ch==null)return;
+      if(ch===sym.ch){ kb.flash(sym.base,true);sfx.good();kb.clearHighlight();activate(3);stepWord(); }
+      else if(ch===sym.base){ kb.flash(sym.base,false);sfx.soft();fault=true;
+        setHint(`Fast! Halte dabei <b>Umschalt ⇧</b> gedrückt – dann wird aus <b>${sym.base}</b> ein <b>${sym.ch}</b>.`,"warn"); }
+      else { sfx.soft();fault=true; setHint(`Gesucht: <b>${sym.ch}</b> (${sym.name}) – <b>Umschalt ⇧ + ${symLabel(sym.base)}</b>.`,"warn"); }
+    });
   }
   function stepWord(){
     desk.innerHTML="";
@@ -1746,8 +2543,8 @@ SCREENS.exam=(stage)=>{
     const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
     const word=WORDS[(Math.random()*WORDS.length)|0];
     const typer=buildTyper(box,word,{kb,onChar:(idx,err)=>{if(err)fault=true;},
-      onDone:()=>{ sfx.good();kb.clearHighlight();activate(3);stepSentence(); }});
-    setHint("Schritt 2: Tippe das Wort ab. Groß mit <b>Umschalt ⇧</b>.","");
+      onDone:()=>{ sfx.good();kb.clearHighlight();activate(4);stepSentence(); }});
+    setHint("Schritt 3: Tippe das Wort ab. Groß mit <b>Umschalt ⇧</b>.","");
     setKeyHandler(e=>typer.feed(e));
   }
   function stepSentence(){
@@ -1756,9 +2553,9 @@ SCREENS.exam=(stage)=>{
     const kbHost=mk("kbwrap"); const kb=buildKeyboard(); desk.appendChild(kbHost); kbHost.appendChild(kb.el);
     const text=SENTENCES[(Math.random()*SENTENCES.length)|0];
     const typer=buildTyper(box,text,{kb,onChar:(idx,err)=>{if(err)fault=true;},
-      onDone:()=>{ kb.clearHighlight(); $("#ex3").classList.add("done"); $("#ex3").classList.remove("active");
+      onDone:()=>{ kb.clearHighlight(); $("#ex"+STEPS).classList.add("done"); $("#ex"+STEPS).classList.remove("active");
         completeStation("exam","Prüfung mit Bravour bestanden! 🏆",{perfect:!fault}); }});
-    setHint("Schritt 3: Tippe den ganzen Satz.","");
+    setHint("Schritt 4: Tippe den ganzen Satz.","");
     setKeyHandler(e=>typer.feed(e));
   }
   activate(1); stepKey();
@@ -1797,11 +2594,16 @@ SCREENS.lernzettel=(stage)=>{
     const what=k.what.replace(/<[^>]+>/g,""); /* HTML-Auszeichnung für die Tabelle entfernen */
     return `<tr><td class="sym">${k.sym}</td><td class="nm">${k.name}</td><td>${what}</td></tr>`;
   }).join("");
+  /* Sonderzeichen als kompakte Chips: Umschalt + Grundtaste = Zeichen */
+  const symChips=SYMBOL_KEYS.map(s=>
+    `<span class="lz-sym"><b>⇧ + ${symLabel(s.base)}</b> = <span class="lz-symch">${s.ch}</span> ${s.name}</span>`).join("");
   const z=mk("lernzettel","");
   z.innerHTML=`<h1>Tastatur-Lernzettel</h1>
-    <div class="lz-sub">⌨️ Die wichtigsten Tasten, die Grundreihe und die Finger – zum Nachschlagen</div>
+    <div class="lz-sub">⌨️ Die wichtigsten Tasten, die Sonderzeichen, die Grundreihe und die Finger – zum Nachschlagen</div>
     <h2>🔑 Die wichtigen Tasten</h2>
     <table><tbody>${keyRows}</tbody></table>
+    <h2>❗ Sonderzeichen – mit Umschalt ⇧</h2>
+    <div class="lz-syms">${symChips}</div>
     <h2>🎹 Praktische Tasten-Kombis</h2>
     <div class="lz-combos">
       <span class="lz-combo"><b>Strg + C</b> · Kopieren</span>
@@ -1832,14 +2634,26 @@ SCREENS.lernzettel=(stage)=>{
 $("#gearBtn").addEventListener("click",()=>{$("#overlay").style.display="flex";});
 $("#closeSet").addEventListener("click",()=>{$("#overlay").style.display="none";});
 $("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay")$("#overlay").style.display="none";});
-$("#soundChk").addEventListener("change",e=>{state.sound=e.target.checked;if(state.sound){if(audioCtx)audioCtx.resume&&audioCtx.resume();sfx.step();}});
+$("#soundChk").addEventListener("change",e=>{state.sound=e.target.checked;if(state.sound){if(audioCtx)audioCtx.resume&&audioCtx.resume();sfx.step();}saveState();});
 $("#fingerChk").addEventListener("change",e=>{ state.fingers=e.target.checked; go(state.current); });
 $("#diffSel").addEventListener("change",e=>{ state.difficulty=e.target.value; $("#overlay").style.display="none"; go(state.current); });
+$("#blindSel").addEventListener("change",e=>{ state.blindHelp=e.target.value; $("#overlay").style.display="none"; go(state.current); });
 $("#resetBtn").addEventListener("click",()=>{
+  if(!confirm("Wirklich den ganzen Fortschritt löschen? Stationen, Lektionen, Sterne und Abzeichen sind dann weg.")) return;
   state.done={};Object.assign(state,defaultGamify());
+  /* Alten Eintrag entfernen; das folgende go("start") legt einen sauberen an. */
+  clearSave();
   refreshProgress();refreshHUD();$("#overlay").style.display="none";go("start");
 });
 
+/* Gespeicherten Stand laden und die Einstellungen in die Oberfläche übernehmen.
+   Gestartet wird trotzdem immer auf der Startseite – dort gibt es dann den
+   Knopf „Weiter machen“. So landet niemand ungefragt mitten in einer Übung. */
+loadState();
+$("#soundChk").checked=!!state.sound;
+$("#fingerChk").checked=!!state.fingers;
+$("#diffSel").value=state.difficulty;
+$("#blindSel").value=state.blindHelp||"auto";
 buildProgress();refreshHUD();
 go("start");
 </script>
