@@ -239,6 +239,16 @@
   .ltile .tag{display:inline-block;font-size:.7rem;font-weight:700;color:#8a5616;background:var(--hint-soft);
     border:1px solid #f0d9b8;border-radius:999px;padding:1px 8px;margin-left:auto;}
 
+  .lmapweak{max-width:840px;margin:0 auto 12px;background:var(--hint-soft);border:1px solid #f0d9b8;
+    border-radius:12px;padding:11px 14px;font-size:.85rem;color:#8a5616;}
+  .lmapweak .keys{display:inline-flex;gap:5px;flex-wrap:wrap;vertical-align:middle;margin:0 4px;}
+  .wkey{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 5px;border-radius:6px;
+    background:#fff;border:1px solid #e0b98a;font-weight:700;color:#8a5616;}
+  .lmapweak button{margin-left:6px;}
+  .zeugnis .zkeys{margin-top:10px;font-size:.82rem;color:var(--ink-soft);}
+  .zeugnis .zkey{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;margin:0 2px;
+    border-radius:6px;background:var(--ocean-pale);border:1px solid var(--line);font-weight:700;color:var(--ocean-deep);}
+
   /* ===== Zehn-Finger-Lehrgang: Lektionen ===== */
   .lessonbar{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
   .lstep{font-size:.78rem;padding:4px 11px;border-radius:999px;background:var(--ocean-pale);
@@ -604,6 +614,7 @@ const STATIONS = [
     id:"l"+L.no, short:L.keys.length?L.keys.join(" "):"Wdh.", icon:L.icon, part:2,
     title:`Lektion ${L.no} · ${L.title}`, desc:L.keys.length?("neue Tasten "+L.keys.join(" ")):"Wiederholung"
   })),
+  {id:"lrepeat",   short:"Wackeln",      icon:"🎯", part:2, title:"Wackelkandidaten", desc:"schwache Tasten gezielt üben"},
   {id:"khome",     short:"Grundreihe",   icon:"🖐️", part:2, title:"Grundreihe",       desc:"a s d f · j k l ö"},
   {id:"ktop",      short:"Obere Reihe",  icon:"⬆️", part:2, title:"Obere Reihe",      desc:"q w e r t z u i o p"},
   {id:"kbottom",   short:"Untere Reihe", icon:"⬇️", part:2, title:"Untere Reihe",     desc:"y x c v b n m"},
@@ -623,7 +634,7 @@ const STATIONS = [
    seite bleiben aussen vor – so verschieben sich die Stationsnummern nicht,
    wenn der Lehrgang wächst. */
 const isExamId = id => id==="exam" || id==="exam1";
-const isHubId  = id => id==="lessonmap";
+const isHubId  = id => id==="lessonmap" || id==="lrepeat";
 const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&!isExamId(s.id)&&!isLessonId(s.id)&&!isHubId(s.id)).findIndex(s=>s.id===id)+1;
 /* Erste/letzte echte Station eines Teils (für Überschriften & Übergang) */
 const firstOfPart = p => (STATIONS.find(s=>s.part===p)||{}).id;
@@ -835,13 +846,16 @@ function buildTyper(host, text, o={}){
     if(e.key==="Backspace"){ if(idx>0){ idx--; spans[idx].classList.remove("ok","bad"); refresh(); } return; }
     const ch=getChar(e); if(ch==null) return;
     if(started===0) started=performance.now();
-    if(ch===text[idx]){
+    const want=text[idx];                 /* die Taste, die gefragt war */
+    if(ch===want){
+      noteKey(want,true); o.onKey && o.onKey(want,true);
       spans[idx].classList.add("ok"); spans[idx].classList.remove("bad"); idx++;
       sfx.step(); if(o.kb) o.kb.flash(ch,true);
       o.onChar && o.onChar(idx,errors);
       if(idx>=text.length){ o.onDone && o.onDone({secs:(performance.now()-started)/1000, errors, len:text.length}); return; }
       refresh();
     } else {
+      noteKey(want,false); o.onKey && o.onKey(want,false);
       errors++; spans[idx].classList.add("bad"); if(o.kb) o.kb.flash(ch,false); sfx.soft();
       o.onChar && o.onChar(idx,errors);
     }
@@ -854,13 +868,46 @@ function buildTyper(host, text, o={}){
    Spielzustand & Hilfen
    ============================================================ */
 function defaultGamify(){
-  return { xp:0, level:1, coins:0, badges:{}, lessons:{}, stats:{ attempts:0, fails:0, streak:0, bestStreak:0, perfectStations:{} } };
+  return { xp:0, level:1, coins:0, badges:{}, lessons:{}, keyStats:{},
+           stats:{ attempts:0, fails:0, streak:0, bestStreak:0, perfectStations:{} } };
 }
 const state = Object.assign({
   current:"start", done:{}, sound:true, difficulty:"mittel", fingers:false, blindHelp:"auto",
   mascotName:"Codi",
   reduced: matchMedia("(prefers-reduced-motion:reduce)").matches
 }, defaultGamify());
+
+/* ============================================================
+   Fehler-Radar: Trefferquote je Taste
+   ------------------------------------------------------------
+   Jede getippte Taste (aus allen Stationen, die buildTyper nutzen) wird
+   mitgezählt. Daraus ergeben sich die „Wackelkandidaten“ – die Tasten, die
+   noch am häufigsten danebengehen – und daraus wiederum eine gezielte
+   Wiederholungs-Lektion.
+   ============================================================ */
+const WEAK_MIN_TRIES = 4;   /* so oft muss eine Taste vorgekommen sein, damit sie zählt */
+const WEAK_QUOTE     = 90;  /* darunter gilt eine Taste als Wackelkandidat (in %) */
+const WEAK_MAX       = 5;   /* so viele Tasten übt die Wiederholungs-Lektion höchstens */
+const WEAK_WINDOW = 24;     /* so viele Anschläge je Taste zählen ungefähr */
+function noteKey(ch,ok){
+  if(ch==null||ch===" ") return;            /* die Leertaste ist kein Lernziel */
+  const k=ch.toLowerCase();
+  const st=state.keyStats[k]||(state.keyStats[k]={ok:0,fail:0});
+  ok ? st.ok++ : st.fail++;
+  /* Alte Anschläge verblassen: Sonst würde ein schwacher Start eine Taste für
+     immer als Wackelkandidat markieren – wer sich verbessert, soll das auch
+     im Radar sehen. */
+  if(st.ok+st.fail > WEAK_WINDOW){ st.ok=Math.round(st.ok*0.6); st.fail=Math.round(st.fail*0.6); }
+}
+function keyQuote(k){ const s=state.keyStats[k]; if(!s) return 100;
+  const n=s.ok+s.fail; return n? Math.round(s.ok/n*100) : 100; }
+/* Die schwächsten Tasten, schlechteste zuerst. */
+function weakKeys(max=WEAK_MAX){
+  return Object.keys(state.keyStats)
+    .filter(k=>{ const s=state.keyStats[k]; return (s.ok+s.fail)>=WEAK_MIN_TRIES && keyQuote(k)<WEAK_QUOTE; })
+    .sort((a,b)=>keyQuote(a)-keyQuote(b) || state.keyStats[b].fail-state.keyStats[a].fail)
+    .slice(0,max);
+}
 
 /* ============================================================
    Fortschritt speichern (localStorage)
@@ -871,7 +918,7 @@ const state = Object.assign({
    der Trainer weiter, nur eben ohne Speichern.
    ============================================================ */
 const SAVE_KEY="tastaturfs.v1";
-const SAVE_FIELDS=["current","done","xp","level","coins","badges","lessons","stats","difficulty","sound","fingers","blindHelp"];
+const SAVE_FIELDS=["current","done","xp","level","coins","badges","lessons","keyStats","stats","difficulty","sound","fingers","blindHelp"];
 const KNOWN_IDS=new Set(STATIONS.map(s=>s.id));
 function saveState(){
   try{
@@ -978,6 +1025,7 @@ const BADGES = {
   blind_typer:   {icon:"🙈", title:"Blindschreiber"},
   toprow_lesson: {icon:"⬆️", title:"Obere Reihe gelernt"},
   alphabet_pro:  {icon:"🔤", title:"Alphabet komplett"},
+  radar_clear:   {icon:"🎯", title:"Wackelkandidaten gemeistert"},
   home_row:      {icon:"🖐️", title:"Grundreihen-Held"},
   toprow_hero:   {icon:"⬆️", title:"Obere-Reihe-Held"},
   bottomrow_hero:{icon:"⬇️", title:"Untere-Reihe-Held"},
@@ -1096,7 +1144,7 @@ function buildProgress(){
   STATIONS.forEach(st=>{ if(st.id==="start")return;
     /* Die einzelnen Lektionen stehen nicht in der Leiste – sonst würde sie mit
        18 Einträgen überquellen. Zu ihnen führt die Landkarte. */
-    if(isLessonId(st.id))return;
+    if(isLessonId(st.id)||st.id==="lrepeat")return;
     if(st.part && st.part!==lastPart){
       lastPart=st.part;
       const h=document.createElement("span");h.className="part-head";
@@ -1138,6 +1186,10 @@ function completeStation(id,msg,opts){
     if(opts&&opts.perfect){ state.stats.perfectStations[id]=true; unlock("flawless"); }
     checkStationBadges(id);
   }
+  /* Zustandsabhängige Abzeichen jedes Mal prüfen – nicht nur beim ersten
+     Abschluss: Der Radar ist typischerweise erst nach mehreren Durchgängen
+     sauber, und checkStationBadges() läuft nur einmal. */
+  if(id==="lrepeat" && !weakKeys().length) unlock("radar_clear");
   saveState();
   const next=nextStationId();showReplay(true);
   if(id==="exam"){ showNext(true,"Urkunde anzeigen 🏆"); $("#nextBtn").onclick=()=>go("exam_done"); }
@@ -1645,6 +1697,17 @@ SCREENS.lessonmap=(stage)=>{
      <div class="s"><b>${starSum}/${LESSONS.length*3}</b><span>Sterne ⭐</span></div>
      <div class="s"><b>${learnedSoFar().size}</b><span>gelernte Tasten</span></div>`));
 
+  /* Fehler-Radar: nur zeigen, wenn es wirklich etwas zu üben gibt. */
+  const weak=weakKeys();
+  if(weak.length){
+    const w=mk("lmapweak",
+      `🎯 <b>Wackelkandidaten:</b> Diese Tasten gehen dir noch am häufigsten daneben:
+       <span class="keys">${weak.map(k=>`<span class="wkey">${k}</span>`).join("")}</span>`);
+    const b=document.createElement("button"); b.className="btn btn-ghost btn-small";
+    b.textContent="gezielt üben ›"; b.addEventListener("click",()=>go("lrepeat"));
+    w.appendChild(b); stage.appendChild(w);
+  }
+
   const grid=mk("lmapgrid"); stage.appendChild(grid);
   LESSONS.forEach(L=>{
     const id="l"+L.no, rec=state.lessons[id], done=!!state.done[id], stars=lessonStars(L.no);
@@ -1682,7 +1745,7 @@ function lessonChain(words,sylls){
   return src.join(" ");
 }
 function lessonSteps(L){
-  const words=lessonWords(L.no);
+  const words=L.words||lessonWords(L.no);
   const steps=[
     {label:"Aufwärmen", items:L.warm.slice()},
     {label:"Silben",    items:L.sylls.slice()}
@@ -1693,13 +1756,14 @@ function lessonSteps(L){
 }
 function lessonScreen(L){
   return (stage)=>{
-    const id="l"+L.no;
+    const id=L.id||("l"+L.no);
     const steps=lessonSteps(L);
     /* Kurze Einordnung oben, der ausführliche Griff-Tipp steht im Kasten darunter. */
-    setInstruction(`Lektion ${L.no} von ${LESSONS.length} · ${L.title} ${L.icon}`,
-      L.keys.length
+    setInstruction(
+      L.headline || `Lektion ${L.no} von ${LESSONS.length} · ${L.title} ${L.icon}`,
+      L.intro || (L.keys.length
         ? `Neu sind <b>${L.keys.join("</b> und <b>")}</b>. Tippe jede Zeile ab – erst einzeln, dann in Silben und Wörtern.`
-        : `Keine neuen Tasten – jetzt wird das Gelernte <b>blind</b> wiederholt.`);
+        : `Keine neuen Tasten – jetzt wird das Gelernte <b>blind</b> wiederholt.`));
 
     const bar=mk("lessonbar"); stage.appendChild(bar);
     steps.forEach((s,i)=>{ const c=mk("lstep",s.label); c.dataset.i=i; bar.appendChild(c); });
@@ -1723,6 +1787,7 @@ function lessonScreen(L){
     }
 
     let si=0, ii=0, chars=0, errs=0, t0=0, tEnd=0;
+    const missed={};   /* Fehler je Taste – nur für das Zeugnis dieser Lektion */
     const totalItems=steps.reduce((n,s)=>n+s.items.length,0);
     let doneItems=0;
     function markSteps(){
@@ -1741,6 +1806,7 @@ function lessonScreen(L){
       const typer=buildTyper(box,text,{
         kb: showKey ? kb : null,
         onChar:(idx)=>{ if(t0===0) t0=performance.now(); showFinger(text,idx); },
+        onKey:(want,ok)=>{ if(!ok && want!==" ") missed[want]=(missed[want]||0)+1; },
         onDone:(res)=>{
           chars+=res.len; errs+=res.errors; tEnd=performance.now();
           doneItems++; ii++; sfx.good();
@@ -1758,7 +1824,7 @@ function lessonScreen(L){
       let stars=1;
       if(quote>=STAR2_QUOTE) stars=2;
       if(quote>=STAR3_QUOTE && apm>=L.apm) stars=3;
-      /* Bestwert merken (Persistenz folgt in Phase 2b) */
+      /* Bestwert merken */
       state.lessons=state.lessons||{};
       const prev=state.lessons[id]||{stars:0,apm:0,quote:0};
       state.lessons[id]={stars:Math.max(prev.stars,stars),apm:Math.max(prev.apm,apm),quote:Math.max(prev.quote,quote)};
@@ -1767,6 +1833,12 @@ function lessonScreen(L){
       const note = stars===3 ? "Perfekt – Tempo und Treffer stimmen!"
                  : stars===2 ? `Stark! Für den dritten Stern: ${STAR3_QUOTE} % Treffer und ${L.apm} Anschläge pro Minute.`
                  : `Geschafft! Für den zweiten Stern brauchst du ${STAR2_QUOTE} % Treffer – übe die Lektion ruhig nochmal.`;
+      /* Die drei Tasten, die in dieser Lektion am häufigsten danebengingen. */
+      const top=Object.keys(missed).sort((a,b)=>missed[b]-missed[a]).slice(0,3);
+      const topHtml = top.length
+        ? `<div class="zkeys">Diese Tasten waren am schwersten:
+             ${top.map(k=>`<span class="zkey">${k===" "?"␣":k}</span>`).join("")}</div>`
+        : `<div class="zkeys">Keine Taste hat dir Probleme gemacht. 👏</div>`;
       const z=mk("zeugnis",
         `<h3>Dein Tipp-Zeugnis</h3>
          <div class="stars">${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</div>
@@ -1775,10 +1847,11 @@ function lessonScreen(L){
            <div class="val"><b>${quote} %</b><span>Treffer</span></div>
            <div class="val"><b>${errs}</b><span>Fehler</span></div>
          </div>
+         ${topHtml}
          <div class="note">${note}</div>`);
       stage.appendChild(z);
       setCounter(null);
-      completeStation(id,`Lektion ${L.no} geschafft! ${"⭐".repeat(stars)}`,{perfect:errs===0});
+      completeStation(id, L.doneMsg||`Lektion ${L.no} geschafft! ${"⭐".repeat(stars)}`,{perfect:errs===0});
       /* completeStation blendet „Überspringen“ aus – danach nutzen wir den
          Knopf als Rückweg zur Landkarte. */
       showSkip(true,()=>go("lessonmap"),"🗺️ Landkarte");
@@ -1787,6 +1860,54 @@ function lessonScreen(L){
   };
 }
 LESSONS.forEach(L=>{ SCREENS["l"+L.no]=lessonScreen(L); });
+
+/* ---------- Wiederholungs-Lektion „Wackelkandidaten“ ----------
+   Baut aus den schwächsten Tasten des Fehler-Radars eine Lektion. Sie nutzt
+   dieselbe Engine – nur Übungsstoff und Kopfzeile werden dynamisch erzeugt. */
+const HOME_ANCHORS=["f","j","d","k","s","l","a","ö"];
+function weakLesson(){
+  const weak=weakKeys();
+  /* Wortstoff: bereits gelernte Tasten + Grundreihe + die Wackelkandidaten
+     selbst; ein Wort kommt nur dran, wenn es mindestens eine Wackeltaste übt. */
+  const safe=new Set([...learnedSoFar(), ...HOME_ANCHORS, ...weak]);
+  const words=LESSON_WORDS.filter(w=>usesOnly(w,safe) && weak.some(k=>w.toLowerCase().includes(k)));
+  const warm=weak.map(k=>k.repeat(4));
+  const sylls=[];
+  weak.forEach((k,i)=>{
+    const a=HOME_ANCHORS[i%HOME_ANCHORS.length], b=HOME_ANCHORS[(i+4)%HOME_ANCHORS.length];
+    sylls.push(k+k+k, a+k+a, k+b+k);
+  });
+  return {
+    id:"lrepeat", no:0, keys:[], icon:"🎯", title:"Wackelkandidaten", repeat:true, weak,
+    headline:"Wackelkandidaten 🎯",
+    intro:`Diese Tasten gehen dir noch am häufigsten daneben: `+
+          `<b>${weak.join("</b> · <b>")}</b>. Die üben wir jetzt gezielt.`,
+    grip:"Lass dir Zeit und achte darauf, dass der <b>richtige Finger</b> die Taste holt. "+
+         "Lieber langsam und richtig als schnell und daneben.",
+    warm, sylls: sylls.length?sylls:["asdf","jklö"], words,
+    blind:2, apm:30,
+    doneMsg:"Wackelkandidaten geübt – stark! 🎯"
+  };
+}
+SCREENS.lrepeat=(stage)=>{
+  const weak=weakKeys();
+  if(!weak.length){
+    /* Nichts zu üben – das ist eine gute Nachricht, keine leere Seite. */
+    setInstruction("Wackelkandidaten 🎯",
+      "Der Fehler-Radar hat <b>keine</b> Wackelkandidaten gefunden – alle deine Tasten sitzen sicher!");
+    setHint("Übe ein paar Lektionen; falls eine Taste zickt, taucht sie hier auf.","good");
+    const z=mk("zeugnis",
+      `<h3>Alles im grünen Bereich ✅</h3>
+       <div class="stars">🎯</div>
+       <div class="note">Der Radar meldet sich, sobald eine Taste öfter danebengeht.
+         Dann übst du hier genau diese Tasten – und nur die.</div>`);
+    stage.appendChild(z);
+    showSkip(true,()=>go("lessonmap"),"🗺️ Landkarte");
+    showNext(true,"Weiter ›"); $("#nextBtn").onclick=()=>go(nextStationId());
+    return;
+  }
+  lessonScreen(weakLesson())(stage);
+};
 
 /* ---------- Grundreihe ---------- */
 SCREENS.khome=(stage)=>{

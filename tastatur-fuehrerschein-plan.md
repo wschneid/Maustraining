@@ -466,7 +466,7 @@ Die Stufe ist pro Lektion vorgegeben, in den Einstellungen aber
 | **2a** ✅ | `LESSONS[]`, `learnedKeys()`, Wortfilter, `lessonScreen()` mit Lektionen 1–6 | Grundreihe als echter Lehrgang spielbar |
 | **2b** ✅ | `lessonmap` (Landkarte, Sterne 80/85 %), `localStorage`-Persistenz, APM/Quote-Zeugnis | Kurs über mehrere Sitzungen nutzbar |
 | **2c** ✅ | Lektionen 7–18 (obere/untere Reihe), Blind-Stufen 2 und 3 | vollständiges Alphabet blind |
-| **2d** | `state.keyStats` + automatische Wiederholungs-Lektionen („Wackelkandidaten“) | gezieltes Nachüben schwacher Tasten |
+| **2d** ✅ | `state.keyStats` + automatische Wiederholungs-Lektionen („Wackelkandidaten“) | gezieltes Nachüben schwacher Tasten |
 | **2e** | Lektionen 19–22 (Umschalt-Gegenhand, Zahlen, Sonderzeichen, Abschluss) | Kurs komplett |
 | **2f** | **Kurs-Profil „Kurz · 12 Lektionen“** (`COURSE_SHORT`) + Umschalter | Doppelstunden-Variante nutzbar |
 | **2g** | Umbau der Spiele zu **Teil 3** (frei zugänglich), Ergonomie-Seite, Abzeichen, Urkunde erweitert | Feinschliff |
@@ -696,3 +696,57 @@ Kachel, das Emoji zeigt die **Reihe** (🖐️ Grundreihe · ⬆️ obere · ⬇
 44 Bildschirme fehlerfrei, keine abgeschnittene Tastatur; alle drei Blind-Stufen
 und beide Übersteuerungen geprüft; Lektion 18 komplett durchgespielt; Speichern
 und die Fehlerfälle aus Phase 2b weiterhin in Ordnung.
+
+---
+
+## 20. Phase 2d umgesetzt (Stand 2026-07-31)
+
+### Fehler-Radar (`state.keyStats`)
+
+- Jeder Anschlag wird **je Taste** mitgezählt (`{ok, fail}`). Die Zählung sitzt
+  zentral in `buildTyper()` – damit speisen **alle** Tipp-Stationen den Radar,
+  nicht nur die Lektionen. Die Leertaste bleibt außen vor, sie ist kein Lernziel.
+- **Wackelkandidat** ist eine Taste, die mindestens **4-mal** vorkam und unter
+  **90 %** Trefferquote liegt; angezeigt werden höchstens die **5 schwächsten**.
+- **Gleitendes Fenster statt Lebenslauf:** Übersteigt eine Taste ~24 Anschläge,
+  werden beide Zähler auf 60 % geschrumpft. Ohne das würde ein schwacher Start
+  eine Taste **für immer** als Wackelkandidat markieren – wer sich verbessert,
+  soll das im Radar sehen. Gemessener Verlauf einer absichtlich verhauenen
+  Taste: 50 % → 75 % → 86 % → 94 %, danach ist sie aus der Liste. Das ist
+  bewusst kein Sofort-Effekt: Drei saubere Durchgänge sind der Preis.
+
+### Wiederholungs-Lektion „Wackelkandidaten“ (`lrepeat`)
+
+- Baut aus den schwächsten Tasten **dynamisch** eine Lektion – Aufwärmen mit den
+  Wackeltasten, Silben mit Grundreihen-Ankern (`fgf`, `jaj`), dann Wörter, die
+  **mindestens eine** Wackeltaste enthalten, und eine Wortkette.
+- Nutzt **dieselbe** Engine wie die festen Lektionen. Dafür wurde `lessonScreen()`
+  minimal verallgemeinert (`L.id`, `L.words`, `L.headline`/`L.intro`,
+  `L.doneMsg`) – kein zweiter Ablauf, der gepflegt werden müsste.
+- **Kein Wortstoff mit ungelernten Tasten:** Der Vorrat wird gegen
+  „bereits gelernt + Grundreihe + Wackeltasten“ gefiltert.
+- Erreichbar über die **Landkarte** (Banner mit den Wackeltasten und Knopf
+  „gezielt üben“) und einmal im linearen Ablauf nach Lektion 18.
+- **Leerzustand als gute Nachricht:** Gibt es keine Wackelkandidaten, zeigt die
+  Seite „Alles im grünen Bereich ✅“ statt einer leeren Übung.
+
+### Fehlertasten im Zeugnis
+
+Das Tipp-Zeugnis nennt jetzt zusätzlich die **drei Tasten, die in dieser Lektion
+am häufigsten danebengingen** – wie in Abschnitt 13 vorgesehen. Lief alles
+sauber, steht dort „Keine Taste hat dir Probleme gemacht. 👏“.
+
+### Gefundener Fehler: Abzeichen war unerreichbar
+
+`checkStationBadges()` läuft in `completeStation()` nur beim **ersten**
+Abschluss einer Station. Das neue Abzeichen `radar_clear` hängt aber am
+*Zustand* („Radar sauber“), der typischerweise erst nach mehreren Durchgängen
+eintritt – es hätte also nie ausgelöst. Zustandsabhängige Abzeichen werden
+jetzt bei **jedem** Abschluss geprüft, einmalige Erfolge weiterhin nur beim
+ersten. Aufgefallen ist das erst im Test, der den Radar wirklich leergespielt hat.
+
+### Getestet
+
+Radar-Erkennung mit gezielt verhauenen Tasten, Verlauf bis zum Leerräumen,
+Leerzustand, Persistenz der `keyStats` über einen Reload, alle Bildschirme
+fehlerfrei, Wortfilter der 18 Lektionen weiterhin sauber.
