@@ -215,6 +215,24 @@
   .bigkey.go{background:var(--hint);animation:pop .35s;}
   @keyframes pop{0%{transform:scale(1);}45%{transform:scale(1.16);}100%{transform:scale(1);}}
 
+  /* ===== Zehn-Finger-Lehrgang: Lektionen ===== */
+  .lessonbar{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+  .lstep{font-size:.78rem;padding:4px 11px;border-radius:999px;background:var(--ocean-pale);
+    border:1px solid var(--line);color:var(--ink-soft);}
+  .lstep.active{background:var(--ocean-bright);color:#fff;border-color:var(--ocean-bright);font-weight:700;}
+  .lstep.done{background:#fff;color:var(--ocean-mid);}
+  .lfinger{text-align:center;font-size:.92rem;color:var(--ink-soft);min-height:24px;margin:2px 0 4px;}
+  .lfinger .dot{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:-2px;margin-right:6px;}
+  .zeugnis{background:#fff;border:2px solid var(--ocean-mid);border-radius:14px;padding:18px 20px;
+    max-width:420px;margin:8px auto;text-align:center;}
+  .zeugnis h3{margin:0 0 4px;color:var(--ocean-deep);font-size:1.1rem;}
+  .zeugnis .stars{font-size:1.9rem;letter-spacing:4px;margin:6px 0;}
+  .zeugnis .vals{display:flex;gap:20px;justify-content:center;margin-top:10px;}
+  .zeugnis .val{flex:1;}
+  .zeugnis .val b{display:block;font-size:1.35rem;color:var(--ocean-mid);}
+  .zeugnis .val span{font-size:.76rem;color:var(--ink-soft);}
+  .zeugnis .note{margin-top:10px;font-size:.83rem;color:var(--ink-soft);}
+
   /* ===== Prüfung ===== */
   .examwrap{flex:1;display:flex;gap:18px;flex-wrap:wrap;}
   .examdesk{flex:2;min-width:300px;display:flex;flex-direction:column;}
@@ -425,6 +443,13 @@ const STATIONS = [
   {id:"kfix",      short:"Korrigieren",  icon:"⌫", part:1, title:"Korrigier-Werkstatt",desc:"Rücktaste & Entf-Taste"},
   {id:"kcombo",    short:"Kombi",        icon:"🎹", part:1, title:"Kombi-Tasten",     desc:"Strg + C · V · Z"},
   {id:"exam1",     short:"Teil-1-Prüfung",icon:"🥇",part:1, title:"Teil-1-Prüfung",   desc:"Die Tasten sitzen!"},
+  /* Zehn-Finger-Lehrgang: je Lektion zwei neue Tasten (Phase 2a: Grundreihe) */
+  {id:"l1",        short:"f j",          icon:"1️⃣", part:2, title:"Lektion 1 · f und j", desc:"Zeigefinger – Grundstellung"},
+  {id:"l2",        short:"d k",          icon:"2️⃣", part:2, title:"Lektion 2 · d und k", desc:"Mittelfinger"},
+  {id:"l3",        short:"s l",          icon:"3️⃣", part:2, title:"Lektion 3 · s und l", desc:"Ringfinger"},
+  {id:"l4",        short:"a ö",          icon:"4️⃣", part:2, title:"Lektion 4 · a und ö", desc:"kleine Finger – Grundreihe komplett"},
+  {id:"l5",        short:"g h",          icon:"5️⃣", part:2, title:"Lektion 5 · g und h", desc:"nach innen strecken"},
+  {id:"l6",        short:"blind",        icon:"6️⃣", part:2, title:"Lektion 6 · Grundreihe blind", desc:"ohne auf die Tasten zu schauen"},
   {id:"khome",     short:"Grundreihe",   icon:"🖐️", part:2, title:"Grundreihe",       desc:"a s d f · j k l ö"},
   {id:"ktop",      short:"Obere Reihe",  icon:"⬆️", part:2, title:"Obere Reihe",      desc:"q w e r t z u i o p"},
   {id:"kbottom",   short:"Untere Reihe", icon:"⬇️", part:2, title:"Untere Reihe",     desc:"y x c v b n m"},
@@ -439,9 +464,10 @@ const STATIONS = [
   {id:"kspace",    short:"Weltraum",     icon:"🚀", part:2, title:"Wort-Weltraum",    desc:"Wort-Asteroiden abtippen"},
   {id:"exam",      short:"Prüfung",      icon:"🏆", title:"Prüfung",          desc:"Alles zusammen!"}
 ];
-/* Nummerierung zählt nur echte Übungsstationen – die Prüfungen bleiben aussen vor */
+/* Nummerierung zählt nur echte Übungsstationen – Prüfungen und die Lektionen
+   des Lehrgangs bleiben aussen vor (Lektionen zählen „Lektion x von y“). */
 const isExamId = id => id==="exam" || id==="exam1";
-const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&!isExamId(s.id)).findIndex(s=>s.id===id)+1;
+const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&!isExamId(s.id)&&!isLessonId(s.id)).findIndex(s=>s.id===id)+1;
 /* Erste/letzte echte Station eines Teils (für Überschriften & Übergang) */
 const firstOfPart = p => (STATIONS.find(s=>s.part===p)||{}).id;
 const lastOfPart  = p => { const l=STATIONS.filter(s=>s.part===p); return l.length?l[l.length-1].id:undefined; };
@@ -475,6 +501,64 @@ const FUNNY_SENTENCES = [
   "Der Igel isst im Iglu eine Erdbeere.",
   "Süße Schnecken schlürfen Schokolade."
 ];
+
+/* ============================================================
+   Zehn-Finger-Lehrgang (Teil 2) – Lektionen
+   ------------------------------------------------------------
+   Jede Lektion führt zwei neue Tasten ein. Der Übungsstoff wird über
+   learnedKeys()/lessonWords() auf die bis dahin gelernten Tasten
+   gefiltert: In einer Lektion kommt nie eine Taste vor, die noch nicht
+   dran war – sonst müsste das Kind zwangsläufig auf die Tastatur schauen.
+
+   Alles ist kleingeschrieben: Die Umschalttaste kommt erst in einer
+   späteren Lektion, vorher gibt es also weder Großbuchstaben noch echte
+   Sätze (die mit einem Großbuchstaben beginnen müssten). Statt eines
+   Satzes endet jede Lektion mit einer „Wortkette“ – die übt zugleich
+   die Leertaste.
+   ============================================================ */
+/* Gemeinsamer Wortvorrat des Lehrgangs: ausschließlich klein geschriebene
+   Wörter (Verben, Adjektive, Artikel, Partikeln). Der Filter blendet je
+   Lektion automatisch frei, was tippbar ist – späte Wörter tauchen also
+   von selbst auf, sobald ihre Tasten gelernt sind. */
+const LESSON_WORDS = [
+  "als","lass","falls","dass","das","da","lag","half","sah",
+  "alle","alles","hallo","hell","hat","hast","kalt","gelb","also",
+  "oft","hoch","doch","auch","dann","denn","kann","wann",
+  "lacht","sagt","fragt","hilft","holt","spielt","lernt","tippt",
+  "schnell","langsam","richtig","lustig","fertig","weiter","gut","toll"
+];
+const LESSONS = [
+  {no:1, keys:["f","j"], title:"die Zeigefinger", icon:"1️⃣",
+   grip:"Lege die Finger auf <b>a s d f</b> und <b>j k l ö</b>. Auf <b>f</b> und <b>j</b> spürst du kleine Erhebungen – dort liegen die Zeigefinger.",
+   warm:["ffff","jjjj","fjfj"], sylls:["fff","jjj","fjf","jfj","ffjj","jjff"], blind:1, apm:20},
+  {no:2, keys:["d","k"], title:"die Mittelfinger", icon:"2️⃣",
+   grip:"Neben den Zeigefingern liegen die <b>Mittelfinger</b>: links auf <b>d</b>, rechts auf <b>k</b>.",
+   warm:["dddd","kkkk","dkdk"], sylls:["ddd","kkk","dkd","kdk","fdk","jkd"], blind:1, apm:22},
+  {no:3, keys:["s","l"], title:"die Ringfinger", icon:"3️⃣",
+   grip:"Die <b>Ringfinger</b> kommen dazu: links auf <b>s</b>, rechts auf <b>l</b>.",
+   warm:["ssss","llll","slsl"], sylls:["sss","lll","sls","lsl","dsl","lkf"], blind:1, apm:25},
+  {no:4, keys:["a","ö"], title:"die kleinen Finger", icon:"4️⃣",
+   grip:"Zum Schluss die <b>kleinen Finger</b>: links auf <b>a</b>, rechts auf <b>ö</b>. Jetzt liegt die ganze Grundreihe unter deinen Händen!",
+   warm:["aaaa","öööö","aöaö"], sylls:["aaa","ööö","aöa","öaö","asdf","jklö"], blind:1, apm:28},
+  {no:5, keys:["g","h"], title:"strecken nach innen", icon:"5️⃣",
+   grip:"Für <b>g</b> und <b>h</b> streckt sich der Zeigefinger nach innen – und kommt danach sofort wieder zurück auf <b>f</b> bzw. <b>j</b>.",
+   warm:["gggg","hhhh","ghgh"], sylls:["ggg","hhh","ghg","hgh","fgf","jhj"], blind:1, apm:30},
+  {no:6, keys:[], title:"Grundreihe blind", icon:"6️⃣", repeat:true,
+   grip:"Jetzt ohne Hilfe: Die Tastatur zeigt nur noch den <b>Finger</b>, nicht mehr die Taste. Schau auf den Bildschirm, nicht auf deine Hände!",
+   warm:["asdf","jklö"], sylls:["asdfg","hjklö","asdfjklö","fjdksla"], blind:2, apm:35}
+];
+const isLessonId = id => /^l\d+$/.test(id);
+const lessonByNo = no => LESSONS.find(l=>l.no===no);
+/* Alle Tasten, die bis einschließlich Lektion `no` eingeführt wurden. */
+function learnedKeys(no){
+  const s=new Set();
+  LESSONS.filter(l=>l.no<=no).forEach(l=>l.keys.forEach(k=>s.add(k)));
+  return s;
+}
+/* Enthält der Text nur erlaubte Tasten? (Leerzeichen zählen immer als erlaubt.) */
+function usesOnly(text,set){ return [...String(text).toLowerCase()].every(c=>c===" "||set.has(c)); }
+/* Wortvorrat einer Lektion: alles, was sich mit den gelernten Tasten tippen lässt. */
+function lessonWords(no){ const set=learnedKeys(no); return LESSON_WORDS.filter(w=>usesOnly(w,set)); }
 
 /* ============================================================
    Sonderzeichen, die mit Umschalt ⇧ erzeugt werden
@@ -670,7 +754,7 @@ function buildTyper(host, text, o={}){
    Spielzustand & Hilfen
    ============================================================ */
 function defaultGamify(){
-  return { xp:0, level:1, coins:0, badges:{}, stats:{ attempts:0, fails:0, streak:0, bestStreak:0, perfectStations:{} } };
+  return { xp:0, level:1, coins:0, badges:{}, lessons:{}, stats:{ attempts:0, fails:0, streak:0, bestStreak:0, perfectStations:{} } };
 }
 const state = Object.assign({
   current:"start", done:{}, sound:true, difficulty:"mittel", fingers:false,
@@ -746,6 +830,8 @@ const BADGES = {
   corrector:     {icon:"⌫", title:"Fehler-Jäger"},
   combo_pro:     {icon:"🎹", title:"Kombi-Kenner"},
   key_master:    {icon:"🔑", title:"Tasten-Kenner"},
+  lesson_start:  {icon:"🎯", title:"Lehrgang gestartet"},
+  blind_typer:   {icon:"🙈", title:"Blindschreiber"},
   home_row:      {icon:"🖐️", title:"Grundreihen-Held"},
   toprow_hero:   {icon:"⬆️", title:"Obere-Reihe-Held"},
   bottomrow_hero:{icon:"⬇️", title:"Untere-Reihe-Held"},
@@ -826,6 +912,8 @@ function checkStationBadges(id){
   if(id==="kfix")unlock("corrector");
   if(id==="kcombo")unlock("combo_pro");
   if(id==="exam1")unlock("key_master");
+  if(id==="l1")unlock("lesson_start");
+  if(id==="l6")unlock("blind_typer");
   if(id==="khome")unlock("home_row");
   if(id==="ktop")unlock("toprow_hero");
   if(id==="kbottom")unlock("bottomrow_hero");
@@ -1362,6 +1450,123 @@ SCREENS.exam1=(stage)=>{
   }
   activate(1); stepKey();
 };
+
+/* ---------- Lektions-Engine (Zehn-Finger-Lehrgang) ----------
+   Ablauf jeder Lektion: Aufwärmen → Silben → Wörter → Wortkette → Zeugnis.
+   Schritte ohne Übungsstoff entfallen (in den ersten Lektionen gibt es noch
+   keine tippbaren Wörter). Am Ende zählt das Zeugnis Tempo (Anschläge pro
+   Minute) und Trefferquote und vergibt ein bis drei Sterne. */
+const STAR2_QUOTE = 80;   /* ⭐⭐ ab dieser Trefferquote in Prozent */
+const STAR3_QUOTE = 85;   /* ⭐⭐⭐ ab dieser Quote UND dem Zieltempo der Lektion */
+
+function lessonChain(words,sylls){
+  /* Wortkette: übt zugleich die Leertaste. Wenn es noch keine Wörter gibt,
+     werden Silben aneinandergereiht. */
+  const src = words.length>=4 ? shuffle(words.slice()).slice(0,4) : sylls.slice(0,3);
+  return src.join(" ");
+}
+function lessonSteps(L){
+  const words=lessonWords(L.no);
+  const steps=[
+    {label:"Aufwärmen", items:L.warm.slice()},
+    {label:"Silben",    items:L.sylls.slice()}
+  ];
+  if(words.length>=3) steps.push({label:"Wörter", items:shuffle(words.slice()).slice(0,5)});
+  steps.push({label:"Wortkette", items:[lessonChain(words,L.sylls)]});
+  return steps;
+}
+function lessonScreen(L){
+  return (stage)=>{
+    const id="l"+L.no;
+    const steps=lessonSteps(L);
+    /* Kurze Einordnung oben, der ausführliche Griff-Tipp steht im Kasten darunter. */
+    setInstruction(`Lektion ${L.no} von ${LESSONS.length} · ${L.title} ${L.icon}`,
+      L.keys.length
+        ? `Neu sind <b>${L.keys.join("</b> und <b>")}</b>. Tippe jede Zeile ab – erst einzeln, dann in Silben und Wörtern.`
+        : `Keine neuen Tasten – jetzt wird die ganze Grundreihe <b>blind</b> geübt.`);
+
+    const bar=mk("lessonbar"); stage.appendChild(bar);
+    steps.forEach((s,i)=>{ const c=mk("lstep",s.label); c.dataset.i=i; bar.appendChild(c); });
+    const info=mk("infobox",L.grip); info.style.maxWidth="640px"; info.style.margin="0 auto 8px";
+    stage.appendChild(info);
+    const box=mk("typebox"); stage.appendChild(box);
+    const fingerBox=mk("lfinger"); if(L.blind>=2) stage.appendChild(fingerBox);
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:L.blind>=2});
+    if(L.blind<3){ kbHost.appendChild(kb.el); stage.appendChild(kbHost); }
+
+    /* Bei Blind-Stufe 2 leuchtet die Taste nicht mehr – angezeigt wird nur,
+       welcher Finger dran ist. */
+    const showKey = L.blind<2;
+    function showFinger(text,idx){
+      if(L.blind<2) return;
+      const c=text[idx];
+      if(c==null){ fingerBox.innerHTML=""; return; }
+      if(c===" "){ fingerBox.innerHTML=`<span class="dot" style="background:${FINGERS.th.c}"></span> Daumen · Leertaste`; return; }
+      fingerBox.innerHTML=`<span class="dot" style="background:${fingerColor(c)}"></span> ${fingerName(c)}`;
+    }
+
+    let si=0, ii=0, chars=0, errs=0, t0=0, tEnd=0;
+    const totalItems=steps.reduce((n,s)=>n+s.items.length,0);
+    let doneItems=0;
+    function markSteps(){
+      $$(".lstep",bar).forEach((c,i)=>{ c.classList.toggle("active",i===si); c.classList.toggle("done",i<si); });
+    }
+    function nextItem(){
+      if(si>=steps.length){ finish(); return; }
+      const step=steps[si];
+      if(ii>=step.items.length){ si++; ii=0; markSteps(); nextItem(); return; }
+      markSteps();
+      box.innerHTML="";
+      const text=step.items[ii];
+      setCounter(`${doneItems}/${totalItems}`,"Zeilen");
+      setHint(`${step.label}: tippe <b>${text.replace(/ /g,"␣")}</b>`,"");
+      showFinger(text,0);
+      const typer=buildTyper(box,text,{
+        kb: showKey ? kb : null,
+        onChar:(idx)=>{ if(t0===0) t0=performance.now(); showFinger(text,idx); },
+        onDone:(res)=>{
+          chars+=res.len; errs+=res.errors; tEnd=performance.now();
+          doneItems++; ii++; sfx.good();
+          setCounter(`${doneItems}/${totalItems}`,"Zeilen");
+          later(nextItem,320);
+        }
+      });
+      setKeyHandler(e=>typer.feed(e));
+    }
+    function finish(){
+      setKeyHandler(null); kb.clearHighlight(); fingerBox.innerHTML="";
+      const mins=Math.max((tEnd-t0)/60000, 1/60000);
+      const apm=Math.round(chars/mins);
+      const quote=Math.round(chars/Math.max(chars+errs,1)*100);
+      let stars=1;
+      if(quote>=STAR2_QUOTE) stars=2;
+      if(quote>=STAR3_QUOTE && apm>=L.apm) stars=3;
+      /* Bestwert merken (Persistenz folgt in Phase 2b) */
+      state.lessons=state.lessons||{};
+      const prev=state.lessons[id]||{stars:0,apm:0,quote:0};
+      state.lessons[id]={stars:Math.max(prev.stars,stars),apm:Math.max(prev.apm,apm),quote:Math.max(prev.quote,quote)};
+
+      box.innerHTML=""; bar.remove(); info.remove(); kbHost.remove();
+      const note = stars===3 ? "Perfekt – Tempo und Treffer stimmen!"
+                 : stars===2 ? `Stark! Für den dritten Stern: ${STAR3_QUOTE} % Treffer und ${L.apm} Anschläge pro Minute.`
+                 : `Geschafft! Für den zweiten Stern brauchst du ${STAR2_QUOTE} % Treffer – übe die Lektion ruhig nochmal.`;
+      const z=mk("zeugnis",
+        `<h3>Dein Tipp-Zeugnis</h3>
+         <div class="stars">${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</div>
+         <div class="vals">
+           <div class="val"><b>${apm}</b><span>Anschläge<br>pro Minute</span></div>
+           <div class="val"><b>${quote} %</b><span>Treffer</span></div>
+           <div class="val"><b>${errs}</b><span>Fehler</span></div>
+         </div>
+         <div class="note">${note}</div>`);
+      stage.appendChild(z);
+      setCounter(null);
+      completeStation(id,`Lektion ${L.no} geschafft! ${"⭐".repeat(stars)}`,{perfect:errs===0});
+    }
+    markSteps(); nextItem();
+  };
+}
+LESSONS.forEach(L=>{ SCREENS["l"+L.no]=lessonScreen(L); });
 
 /* ---------- Grundreihe ---------- */
 SCREENS.khome=(stage)=>{

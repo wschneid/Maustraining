@@ -463,7 +463,7 @@ Die Stufe ist pro Lektion vorgegeben, in den Einstellungen aber
 
 | Phase | Inhalt | Ergebnis |
 |---|---|---|
-| **2a** | `LESSONS[]`, `learnedKeys()`, Wortfilter, `lessonEngine()` mit Lektionen 1–6 | Grundreihe als echter Lehrgang spielbar |
+| **2a** ✅ | `LESSONS[]`, `learnedKeys()`, Wortfilter, `lessonScreen()` mit Lektionen 1–6 | Grundreihe als echter Lehrgang spielbar |
 | **2b** | `lessonmap` (Landkarte, Sterne 80/85 %), `localStorage`-Persistenz, APM/Quote-Zeugnis | Kurs über mehrere Sitzungen nutzbar |
 | **2c** | Lektionen 7–18 (obere/untere Reihe), Blind-Stufen 2 und 3 | vollständiges Alphabet blind |
 | **2d** | `state.keyStats` + automatische Wiederholungs-Lektionen („Wackelkandidaten“) | gezieltes Nachüben schwacher Tasten |
@@ -510,4 +510,62 @@ zunächst nur für die bis dahin fertigen Lektionen.
 ### Noch offen
 
 5. **Klausur-Datei:** Soll `tastatur-klausur.html` um einen Lektions-Test in
-   Papierform ergänzt werden? (Blockiert Phase 2a nicht – betrifft erst 2f.)
+   Papierform ergänzt werden? (Blockierte Phase 2a nicht – betrifft erst 2g.)
+
+---
+
+## 17. Phase 2a umgesetzt (Stand 2026-07-31)
+
+Die Lektionen **1–6 (Grundreihe)** laufen. Umgesetzt wurde:
+
+- **`LESSONS[]`** – Lektionsdefinition mit neuen Tasten, Griff-Tipp, Aufwärm-
+  und Silbenstoff, Blind-Stufe und Zieltempo (`apm`).
+- **`LESSON_WORDS` + `learnedKeys()` / `usesOnly()` / `lessonWords()`** – der
+  zentrale Wortfilter. Ein einziger, klein geschriebener Wortvorrat wird je
+  Lektion auf die bereits gelernten Tasten gefiltert. Ergebnis im Test:
+
+  | Lektion | gelernte Tasten | freigeschaltete Wörter |
+  |---|---|---|
+  | 1–3 | f j / + d k / + s l | *(noch keine)* – nur Silben |
+  | 4 | + a ö | als, lass, falls, dass, das, da |
+  | 5 | + g h | … + lag, half, sah |
+  | 6 | *(Wdh.)* | wie Lektion 5 |
+
+  Spätere Wörter des Vorrats (`hallo`, `schnell`, `richtig` …) tauchen in den
+  Folgephasen **von selbst** auf, sobald ihre Tasten dran waren – ohne dass die
+  Wortliste angefasst werden muss.
+- **`lessonScreen()`** – die Lektions-Engine: Aufwärmen → Silben → Wörter →
+  Wortkette → Zeugnis, mit Schritt-Anzeige. Schritte ohne Stoff entfallen
+  automatisch (Lektionen 1–3 haben daher keinen Wörter-Schritt).
+- **Blind-Stufen 1 und 2** – Stufe 1 hebt die Zieltaste hervor, Stufe 2 zeigt
+  **nur noch den Finger** (Farbpunkt + Name) und lässt die Tastatur unmarkiert.
+  Lektion 6 nutzt Stufe 2. Stufe 3 (Tastatur ganz aus) ist vorbereitet.
+- **Tipp-Zeugnis** – Anschläge/Minute, Trefferquote, Fehlerzahl und 1–3 Sterne
+  nach den beschlossenen Schwellen (⭐⭐ ab 80 %, ⭐⭐⭐ ab 85 % + Zieltempo).
+  Bestwerte liegen in `state.lessons` (Persistenz folgt in 2b).
+- **Neue Abzeichen** `lesson_start` („Lehrgang gestartet“) und `blind_typer`
+  („Blindschreiber“, nach Lektion 6).
+
+### Abweichung vom Plan: „Wortkette“ statt „Satz“
+
+Der Plan sah als letzten Schritt jeder Lektion einen **Satz** vor. Das geht vor
+der Umschalt-Lektion nicht: Ein deutscher Satz beginnt mit einem Großbuchstaben
+und endet mit einem Satzzeichen – beides ist noch nicht gelernt, und beides
+würde den Grundsatz „nie eine ungelernte Taste“ brechen. Deshalb endet jede
+Lektion stattdessen mit einer **Wortkette** (mehrere Wörter mit Leerzeichen).
+Das hat einen zusätzlichen Vorteil: Die **Leertaste** wird so von Anfang an
+regelmäßig mitgeübt. Ab der Umschalt-Lektion (19 bzw. K10) können echte Sätze
+folgen – dort greift die Regel dann sauber.
+
+### Numerierung
+
+Die Lektionen zählen **eigenständig** („Lektion 3 von 6“) und sind aus der
+Stationsnummerierung ausgenommen – wie die Prüfungen. Dadurch ändern sich die
+Nummern der bestehenden Stationen nicht: „Station 8 · Grundreihe“ heißt weiter so.
+
+### Was in 2a bewusst noch fehlt
+
+`lessonmap`, `localStorage`-Persistenz (Phase 2b), die Lektionen 7–22, das
+Kurs-Profil der Kurzvariante (2f) und der Umbau der Spiele zu Teil 3 (2g).
+Die alten Stationen `khome`/`ktop`/`kbottom`/`kfingers` bleiben wie geplant
+zunächst als Schnelldurchlauf erhalten.
