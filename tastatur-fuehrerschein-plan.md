@@ -304,7 +304,8 @@ Sätze → vier Tipp-Spiele). Als **Lehrgang** hat er aber systematische Lücken
 
 Teil 2 wird vom „Stationen-Parcours“ zum **Lehrgang mit Lektionen**:
 
-- **~20 kurze Lektionen** à 3–6 Minuten, jede führt **2 neue Tasten** ein.
+- **22 kurze Lektionen** à 3–6 Minuten, jede führt **2 neue Tasten** ein –
+  wahlweise als **Kurzvariante mit 12 Lektionen** (siehe Abschnitt 12).
 - Jede Lektion folgt derselben Dramaturgie:
   **Aufwärmen** (Einzeltasten) → **Silben** (`fjf jfj`) → **Wörter** (nur aus
   gelernten Tasten) → **Satz** → **Tipp-Zeugnis** (Tempo, Treffer, Sterne).
@@ -312,18 +313,36 @@ Teil 2 wird vom „Stationen-Parcours“ zum **Lehrgang mit Lektionen**:
   Tastatur ausgeblendet.
 - **Fehler-Radar** merkt sich pro Taste die Trefferquote und baut daraus
   automatische Wiederholungs-Lektionen.
-- Die vier **Tipp-Spiele** bleiben – aber als **Teil 3 „Spielwiese"**, spielbar,
-  sobald die nötigen Tasten gelernt sind. Das trennt *Lernen* von *Spielen*,
-  ohne Vorhandenes wegzuwerfen.
+- Die vier **Tipp-Spiele** bleiben – als **Teil 3 „Spielwiese“**, und zwar
+  **jederzeit frei zugänglich** (siehe unten). Das trennt *Lernen* von *Spielen*,
+  ohne Vorhandenes wegzuwerfen und ohne jemanden auszusperren.
 
 ### Neue Gliederung
 
 | Teil | Inhalt | Stationen |
 |---|---|---|
 | Teil 1 · Tasten-Schule | wie heute | `klesson` … `exam1` |
-| **Teil 2 · Zehn-Finger-Lehrgang** | **Lektions-Landkarte mit ~20 Lektionen** | neu: `lessonmap` + Lektions-Engine |
-| **Teil 3 · Spielwiese** | die vier Tipp-Spiele | `kraindrop`, `kreflex`, `krace`, `kspace` |
+| **Teil 2 · Zehn-Finger-Lehrgang** | **Lektions-Landkarte mit 22 bzw. 12 Lektionen** | neu: `lessonmap` + Lektions-Engine |
+| **Teil 3 · Spielwiese** | die vier Tipp-Spiele, **frei zugänglich** | `kraindrop`, `kreflex`, `krace`, `kspace` |
 | Abschluss | Prüfung + Urkunde + Lernzettel | `exam`, `exam_done`, `lernzettel` |
+
+### Spielwiese ohne Freischaltung ✅ (entschieden)
+
+Die Spiele werden **nicht** an den Lernfortschritt gekoppelt – sie sind von
+Anfang an spielbar. Konsequenzen für die Umsetzung:
+
+- Die Spiele behalten ihren **vollen Wortvorrat** (`WORDS`, `FUNNY_WORDS`). Der
+  Lernstoff-Filter aus dem Lehrgang gilt dort ausdrücklich **nicht** – sie sind
+  Spiel, nicht Lektion.
+- Teil 3 ist über die Fortschrittsleiste und den ☰-Drawer **immer** erreichbar,
+  auch mitten im Lehrgang. Ein Kind, das keine Lust mehr auf Lektionen hat, soll
+  im Trainer bleiben können statt ihn zu schließen.
+- Die Spiele zählen weiter auf XP, Münzen und ihre bestehenden Abzeichen ein,
+  aber **nicht** auf die Lektions-Sterne – sonst ließe sich der Lehrgang über die
+  Spielwiese „umgehen“.
+- Empfehlung fürs Klassenzimmer (gehört in den Hilfetext, nicht in den Code):
+  Spielwiese als **Belohnung nach der Lektion** einsetzen. Das ist eine
+  pädagogische Entscheidung der Lehrkraft, keine technische Sperre.
 
 ## 12. Der Lektionsplan (Vorschlag)
 
@@ -361,6 +380,45 @@ Tasten gefiltert** – technisch ein Filter über eine Wortliste
 Lektionen ergänzen wir bewusst **Silben und Kunstwörter** (`fjf`, `jaja`,
 `Salat` ab L3), weil echte Wörter aus vier Buchstaben rar sind.
 
+### Kurzvariante: 12 Lektionen für die Doppelstunde ✅ (entschieden)
+
+Neben dem vollen Lehrgang gibt es eine **Kurzvariante mit 12 Lektionen** – für
+den Einsatz in einer Doppelstunde oder als Schnelldurchlauf. Sie lässt **keine
+Tasten weg**: Alle Buchstaben, Zahlen und Sonderzeichen kommen vor. Gekürzt wird
+nur die *Schrittweite* – je zwei Lektionen des Lehrgangs werden zu einer
+zusammengefasst, und die reinen Wiederholungs-Lektionen (6, 13) entfallen.
+
+| Kurz-Lektion | Neue Tasten | entspricht Lang-Lektion |
+|---|---|---|
+| K1 | f j d k | 1 + 2 |
+| K2 | s l a ö | 3 + 4 – Grundreihe komplett |
+| K3 | g h | 5 |
+| K4 | e i r u | 7 + 8 |
+| K5 | w o q p | 9 + 10 |
+| K6 | t z ü ä | 11 + 12 – obere Reihe komplett |
+| K7 | v m c , | 14 + 15 |
+| K8 | x . y - | 16 + 17 |
+| K9 | b n | 18 – Alphabet komplett |
+| K10 | ⇧ (Gegenhand) | 19 |
+| K11 | Zahlen + Sonderzeichen | 20 + 21 |
+| K12 | Abschluss | 22 |
+
+**Technisch keine zweite Lektionsliste:** Die Kurzvariante ist nur eine
+**Gruppierung** derselben `LESSONS[]` – ein Kurs-Profil der Form
+`COURSE_SHORT = [[1,2],[3,4],[5],[7,8],…]`. Die Lektions-Engine bekommt also
+weiterhin nur eine Tastenmenge und einen Übungsvorrat; sie muss nicht wissen,
+aus welchem Profil sie stammt. Damit gibt es **einen** Lehrgang und **zwei**
+Wege hindurch – kein doppelter Pflegeaufwand.
+
+- **Auswahl** beim Start von Teil 2 („Ausführlich · 22 Lektionen“ /
+  „Kurz · 12 Lektionen“), später in den Einstellungen umschaltbar.
+- **Wechsel mittendrin** ist erlaubt: Da der Fortschritt pro **Taste**
+  (`keyStats`) und pro **Lang-Lektion** gespeichert wird, gilt eine Kurz-Lektion
+  als geschafft, wenn ihre zugrunde liegenden Lang-Lektionen es sind – und
+  umgekehrt. Der Lernstand geht beim Umschalten also nie verloren.
+- **Blind-Stufen** greifen in der Kurzvariante entsprechend früher (Stufe 2 ab
+  K4, Stufe 3 ab K7), damit das Blindschreiben auch im kurzen Weg vorkommt.
+
 ## 13. Technische Bausteine
 
 Nichts davon erfordert ein Framework; alles baut auf Vorhandenem auf.
@@ -384,9 +442,11 @@ Nichts davon erfordert ein Framework; alles baut auf Vorhandenem auf.
 - **Anschläge pro Minute (APM)** statt WPM – für Kinder greifbarer und ohne
   Wörter-Definition. Anzeige: „Du schaffst **84 Anschläge pro Minute**.“
 - **Trefferquote** in Prozent, plus die drei häufigsten Fehlertasten.
-- **Sterne pro Lektion:** ⭐ geschafft · ⭐⭐ ≥ 90 % Treffer · ⭐⭐⭐ ≥ 95 % Treffer
-  **und** Zieltempo der Lektion erreicht. Sterne sind der Anreiz zum
-  Wiederholen – genau das, was heute fehlt.
+- **Sterne pro Lektion:** ⭐ geschafft · ⭐⭐ ≥ **80 %** Treffer · ⭐⭐⭐ ≥ **85 %**
+  Treffer **und** Zieltempo der Lektion erreicht. Sterne sind der Anreiz zum
+  Wiederholen – genau das, was heute fehlt. Die Schwellen sind bewusst
+  kindgerecht angesetzt: Der zweite Stern soll für ein Kind, das die Lektion
+  ordentlich macht, **regelmäßig erreichbar** sein, nicht die Ausnahme.
 
 ### Blind-Stufen
 
@@ -404,13 +464,19 @@ Die Stufe ist pro Lektion vorgegeben, in den Einstellungen aber
 | Phase | Inhalt | Ergebnis |
 |---|---|---|
 | **2a** | `LESSONS[]`, `learnedKeys()`, Wortfilter, `lessonEngine()` mit Lektionen 1–6 | Grundreihe als echter Lehrgang spielbar |
-| **2b** | `lessonmap` (Landkarte, Sterne), `localStorage`-Persistenz, APM/Quote-Zeugnis | Kurs über mehrere Sitzungen nutzbar |
+| **2b** | `lessonmap` (Landkarte, Sterne 80/85 %), `localStorage`-Persistenz, APM/Quote-Zeugnis | Kurs über mehrere Sitzungen nutzbar |
 | **2c** | Lektionen 7–18 (obere/untere Reihe), Blind-Stufen 2 und 3 | vollständiges Alphabet blind |
 | **2d** | `state.keyStats` + automatische Wiederholungs-Lektionen („Wackelkandidaten“) | gezieltes Nachüben schwacher Tasten |
 | **2e** | Lektionen 19–22 (Umschalt-Gegenhand, Zahlen, Sonderzeichen, Abschluss) | Kurs komplett |
-| **2f** | Umbau der Spiele zu **Teil 3**, Ergonomie-Seite, Abzeichen, Urkunde erweitert | Feinschliff |
+| **2f** | **Kurs-Profil „Kurz · 12 Lektionen“** (`COURSE_SHORT`) + Umschalter | Doppelstunden-Variante nutzbar |
+| **2g** | Umbau der Spiele zu **Teil 3** (frei zugänglich), Ergonomie-Seite, Abzeichen, Urkunde erweitert | Feinschliff |
 
 Jede Phase ist ein **eigener PR** – wie bisher.
+
+Die Kurzvariante kommt bewusst **spät** (2f): Sie ist nur eine Gruppierung der
+Lang-Lektionen, lässt sich also erst sinnvoll bauen und testen, wenn alle
+Lektionen stehen. Wer sie früher braucht, kann sie nach 2c vorziehen – dann aber
+zunächst nur für die bis dahin fertigen Lektionen.
 
 ## 15. Migration & Rückwärtskompatibilität
 
@@ -425,16 +491,23 @@ Jede Phase ist ein **eigener PR** – wie bisher.
 - Gespeicherter Fortschritt alter Stände: unbekannte Lektions-IDs einfach als
   „noch nicht gemacht“ behandeln.
 
-## 16. Offene Fragen
+## 16. Geklärte Fragen (Stand 2026-07-31)
 
-1. **Umfang der Lektionen:** 22 Lektionen sind ein echter Kurs (≈ 2 Schul­stunden
-   plus Übung). Soll es eine **Kurzvariante** (z. B. 12 Lektionen ohne
-   Zwischenwiederholungen) für den Einsatz in einer Doppelstunde geben?
-2. **Teil 3 „Spielwiese“:** Spiele **freischalten** (erst ab bestimmter Lektion)
-   oder von Anfang an frei zugänglich lassen?
-3. **Sterne-Schwellen:** Sind 90 % / 95 % Trefferquote für die Zielgruppe
-   (Grundschule/Unterstufe) realistisch, oder lieber 85 % / 92 %?
-4. **Zieltempo:** Welcher APM-Wert gilt am Kursende als „bestanden“? Vorschlag:
-   **60 APM bei ≥ 90 % Treffer** – bewusst niedrig gehalten.
-5. **Klausur-Datei:** Soll `tastatur-klausur.html` um einen Lektions-Test
-   (Papierform) ergänzt werden?
+1. **Umfang der Lektionen:** **Kurzvariante ja.** Neben dem vollen Lehrgang
+   (22 Lektionen) gibt es einen Weg mit **12 Lektionen** für die Doppelstunde –
+   ohne Tasten wegzulassen, nur mit größerer Schrittweite. Ausgearbeitet in
+   Abschnitt 12; technisch ein Kurs-Profil über dieselbe `LESSONS[]`-Liste.
+2. **Teil 3 „Spielwiese“:** **Frei zugänglich**, keine Freischaltung. Die Spiele
+   behalten ihren vollen Wortvorrat und zählen auf XP/Münzen, aber nicht auf die
+   Lektions-Sterne. Details in Abschnitt 11.
+3. **Sterne-Schwellen:** **⭐⭐ ab 80 %, ⭐⭐⭐ ab 85 %** Trefferquote (statt
+   90 %/95 %). Der zweite Stern soll regelmäßig erreichbar sein, nicht die
+   Ausnahme.
+4. **Zieltempo:** passend zu den gesenkten Schwellen auf **50 APM bei ≥ 85 %
+   Treffer** angesetzt (statt 60 APM/90 %). *Angenommener Wert – bitte beim
+   ersten Schultest gegenprüfen und ggf. nachziehen.*
+
+### Noch offen
+
+5. **Klausur-Datei:** Soll `tastatur-klausur.html` um einen Lektions-Test in
+   Papierform ergänzt werden? (Blockiert Phase 2a nicht – betrifft erst 2f.)
