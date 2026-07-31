@@ -465,7 +465,7 @@ Die Stufe ist pro Lektion vorgegeben, in den Einstellungen aber
 |---|---|---|
 | **2a** ✅ | `LESSONS[]`, `learnedKeys()`, Wortfilter, `lessonScreen()` mit Lektionen 1–6 | Grundreihe als echter Lehrgang spielbar |
 | **2b** ✅ | `lessonmap` (Landkarte, Sterne 80/85 %), `localStorage`-Persistenz, APM/Quote-Zeugnis | Kurs über mehrere Sitzungen nutzbar |
-| **2c** | Lektionen 7–18 (obere/untere Reihe), Blind-Stufen 2 und 3 | vollständiges Alphabet blind |
+| **2c** ✅ | Lektionen 7–18 (obere/untere Reihe), Blind-Stufen 2 und 3 | vollständiges Alphabet blind |
 | **2d** | `state.keyStats` + automatische Wiederholungs-Lektionen („Wackelkandidaten“) | gezieltes Nachüben schwacher Tasten |
 | **2e** | Lektionen 19–22 (Umschalt-Gegenhand, Zahlen, Sonderzeichen, Abschluss) | Kurs komplett |
 | **2f** | **Kurs-Profil „Kurz · 12 Lektionen“** (`COURSE_SHORT`) + Umschalter | Doppelstunden-Variante nutzbar |
@@ -621,3 +621,78 @@ deshalb weiterhin so, obwohl Teil 2 um sieben Bildschirme gewachsen ist.
 Alle 32 Bildschirme fehlerfrei; Fortschritt übersteht einen Reload
 (Stationen, Sterne, XP, Abzeichen, Einstellungen); blockiertes und beschädigtes
 `localStorage`, veraltete IDs und das Zurücksetzen geprüft.
+
+---
+
+## 19. Phase 2c umgesetzt (Stand 2026-07-31)
+
+Der Lehrgang umfasst jetzt **18 Lektionen** – nach Lektion 18 ist das
+**gesamte Alphabet inklusive Umlauten** geübt (automatisch geprüft).
+
+### Neue Lektionen 7–18
+
+| Lektion | Neue Tasten | Schwerpunkt | Blind |
+|---|---|---|---|
+| 7 | e i | obere Reihe, Mittelfinger | 2 |
+| 8 | r u | Zeigefinger hoch | 2 |
+| 9 | w o | Ringfinger hoch | 2 |
+| 10 | q p | kleiner Finger hoch | 2 |
+| 11 | t z | Zeigefinger-Streckung oben | 2 |
+| 12 | ü ä | Umlaute | 2 |
+| 13 | *(Wdh.)* | Grund- + obere Reihe blind | 2 |
+| 14 | v m | untere Reihe, Zeigefinger | **3** |
+| 15 | c , | Mittelfinger runter | 3 |
+| 16 | x . | Ringfinger runter | 3 |
+| 17 | y - | kleiner Finger runter | 3 |
+| 18 | b n | Streckung unten – Alphabet komplett | 3 |
+
+Die Fingerzuordnung folgt durchgehend `KEY_ROWS`, die Reihenfolge dem Prinzip
+*Mittelfinger → Zeigefinger → Ringfinger → kleiner Finger → Streckung*.
+
+### Blind-Stufen vollständig
+
+- **Stufe 1** (Lektion 1–5): Zieltaste leuchtet auf der Bildschirm-Tastatur.
+- **Stufe 2** (6–13): Tastatur sichtbar, **keine** Hervorhebung – angezeigt wird
+  nur der **Finger** (Farbpunkt + Name).
+- **Stufe 3** (14–18): **Keine Tastatur**, nur der Text.
+
+**Neue Einstellung „Hilfe in den Lektionen“** (Barrierefreiheit, wie in
+Abschnitt 13 vorgesehen): „Wie in der Lektion vorgesehen“ (Standard),
+„Immer die Taste zeigen“, „Immer den Finger zeigen“. Die Einstellung kann die
+Hilfe nur **erhöhen**, nie verringern – in einer Stufe-1-Lektion bleibt die
+Taste sichtbar, auch wenn „Finger“ gewählt ist. Sie wird mitgespeichert.
+
+### Wortvorrat wächst mit
+
+`LESSON_WORDS` ist auf ~120 klein geschriebene Wörter gewachsen. Der Filter
+schaltet sie automatisch frei:
+
+| Lektion | 1–3 | 4 | 5 | 7 | 9 | 11 | 14 | 18 |
+|---|---|---|---|---|---|---|---|---|
+| tippbare Wörter | 0 | 6 | 9 | 24 | 42 | 68 | 89 | 126 |
+
+Automatisch geprüft: **kein Übungsstoff einer der 18 Lektionen enthält eine
+ungelernte Taste.** Beim Aufbau des Vorrats wurden zwei Fehler korrigiert –
+`papier` und `couch` sind Substantive (müssen groß geschrieben werden) und
+gehören nicht in einen kleingeschriebenen Vorrat; zwei erfundene y-Wörter
+wurden entfernt. Das **y** ist im Deutschen kleingeschrieben so selten, dass es
+bewusst vor allem über Silben geübt wird.
+
+### Fortschrittsleiste bleibt lesbar
+
+18 Lektionen würden die Leiste überfluten. Die einzelnen Lektionen stehen
+deshalb **nicht mehr** darin – dort steht nur noch die **Landkarte**, die zu
+allen Lektionen führt. Die Lektionsnummer steht jetzt als Zahl-Abzeichen auf der
+Kachel, das Emoji zeigt die **Reihe** (🖐️ Grundreihe · ⬆️ obere · ⬇️ untere ·
+🙈/🔁 Wiederholung) – das skaliert auch für die restlichen Lektionen bis 22.
+
+### Neue Abzeichen
+
+`toprow_lesson` („Obere Reihe gelernt“, nach Lektion 12) und `alphabet_pro`
+(„Alphabet komplett“, nach Lektion 18).
+
+### Getestet
+
+44 Bildschirme fehlerfrei, keine abgeschnittene Tastatur; alle drei Blind-Stufen
+und beide Übersteuerungen geprüft; Lektion 18 komplett durchgespielt; Speichern
+und die Fehlerfälle aus Phase 2b weiterhin in Ordnung.

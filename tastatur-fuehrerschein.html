@@ -228,7 +228,9 @@
   .ltile.done{background:var(--ocean-pale);border-color:var(--ocean-mid);}
   .ltile.next{border-color:var(--hint);box-shadow:0 0 0 3px var(--hint-soft);}
   .ltile .top{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
-  .ltile .no{font-size:1.15rem;}
+  .ltile .no{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--ocean-mid);color:#fff;
+    display:grid;place-items:center;font-size:.8rem;font-weight:700;}
+  .ltile.done .no{background:var(--ocean-deep);}
   .ltile .ttl{font-weight:700;color:var(--ocean-deep);font-size:.92rem;}
   .ltile .keys{font-size:.8rem;color:var(--ink-soft);margin-bottom:5px;}
   .ltile .keys b{color:var(--ocean-mid);letter-spacing:2px;}
@@ -428,6 +430,16 @@
       </div>
       <div class="setrow"><label class="switch"><input type="checkbox" id="fingerChk"> Fingerfarben auf der Tastatur zeigen</label>
         <div class="help">Färbt jede Taste in der Farbe des Fingers ein, der sie drücken soll.</div></div>
+      <div class="setrow">
+        <label for="blindSel">Hilfe in den Lektionen</label>
+        <div class="help">Im Lehrgang wird die Hilfe von Lektion zu Lektion weniger: erst leuchtet die Taste,
+          dann nur noch der Finger, zuletzt gar nichts. Hier kannst du mehr Hilfe einstellen.</div>
+        <select id="blindSel" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);font-family:inherit;font-size:.95rem;">
+          <option value="auto">Wie in der Lektion vorgesehen</option>
+          <option value="key">Immer die Taste zeigen</option>
+          <option value="finger">Immer den Finger zeigen</option>
+        </select>
+      </div>
       <div class="setrow"><label class="switch"><input type="checkbox" id="soundChk" checked> Töne abspielen</label></div>
       <div class="setrow"><div class="infobox">💡 <b>Tipp:</b> Lege deine Finger locker auf die Grundreihe
         (links <b>a&nbsp;s&nbsp;d&nbsp;f</b>, rechts <b>j&nbsp;k&nbsp;l&nbsp;ö</b>). Auf <b>F</b> und <b>J</b> spürst du kleine Erhebungen –
@@ -444,6 +456,127 @@ const $ = (s,el=document)=>el.querySelector(s);
 const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
 const mk = (cls,html)=>{const d=document.createElement("div");if(cls)d.className=cls;if(html!=null)d.innerHTML=html;return d;};
 const shuffle = a=>{for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+/* ============================================================
+   Zehn-Finger-Lehrgang (Teil 2) – Lektionen
+   ------------------------------------------------------------
+   Jede Lektion führt zwei neue Tasten ein. Der Übungsstoff wird über
+   learnedKeys()/lessonWords() auf die bis dahin gelernten Tasten
+   gefiltert: In einer Lektion kommt nie eine Taste vor, die noch nicht
+   dran war – sonst müsste das Kind zwangsläufig auf die Tastatur schauen.
+
+   Alles ist kleingeschrieben: Die Umschalttaste kommt erst in einer
+   späteren Lektion, vorher gibt es also weder Großbuchstaben noch echte
+   Sätze (die mit einem Großbuchstaben beginnen müssten). Statt eines
+   Satzes endet jede Lektion mit einer „Wortkette“ – die übt zugleich
+   die Leertaste.
+   ============================================================ */
+/* Gemeinsamer Wortvorrat des Lehrgangs: ausschließlich klein geschriebene
+   Wörter (Verben, Adjektive, Artikel, Partikeln). Der Filter blendet je
+   Lektion automatisch frei, was tippbar ist – späte Wörter tauchen also
+   von selbst auf, sobald ihre Tasten gelernt sind. */
+const LESSON_WORDS = [
+  /* Grundreihe (Lektion 1–6) */
+  "als","lass","falls","dass","das","da","lag","half","sah",
+  /* + e i (7) */
+  "alle","alles","edel","hell","heile","ideal","leise","seid","sieh","fies",
+  "dies","diese","eilig","heilig","gefiel",
+  /* + r u (8) */
+  "hier","ruhig","sauer","graue","riesig","gerade","fuhr","dauerhaft","reif",
+  /* + w o (9) */
+  "wo","wohl","froh","los","oder","wieder","hallo","also","sowieso","woher",
+  /* + q p (10) */
+  "quer","prall","piepsig","plus",
+  /* + t z (11) */
+  "gut","toll","oft","hat","hast","kalt","jetzt","letzte","dort","stark",
+  "trotz","zart","sitzt","putzt","lustig","fertig","weiter","weit","tut",
+  /* + ü ä (12) */
+  "für","früh","spät","später","wäre","hätte","kühl","häufig","täglich","prüft",
+  /* + v m (14) */
+  "vor","viel","volle","warum","immer","kommt","mit","mehr","müde","vom",
+  "wovor","murmelt",
+  /* + c , (15) */
+  "auch","doch","macht","lacht","richtig","schade","sicher","schlau","welche",
+  "durch","manche","solche",
+  /* + x . (16) */
+  "exakt","extra","fixe",
+  /* + y - (17) */
+  "typisch",   /* y ist im Deutschen selten – es wird vor allem in den Silben geübt */
+  /* + b n (18) – ab hier ist das Alphabet komplett */
+  "schnell","langsam","bin","kann","dann","denn","wann","nicht","aber","haben",
+  "neben","bunt","gern","schon","noch","wenn","danken","binden","freundlich"
+];
+const LESSONS = [
+  /* --- Grundreihe --- */
+  {no:1, keys:["f","j"], title:"die Zeigefinger", icon:"🖐️",
+   grip:"Lege die Finger auf <b>a s d f</b> und <b>j k l ö</b>. Auf <b>f</b> und <b>j</b> spürst du kleine Erhebungen – dort liegen die Zeigefinger.",
+   warm:["ffff","jjjj","fjfj"], sylls:["fff","jjj","fjf","jfj","ffjj","jjff"], blind:1, apm:20},
+  {no:2, keys:["d","k"], title:"die Mittelfinger", icon:"🖐️",
+   grip:"Neben den Zeigefingern liegen die <b>Mittelfinger</b>: links auf <b>d</b>, rechts auf <b>k</b>.",
+   warm:["dddd","kkkk","dkdk"], sylls:["ddd","kkk","dkd","kdk","fdk","jkd"], blind:1, apm:22},
+  {no:3, keys:["s","l"], title:"die Ringfinger", icon:"🖐️",
+   grip:"Die <b>Ringfinger</b> kommen dazu: links auf <b>s</b>, rechts auf <b>l</b>.",
+   warm:["ssss","llll","slsl"], sylls:["sss","lll","sls","lsl","dsl","lkf"], blind:1, apm:25},
+  {no:4, keys:["a","ö"], title:"die kleinen Finger", icon:"🖐️",
+   grip:"Zum Schluss die <b>kleinen Finger</b>: links auf <b>a</b>, rechts auf <b>ö</b>. Jetzt liegt die ganze Grundreihe unter deinen Händen!",
+   warm:["aaaa","öööö","aöaö"], sylls:["aaa","ööö","aöa","öaö","asdf","jklö"], blind:1, apm:28},
+  {no:5, keys:["g","h"], title:"strecken nach innen", icon:"🖐️",
+   grip:"Für <b>g</b> und <b>h</b> streckt sich der Zeigefinger nach innen – und kommt danach sofort wieder zurück auf <b>f</b> bzw. <b>j</b>.",
+   warm:["gggg","hhhh","ghgh"], sylls:["ggg","hhh","ghg","hgh","fgf","jhj"], blind:1, apm:30},
+  {no:6, keys:[], title:"Grundreihe blind", icon:"🙈", repeat:true,
+   grip:"Jetzt ohne Hilfe: Die Tastatur zeigt nur noch den <b>Finger</b>, nicht mehr die Taste. Schau auf den Bildschirm, nicht auf deine Hände!",
+   warm:["asdf","jklö"], sylls:["asdfg","hjklö","asdfjklö","fjdksla"], blind:2, apm:35},
+  /* --- obere Reihe --- */
+  {no:7, keys:["e","i"], title:"hoch mit den Mittelfingern", icon:"⬆️",
+   grip:"Die <b>obere Reihe</b> beginnt: Der Mittelfinger geht von <b>d</b> hoch auf <b>e</b>, rechts von <b>k</b> hoch auf <b>i</b> – und danach wieder zurück.",
+   warm:["eeee","iiii","eiei"], sylls:["eee","iii","eie","iei","dei","kie","lei","sie"], blind:2, apm:32},
+  {no:8, keys:["r","u"], title:"hoch mit den Zeigefingern", icon:"⬆️",
+   grip:"Der Zeigefinger geht von <b>f</b> hoch auf <b>r</b>, rechts von <b>j</b> hoch auf <b>u</b>.",
+   warm:["rrrr","uuuu","ruru"], sylls:["rrr","uuu","rur","uru","fur","jur","are","rue"], blind:2, apm:34},
+  {no:9, keys:["w","o"], title:"hoch mit den Ringfingern", icon:"⬆️",
+   grip:"Der Ringfinger geht von <b>s</b> hoch auf <b>w</b>, rechts von <b>l</b> hoch auf <b>o</b>.",
+   warm:["wwww","oooo","wowo"], sylls:["www","ooo","wow","owo","sow","low","dow","wol"], blind:2, apm:36},
+  {no:10, keys:["q","p"], title:"hoch mit den kleinen Fingern", icon:"⬆️",
+   grip:"Der kleine Finger geht von <b>a</b> hoch auf <b>q</b>, rechts von <b>ö</b> hoch auf <b>p</b>. Das ist der weiteste Weg – bleib locker.",
+   warm:["qqqq","pppp","qpqp"], sylls:["qqq","ppp","qpq","pqp","aqu","pol","pil","qua"], blind:2, apm:38},
+  {no:11, keys:["t","z"], title:"strecken nach oben innen", icon:"⬆️",
+   grip:"Wie bei <b>g</b> und <b>h</b>: Der Zeigefinger streckt sich nach innen – oben sind das <b>t</b> und <b>z</b>.",
+   warm:["tttt","zzzz","tztz"], sylls:["ttt","zzz","tzt","ztz","tat","zit","tor","zug"], blind:2, apm:40},
+  {no:12, keys:["ü","ä"], title:"die Umlaute", icon:"⬆️",
+   grip:"Rechts außen wohnen die Umlaute: <b>ü</b> in der oberen Reihe, <b>ä</b> gleich neben dem <b>ö</b>. Beide holt der <b>rechte kleine Finger</b>.",
+   warm:["üüüü","ääää","üäüä"], sylls:["üüü","äää","üäü","äüä","für","spä","küh","hät"], blind:2, apm:42},
+  {no:13, keys:[], title:"obere Reihe blind", icon:"🔁", repeat:true,
+   grip:"Wiederholung: Grundreihe und obere Reihe gemischt – weiterhin nur mit <b>Finger</b>-Anzeige.",
+   warm:["asdfg","hjklö"], sylls:["qwert","zuiop","asdfg","hjklö","quere","teile"], blind:2, apm:44},
+  /* --- untere Reihe (ab hier ohne Tastatur-Hilfe) --- */
+  {no:14, keys:["v","m"], title:"runter mit den Zeigefingern", icon:"⬇️",
+   grip:"Jetzt <b>ohne Tastatur auf dem Bildschirm</b>! Der Zeigefinger geht von <b>f</b> runter auf <b>v</b>, rechts von <b>j</b> runter auf <b>m</b>.",
+   warm:["vvvv","mmmm","vmvm"], sylls:["vvv","mmm","vmv","mvm","vor","mit","vom","mal"], blind:3, apm:42},
+  {no:15, keys:["c",","], title:"runter mit den Mittelfingern", icon:"⬇️",
+   grip:"Der Mittelfinger geht von <b>d</b> runter auf <b>c</b>, rechts von <b>k</b> runter auf das <b>Komma</b>.",
+   warm:["cccc",",,,,","c,c,"], sylls:["ccc",",,,","c,c",",c,","ach","ich","och","cha"], blind:3, apm:44},
+  {no:16, keys:["x","."], title:"runter mit den Ringfingern", icon:"⬇️",
+   grip:"Der Ringfinger geht von <b>s</b> runter auf <b>x</b>, rechts von <b>l</b> runter auf den <b>Punkt</b>.",
+   warm:["xxxx","....","x.x."], sylls:["xxx","...","x.x",".x.","axt","exa","ext","xas"], blind:3, apm:45},
+  {no:17, keys:["y","-"], title:"runter mit den kleinen Fingern", icon:"⬇️",
+   grip:"Der kleine Finger geht von <b>a</b> runter auf <b>y</b>, rechts holt er den <b>Bindestrich</b>. Das <b>y</b> ist selten – aber es gehört dazu.",
+   warm:["yyyy","----","y-y-"], sylls:["yyy","---","y-y","-y-","typ","sys","hy-","y-a"], blind:3, apm:46},
+  {no:18, keys:["b","n"], title:"strecken nach unten innen", icon:"⬇️",
+   grip:"Die letzten beiden Buchstaben: Der Zeigefinger streckt sich nach innen unten – <b>b</b> und <b>n</b>. Danach kennst du das <b>ganze Alphabet</b>!",
+   warm:["bbbb","nnnn","bnbn"], sylls:["bbb","nnn","bnb","nbn","ban","neb","bin","nun"], blind:3, apm:48}
+];
+const isLessonId = id => /^l\d+$/.test(id);
+const lessonByNo = no => LESSONS.find(l=>l.no===no);
+/* Alle Tasten, die bis einschließlich Lektion `no` eingeführt wurden. */
+function learnedKeys(no){
+  const s=new Set();
+  LESSONS.filter(l=>l.no<=no).forEach(l=>l.keys.forEach(k=>s.add(k)));
+  return s;
+}
+/* Enthält der Text nur erlaubte Tasten? (Leerzeichen zählen immer als erlaubt.) */
+function usesOnly(text,set){ return [...String(text).toLowerCase()].every(c=>c===" "||set.has(c)); }
+/* Wortvorrat einer Lektion: alles, was sich mit den gelernten Tasten tippen lässt. */
+function lessonWords(no){ const set=learnedKeys(no); return LESSON_WORDS.filter(w=>usesOnly(w,set)); }
 
 /* ============================================================
    Stationen
@@ -467,12 +600,10 @@ const STATIONS = [
   {id:"exam1",     short:"Teil-1-Prüfung",icon:"🥇",part:1, title:"Teil-1-Prüfung",   desc:"Die Tasten sitzen!"},
   /* Zehn-Finger-Lehrgang: Landkarte + je Lektion zwei neue Tasten (Phase 2a: Grundreihe) */
   {id:"lessonmap", short:"Landkarte",    icon:"🗺️", part:2, title:"Lektions-Landkarte", desc:"Dein Weg durch den Lehrgang"},
-  {id:"l1",        short:"f j",          icon:"1️⃣", part:2, title:"Lektion 1 · f und j", desc:"Zeigefinger – Grundstellung"},
-  {id:"l2",        short:"d k",          icon:"2️⃣", part:2, title:"Lektion 2 · d und k", desc:"Mittelfinger"},
-  {id:"l3",        short:"s l",          icon:"3️⃣", part:2, title:"Lektion 3 · s und l", desc:"Ringfinger"},
-  {id:"l4",        short:"a ö",          icon:"4️⃣", part:2, title:"Lektion 4 · a und ö", desc:"kleine Finger – Grundreihe komplett"},
-  {id:"l5",        short:"g h",          icon:"5️⃣", part:2, title:"Lektion 5 · g und h", desc:"nach innen strecken"},
-  {id:"l6",        short:"blind",        icon:"6️⃣", part:2, title:"Lektion 6 · Grundreihe blind", desc:"ohne auf die Tasten zu schauen"},
+  ...LESSONS.map(L=>({
+    id:"l"+L.no, short:L.keys.length?L.keys.join(" "):"Wdh.", icon:L.icon, part:2,
+    title:`Lektion ${L.no} · ${L.title}`, desc:L.keys.length?("neue Tasten "+L.keys.join(" ")):"Wiederholung"
+  })),
   {id:"khome",     short:"Grundreihe",   icon:"🖐️", part:2, title:"Grundreihe",       desc:"a s d f · j k l ö"},
   {id:"ktop",      short:"Obere Reihe",  icon:"⬆️", part:2, title:"Obere Reihe",      desc:"q w e r t z u i o p"},
   {id:"kbottom",   short:"Untere Reihe", icon:"⬇️", part:2, title:"Untere Reihe",     desc:"y x c v b n m"},
@@ -528,63 +659,6 @@ const FUNNY_SENTENCES = [
   "Süße Schnecken schlürfen Schokolade."
 ];
 
-/* ============================================================
-   Zehn-Finger-Lehrgang (Teil 2) – Lektionen
-   ------------------------------------------------------------
-   Jede Lektion führt zwei neue Tasten ein. Der Übungsstoff wird über
-   learnedKeys()/lessonWords() auf die bis dahin gelernten Tasten
-   gefiltert: In einer Lektion kommt nie eine Taste vor, die noch nicht
-   dran war – sonst müsste das Kind zwangsläufig auf die Tastatur schauen.
-
-   Alles ist kleingeschrieben: Die Umschalttaste kommt erst in einer
-   späteren Lektion, vorher gibt es also weder Großbuchstaben noch echte
-   Sätze (die mit einem Großbuchstaben beginnen müssten). Statt eines
-   Satzes endet jede Lektion mit einer „Wortkette“ – die übt zugleich
-   die Leertaste.
-   ============================================================ */
-/* Gemeinsamer Wortvorrat des Lehrgangs: ausschließlich klein geschriebene
-   Wörter (Verben, Adjektive, Artikel, Partikeln). Der Filter blendet je
-   Lektion automatisch frei, was tippbar ist – späte Wörter tauchen also
-   von selbst auf, sobald ihre Tasten gelernt sind. */
-const LESSON_WORDS = [
-  "als","lass","falls","dass","das","da","lag","half","sah",
-  "alle","alles","hallo","hell","hat","hast","kalt","gelb","also",
-  "oft","hoch","doch","auch","dann","denn","kann","wann",
-  "lacht","sagt","fragt","hilft","holt","spielt","lernt","tippt",
-  "schnell","langsam","richtig","lustig","fertig","weiter","gut","toll"
-];
-const LESSONS = [
-  {no:1, keys:["f","j"], title:"die Zeigefinger", icon:"1️⃣",
-   grip:"Lege die Finger auf <b>a s d f</b> und <b>j k l ö</b>. Auf <b>f</b> und <b>j</b> spürst du kleine Erhebungen – dort liegen die Zeigefinger.",
-   warm:["ffff","jjjj","fjfj"], sylls:["fff","jjj","fjf","jfj","ffjj","jjff"], blind:1, apm:20},
-  {no:2, keys:["d","k"], title:"die Mittelfinger", icon:"2️⃣",
-   grip:"Neben den Zeigefingern liegen die <b>Mittelfinger</b>: links auf <b>d</b>, rechts auf <b>k</b>.",
-   warm:["dddd","kkkk","dkdk"], sylls:["ddd","kkk","dkd","kdk","fdk","jkd"], blind:1, apm:22},
-  {no:3, keys:["s","l"], title:"die Ringfinger", icon:"3️⃣",
-   grip:"Die <b>Ringfinger</b> kommen dazu: links auf <b>s</b>, rechts auf <b>l</b>.",
-   warm:["ssss","llll","slsl"], sylls:["sss","lll","sls","lsl","dsl","lkf"], blind:1, apm:25},
-  {no:4, keys:["a","ö"], title:"die kleinen Finger", icon:"4️⃣",
-   grip:"Zum Schluss die <b>kleinen Finger</b>: links auf <b>a</b>, rechts auf <b>ö</b>. Jetzt liegt die ganze Grundreihe unter deinen Händen!",
-   warm:["aaaa","öööö","aöaö"], sylls:["aaa","ööö","aöa","öaö","asdf","jklö"], blind:1, apm:28},
-  {no:5, keys:["g","h"], title:"strecken nach innen", icon:"5️⃣",
-   grip:"Für <b>g</b> und <b>h</b> streckt sich der Zeigefinger nach innen – und kommt danach sofort wieder zurück auf <b>f</b> bzw. <b>j</b>.",
-   warm:["gggg","hhhh","ghgh"], sylls:["ggg","hhh","ghg","hgh","fgf","jhj"], blind:1, apm:30},
-  {no:6, keys:[], title:"Grundreihe blind", icon:"6️⃣", repeat:true,
-   grip:"Jetzt ohne Hilfe: Die Tastatur zeigt nur noch den <b>Finger</b>, nicht mehr die Taste. Schau auf den Bildschirm, nicht auf deine Hände!",
-   warm:["asdf","jklö"], sylls:["asdfg","hjklö","asdfjklö","fjdksla"], blind:2, apm:35}
-];
-const isLessonId = id => /^l\d+$/.test(id);
-const lessonByNo = no => LESSONS.find(l=>l.no===no);
-/* Alle Tasten, die bis einschließlich Lektion `no` eingeführt wurden. */
-function learnedKeys(no){
-  const s=new Set();
-  LESSONS.filter(l=>l.no<=no).forEach(l=>l.keys.forEach(k=>s.add(k)));
-  return s;
-}
-/* Enthält der Text nur erlaubte Tasten? (Leerzeichen zählen immer als erlaubt.) */
-function usesOnly(text,set){ return [...String(text).toLowerCase()].every(c=>c===" "||set.has(c)); }
-/* Wortvorrat einer Lektion: alles, was sich mit den gelernten Tasten tippen lässt. */
-function lessonWords(no){ const set=learnedKeys(no); return LESSON_WORDS.filter(w=>usesOnly(w,set)); }
 
 /* ============================================================
    Sonderzeichen, die mit Umschalt ⇧ erzeugt werden
@@ -783,7 +857,7 @@ function defaultGamify(){
   return { xp:0, level:1, coins:0, badges:{}, lessons:{}, stats:{ attempts:0, fails:0, streak:0, bestStreak:0, perfectStations:{} } };
 }
 const state = Object.assign({
-  current:"start", done:{}, sound:true, difficulty:"mittel", fingers:false,
+  current:"start", done:{}, sound:true, difficulty:"mittel", fingers:false, blindHelp:"auto",
   mascotName:"Codi",
   reduced: matchMedia("(prefers-reduced-motion:reduce)").matches
 }, defaultGamify());
@@ -797,7 +871,7 @@ const state = Object.assign({
    der Trainer weiter, nur eben ohne Speichern.
    ============================================================ */
 const SAVE_KEY="tastaturfs.v1";
-const SAVE_FIELDS=["current","done","xp","level","coins","badges","lessons","stats","difficulty","sound","fingers"];
+const SAVE_FIELDS=["current","done","xp","level","coins","badges","lessons","stats","difficulty","sound","fingers","blindHelp"];
 const KNOWN_IDS=new Set(STATIONS.map(s=>s.id));
 function saveState(){
   try{
@@ -902,6 +976,8 @@ const BADGES = {
   key_master:    {icon:"🔑", title:"Tasten-Kenner"},
   lesson_start:  {icon:"🎯", title:"Lehrgang gestartet"},
   blind_typer:   {icon:"🙈", title:"Blindschreiber"},
+  toprow_lesson: {icon:"⬆️", title:"Obere Reihe gelernt"},
+  alphabet_pro:  {icon:"🔤", title:"Alphabet komplett"},
   home_row:      {icon:"🖐️", title:"Grundreihen-Held"},
   toprow_hero:   {icon:"⬆️", title:"Obere-Reihe-Held"},
   bottomrow_hero:{icon:"⬇️", title:"Untere-Reihe-Held"},
@@ -984,6 +1060,8 @@ function checkStationBadges(id){
   if(id==="exam1")unlock("key_master");
   if(id==="l1")unlock("lesson_start");
   if(id==="l6")unlock("blind_typer");
+  if(id==="l12")unlock("toprow_lesson");
+  if(id==="l18")unlock("alphabet_pro");
   if(id==="khome")unlock("home_row");
   if(id==="ktop")unlock("toprow_hero");
   if(id==="kbottom")unlock("bottomrow_hero");
@@ -1016,6 +1094,9 @@ function buildProgress(){
   const nav=$("#progress");nav.innerHTML="";
   let lastPart=null;
   STATIONS.forEach(st=>{ if(st.id==="start")return;
+    /* Die einzelnen Lektionen stehen nicht in der Leiste – sonst würde sie mit
+       18 Einträgen überquellen. Zu ihnen führt die Landkarte. */
+    if(isLessonId(st.id))return;
     if(st.part && st.part!==lastPart){
       lastPart=st.part;
       const h=document.createElement("span");h.className="part-head";
@@ -1570,7 +1651,7 @@ SCREENS.lessonmap=(stage)=>{
     const t=document.createElement("button");
     t.className="ltile"+(done?" done":"")+(L.no===nextNo?" next":"");
     t.innerHTML=
-      `<div class="top"><span class="no">${L.icon}</span><span class="ttl">${L.title}</span>`+
+      `<div class="top"><span class="no">${L.no}</span><span class="ttl">${L.icon} ${L.title}</span>`+
       (L.no===nextNo?`<span class="tag">dran</span>`:``)+`</div>
        <div class="keys">${L.keys.length?`neue Tasten <b>${L.keys.join(" ")}</b>`:`Wiederholung – blind`}</div>
        <div class="stars">${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</div>`+
@@ -1618,22 +1699,23 @@ function lessonScreen(L){
     setInstruction(`Lektion ${L.no} von ${LESSONS.length} · ${L.title} ${L.icon}`,
       L.keys.length
         ? `Neu sind <b>${L.keys.join("</b> und <b>")}</b>. Tippe jede Zeile ab – erst einzeln, dann in Silben und Wörtern.`
-        : `Keine neuen Tasten – jetzt wird die ganze Grundreihe <b>blind</b> geübt.`);
+        : `Keine neuen Tasten – jetzt wird das Gelernte <b>blind</b> wiederholt.`);
 
     const bar=mk("lessonbar"); stage.appendChild(bar);
     steps.forEach((s,i)=>{ const c=mk("lstep",s.label); c.dataset.i=i; bar.appendChild(c); });
     const info=mk("infobox",L.grip); info.style.maxWidth="640px"; info.style.margin="0 auto 8px";
     stage.appendChild(info);
     const box=mk("typebox"); stage.appendChild(box);
-    const fingerBox=mk("lfinger"); if(L.blind>=2) stage.appendChild(fingerBox);
-    const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:L.blind>=2});
-    if(L.blind<3){ kbHost.appendChild(kb.el); stage.appendChild(kbHost); }
+    /* Blind-Stufe: 1 = Taste leuchtet, 2 = nur der Finger, 3 = gar keine Hilfe.
+       In den Einstellungen lässt sich mehr Hilfe erzwingen (Barrierefreiheit). */
+    const blind = state.blindHelp==="key" ? 1 : state.blindHelp==="finger" ? Math.min(L.blind,2) : L.blind;
+    const fingerBox=mk("lfinger"); if(blind===2) stage.appendChild(fingerBox);
+    const kbHost=mk("kbwrap"); const kb=buildKeyboard({fingers:blind===2});
+    if(blind<3){ kbHost.appendChild(kb.el); stage.appendChild(kbHost); }
 
-    /* Bei Blind-Stufe 2 leuchtet die Taste nicht mehr – angezeigt wird nur,
-       welcher Finger dran ist. */
-    const showKey = L.blind<2;
+    const showKey = blind<2;
     function showFinger(text,idx){
-      if(L.blind<2) return;
+      if(blind!==2) return;
       const c=text[idx];
       if(c==null){ fingerBox.innerHTML=""; return; }
       if(c===" "){ fingerBox.innerHTML=`<span class="dot" style="background:${FINGERS.th.c}"></span> Daumen · Leertaste`; return; }
@@ -2328,6 +2410,7 @@ $("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay")$("#overla
 $("#soundChk").addEventListener("change",e=>{state.sound=e.target.checked;if(state.sound){if(audioCtx)audioCtx.resume&&audioCtx.resume();sfx.step();}saveState();});
 $("#fingerChk").addEventListener("change",e=>{ state.fingers=e.target.checked; go(state.current); });
 $("#diffSel").addEventListener("change",e=>{ state.difficulty=e.target.value; $("#overlay").style.display="none"; go(state.current); });
+$("#blindSel").addEventListener("change",e=>{ state.blindHelp=e.target.value; $("#overlay").style.display="none"; go(state.current); });
 $("#resetBtn").addEventListener("click",()=>{
   if(!confirm("Wirklich den ganzen Fortschritt löschen? Stationen, Lektionen, Sterne und Abzeichen sind dann weg.")) return;
   state.done={};Object.assign(state,defaultGamify());
@@ -2343,6 +2426,7 @@ loadState();
 $("#soundChk").checked=!!state.sound;
 $("#fingerChk").checked=!!state.fingers;
 $("#diffSel").value=state.difficulty;
+$("#blindSel").value=state.blindHelp||"auto";
 buildProgress();refreshHUD();
 go("start");
 </script>
