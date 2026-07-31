@@ -424,6 +424,7 @@ const STATIONS = [
   {id:"kbottom",   short:"Untere Reihe", icon:"⬇️", part:2, title:"Untere Reihe",     desc:"y x c v b n m"},
   {id:"kfingers",  short:"Finger",       icon:"✋", part:2, title:"Finger-Training",  desc:"Den richtigen Finger nehmen"},
   {id:"knumbers",  short:"Zahlen",       icon:"🔢", part:2, title:"Zahlen & Zeichen", desc:"Zahlenreihe & Satzzeichen"},
+  {id:"ksymbols",  short:"Sonderzeichen",icon:"❗", part:2, title:"Sonderzeichen & Satzzeichen", desc:"Mit Umschalt: ! ? : ; …"},
   {id:"kwords",    short:"Wörter",       icon:"📝", part:2, title:"Wörter tippen",    desc:"Ganze Wörter abtippen"},
   {id:"ksentence", short:"Sätze",        icon:"📚", part:2, title:"Sätze tippen",     desc:"Tempo & Genauigkeit"},
   {id:"kraindrop", short:"Wortregen",    icon:"🌧️", part:2, title:"Wortregen",        desc:"Fallende Wörter abtippen"},
@@ -692,6 +693,7 @@ const BADGES = {
   toprow_hero:   {icon:"⬆️", title:"Obere-Reihe-Held"},
   bottomrow_hero:{icon:"⬇️", title:"Untere-Reihe-Held"},
   number_pro:    {icon:"🔢", title:"Zahlen-Kenner"},
+  symbol_pro:    {icon:"❗", title:"Sonderzeichen-Profi"},
   word_wizard:   {icon:"📝", title:"Wort-Zauberer"},
   sentence_star: {icon:"📚", title:"Satz-Star"},
   rain_hero:     {icon:"🌧️", title:"Regen-Held"},
@@ -771,6 +773,7 @@ function checkStationBadges(id){
   if(id==="ktop")unlock("toprow_hero");
   if(id==="kbottom")unlock("bottomrow_hero");
   if(id==="knumbers")unlock("number_pro");
+  if(id==="ksymbols")unlock("symbol_pro");
   if(id==="kwords")unlock("word_wizard");
   if(id==="ksentence")unlock("sentence_star");
   if(id==="kraindrop")unlock("rain_hero");
@@ -1122,7 +1125,7 @@ SCREENS.karrows=(stage)=>{
   const kbHost=mk("kbwrap"); const kb=buildKeyboard();
   stage.appendChild(grid); stage.appendChild(kbHost); kbHost.appendChild(kb.el);
   kb.highlight(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"]);
-  const TOTAL=dCount(4,3); let done=0, fault=false, mouse={x:0,y:0}, goal={x:0,y:0};
+  const TOTAL=dCount(4,3); let done=0, fault=false, busy=false, mouse={x:0,y:0}, goal={x:0,y:0};
   const idx=(x,y)=>y*COLS+x;
   function render(){
     cells.forEach(c=>{c.className="gridcell";c.textContent="";});
@@ -1132,16 +1135,18 @@ SCREENS.karrows=(stage)=>{
   function newRound(){
     do{ mouse={x:(Math.random()*COLS)|0,y:(Math.random()*ROWS)|0}; goal={x:(Math.random()*COLS)|0,y:(Math.random()*ROWS)|0}; }
     while(mouse.x===goal.x && mouse.y===goal.y);
-    render(); setHint("Steuere die Maus mit den Pfeiltasten zum Käse.","");
+    busy=false; render(); setHint("Steuere die Maus mit den Pfeiltasten zum Käse.","");
   }
   setCounter(`0/${TOTAL}`,"Käse");
   setKeyHandler(e=>{
     const k=e.key; if(!k||k.indexOf("Arrow")!==0) return;
+    if(busy) return; /* zwischen den Runden (und nach dem Ziel) keine weiteren Züge */
     let nx=mouse.x, ny=mouse.y;
     if(k==="ArrowUp")ny--; else if(k==="ArrowDown")ny++; else if(k==="ArrowLeft")nx--; else if(k==="ArrowRight")nx++;
     if(nx<0||nx>=COLS||ny<0||ny>=ROWS){ kb.flash(k,false); sfx.soft(); fault=true; setHint("Dort ist der Rand! Wähle eine andere Richtung.","warn"); return; }
     kb.flash(k,true); mouse={x:nx,y:ny}; sfx.step(); render();
     if(mouse.x===goal.x && mouse.y===goal.y){
+      busy=true; /* Ziel erreicht – Eingabe sperren, bis die nächste Runde startet */
       sfx.good(); done++; registerAttempt(true); setCounter(`${done}/${TOTAL}`,"Käse");
       if(done>=TOTAL){ kb.clearHighlight(); completeStation("karrows","Klasse gesteuert – die Pfeiltasten sitzen! 🕹️🎉",{perfect:!fault}); }
       else { setHint("Mmmh, Käse! 🧀 Auf zur nächsten Runde.","good"); later(newRound,650); }
@@ -1426,6 +1431,65 @@ SCREENS.knumbers=(stage)=>{
     } else {
       kb.flash(ch,false);sfx.soft();registerAttempt(false);fault=true;
       setHint(`Das war <b>${ch}</b>. Suche die orange Taste <b>${target}</b>.`,"warn");
+    }
+  });
+  pick();
+};
+
+/* ---------- Sonderzeichen & Satzzeichen (mit Umschalt) ---------- */
+SCREENS.ksymbols=(stage)=>{
+  const N=stationNumber("ksymbols");
+  setInstruction(`Station ${N} · Sonderzeichen & Satzzeichen ❗`,
+    "Über den Zahlen und bei den Satzzeichen wohnen viele <b>Sonderzeichen</b>. Du tippst sie mit gedrückter "+
+    "<b>Umschalt ⇧</b>-Taste. Drücke die leuchtende Taste – aber <b>zusammen mit Umschalt</b>!");
+  const info=mk("infobox",`Halte <b>Umschalt ⇧</b> gedrückt und drücke dann die leuchtende Taste. `+
+    `Beispiel: <b>Umschalt + 1</b> ergibt ein <b>!</b>, <b>Umschalt + ß</b> ein <b>?</b>.`);
+  info.style.maxWidth="640px";info.style.margin="0 auto 6px";stage.appendChild(info);
+  const kbHost=mk("kbwrap"); const kb=buildKeyboard();
+  kbHost.appendChild(kb.el); stage.appendChild(kbHost);
+  /* ch = erzeugtes Zeichen, base = Taste auf der Bildschirm-Tastatur (mit Umschalt). */
+  const KEYS=[
+    {ch:"!", base:"1", name:"Ausrufezeichen"},
+    {ch:'"', base:"2", name:"Anführungszeichen"},
+    {ch:"§", base:"3", name:"Paragraf"},
+    {ch:"$", base:"4", name:"Dollarzeichen"},
+    {ch:"%", base:"5", name:"Prozent"},
+    {ch:"&", base:"6", name:"Und-Zeichen"},
+    {ch:"/", base:"7", name:"Schrägstrich"},
+    {ch:"(", base:"8", name:"Klammer auf"},
+    {ch:")", base:"9", name:"Klammer zu"},
+    {ch:"=", base:"0", name:"Gleichzeichen"},
+    {ch:"?", base:"ß", name:"Fragezeichen"},
+    {ch:";", base:",", name:"Semikolon"},
+    {ch:":", base:".", name:"Doppelpunkt"},
+    {ch:"_", base:"-", name:"Unterstrich"}
+  ];
+  const TOTAL=dCount(8,6); let done=0,target=null,fault=false;
+  /* Mischbeutel: jede Runde ein anderes Zeichen, ohne sofortige Wiederholung. */
+  let bag=[];
+  const draw=()=>{ if(!bag.length) bag=shuffle(KEYS.slice()); return bag.pop(); };
+  setCounter(`0/${TOTAL}`,"gefunden");
+  function pick(){
+    kb.clearHighlight();
+    target=draw();
+    kb.highlight([target.base,"Shift"]);
+    setHint(`<b>Umschalt ⇧ + ${target.base.toUpperCase()}</b> ergibt <b>${target.ch}</b> (${target.name}).`,"");
+  }
+  setKeyHandler(e=>{
+    if(e.key==="Shift") return;           /* Umschalt allein: auf das Zeichen warten */
+    const ch=getChar(e); if(ch==null) return;
+    if(ch===target.ch){
+      kb.flash(target.base,true);sfx.good();done++;registerAttempt(true);
+      setCounter(`${done}/${TOTAL}`,"gefunden");
+      if(done>=TOTAL){ kb.clearHighlight(); completeStation("ksymbols","Sonderzeichen gemeistert – super! ❗🎉",{perfect:!fault}); }
+      else { setHint("Richtig! 👍","good"); later(pick,450); }
+    } else if(ch===target.base){
+      /* richtige Taste, aber ohne Umschalt gedrückt */
+      kb.flash(target.base,false);sfx.soft();registerAttempt(false);fault=true;
+      setHint(`Fast! Halte dabei <b>Umschalt ⇧</b> gedrückt – dann wird aus <b>${target.base}</b> ein <b>${target.ch}</b>.`,"warn");
+    } else {
+      sfx.soft();registerAttempt(false);fault=true;
+      setHint(`Das war <b>${ch}</b>. Gesucht ist <b>${target.ch}</b> (${target.name}) – mit <b>Umschalt ⇧ + ${target.base.toUpperCase()}</b>.`,"warn");
     }
   });
   pick();

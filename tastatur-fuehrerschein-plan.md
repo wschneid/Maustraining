@@ -239,3 +239,20 @@ danach Phase 2 und 3 – jeweils getrennt, wie beim Word-Trainer.
   „Mischbeutel“ (`shuffle`) für Abwechslung und garantiertes Vorkommen der
   Spezialtasten; Treffer-/Fehler-Erkennung über `getChar` bzw. `specialToken`,
   Hinweise nennen Sondertasten mit ihrem Namen.
+
+## 9. Nachtrag (Stand 2026-07-31): Pfeiltasten-Bugfix & neue Sonderzeichen-Station
+
+- **Bugfix Station 5 „Pfeiltasten-Reise“ (`karrows`):** Nach dem Erreichen des
+  Käses blieb das Ziel während der 650-ms-Pause bis zur nächsten Runde liegen
+  und die Eingabe war nicht gesperrt. Ein kurzes „Wackeln“ (vom Ziel weg und
+  wieder darauf) löste den Treffer erneut aus und **zählte doppelt** (bzw. konnte
+  die Station vorzeitig abschließen). Behoben mit einer `busy`-Sperre, die beim
+  Zielerreichen gesetzt und erst in `newRound()` wieder gelöst wird; nach der
+  letzten Runde bleibt die Eingabe gesperrt.
+- **Neue Station „Sonderzeichen & Satzzeichen“ (`ksymbols`, Teil 2):** übt die
+  mit **Umschalt ⇧** erzeugten Zeichen der Zahlenreihe (`! " § $ % & / ( ) =`)
+  und die Satzzeichen `? ; : _`. Die leuchtende Grundtaste + Umschalt wird
+  angezeigt; getippt wird das **erzeugte Zeichen** (Erkennung über `getChar`).
+  Wird die Grundtaste ohne Umschalt gedrückt, gibt es einen gezielten Hinweis.
+  Eingeordnet direkt nach `knumbers`, neues Abzeichen **`symbol_pro`
+  („Sonderzeichen-Profi“)**.
