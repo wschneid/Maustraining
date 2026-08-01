@@ -189,6 +189,85 @@
   .quellbsp .k{display:inline-block;min-width:130px;font-weight:700;color:var(--ocean-deep);}
   .quellbsp code{background:#fff;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.88em;}
 
+  /* ===== Kurze Anwendungs-Aufgaben mitten in den Lern-Stationen ===== */
+  .mini-task{border:1.5px solid var(--ocean-mid);border-radius:14px;background:#fff;padding:15px 17px 17px;margin-top:18px;}
+  .mini-task > h3{margin:0 0 4px;font-size:1.04rem;color:var(--ocean-deep);display:flex;align-items:center;gap:8px;}
+  .mini-task .mt-intro{margin:0 0 6px;font-size:.92rem;color:var(--ink-soft);}
+  .mt-item{margin-top:15px;padding-top:13px;border-top:1px dashed var(--line);}
+  .mt-item:first-of-type{margin-top:8px;padding-top:0;border-top:0;}
+  .mt-q{font-size:.95rem;font-weight:600;color:var(--ink);margin:0 0 9px;}
+  .mt-q .mt-n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--ocean-mid);
+    color:#fff;font-size:.8rem;margin-right:7px;vertical-align:-6px;}
+  .mt-opts{display:flex;flex-direction:column;gap:8px;}
+  .mt-opt{font-family:inherit;text-align:left;cursor:pointer;background:#fbfdfe;border:1px solid var(--line);border-radius:10px;
+    padding:10px 13px;font-size:.94rem;color:var(--ink);transition:.14s;display:flex;gap:10px;align-items:flex-start;width:100%;}
+  .mt-opt:hover{border-color:var(--ocean-mid);background:var(--ocean-pale);}
+  .mt-opt:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .mt-opt .mt-mark{flex:none;width:22px;height:22px;border-radius:50%;background:var(--ocean-pale);color:var(--ocean-mid);
+    display:grid;place-items:center;font-size:.78rem;font-weight:700;margin-top:1px;}
+  .mt-opt.right{border-color:var(--success);background:var(--success-soft);}
+  .mt-opt.right .mt-mark{background:var(--success);color:#fff;}
+  .mt-opt.wrong{border-color:var(--warn);background:var(--warn-soft);}
+  .mt-opt.wrong .mt-mark{background:var(--warn);color:#fff;}
+  .mt-opt code{background:var(--ocean-pale);border-radius:5px;padding:1px 6px;}
+  .mt-opt:disabled{cursor:default;color:var(--ink);}
+  .mt-opt:disabled:not(.right){color:var(--ink-soft);}
+  .mt-opt:disabled:hover{border-color:var(--line);background:#fbfdfe;}
+  .mt-opt.right:disabled:hover{border-color:var(--success);background:var(--success-soft);}
+  .mt-fb{display:none;margin-top:9px;border-radius:10px;padding:9px 12px;font-size:.9rem;line-height:1.5;}
+  .mt-fb.show{display:block;animation:pbFade .25s ease;}
+  .mt-fb.ok{background:var(--success-soft);border:1px solid #bfe6de;color:#1f6e63;}
+  .mt-fb.no{background:var(--warn-soft);border:1px solid #f3c6c0;color:#7a241c;}
+
+  /* Bausteine zum Anklicken (Mehrfachauswahl) */
+  .mt-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .mt-chip{font-family:inherit;cursor:pointer;background:#fbfdfe;border:1px solid var(--line);border-radius:999px;
+    padding:8px 15px;font-size:.92rem;color:var(--ink);transition:.14s;}
+  .mt-chip:hover{border-color:var(--ocean-mid);background:var(--ocean-pale);}
+  .mt-chip:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .mt-chip[aria-pressed="true"]{border-color:var(--success);background:var(--success-soft);color:#1f6e63;font-weight:600;}
+  .mt-chip.wrong{border-color:var(--warn);background:var(--warn-soft);color:#7a241c;font-weight:600;}
+
+  /* ===== Station 8: zwei Beispielseiten vergleichen ===== */
+  .sitecards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+  .sitecard{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 4px 14px rgba(10,77,104,.07);}
+  .sitecard .bar{display:flex;align-items:center;gap:8px;background:var(--ocean-pale);border-bottom:1px solid var(--line);padding:8px 11px;}
+  .sitecard .dots{display:flex;gap:4px;flex:none;}
+  .sitecard .dots i{width:9px;height:9px;border-radius:50%;background:#c6d9e0;display:block;}
+  .sitecard .addr{flex:1;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:.78rem;
+    color:var(--ocean-mid);font-weight:600;word-break:break-all;}
+  .sitecard .body{padding:13px 15px 15px;}
+  .sitecard .who{display:inline-block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+    background:var(--ocean-mid);color:#fff;border-radius:6px;padding:2px 8px;margin-bottom:8px;}
+  .sitecard h4{margin:0 0 4px;font-size:1.03rem;color:var(--ocean-deep);line-height:1.35;}
+  .sitecard .byline{font-size:.8rem;color:var(--ink-soft);margin:0 0 8px;}
+  .sitecard .snippet{font-size:.9rem;margin:0;}
+  .sitecard .adbox{margin-top:10px;border:1px dashed var(--hint);background:var(--hint-soft);color:#8a5616;border-radius:8px;
+    padding:6px 10px;font-size:.8rem;text-align:center;font-weight:600;}
+  .sitecard .foot{margin-top:11px;border-top:1px solid var(--line);padding-top:9px;font-size:.8rem;color:var(--ink-soft);}
+  .sitecard .foot b{color:var(--ocean-deep);}
+  .sitecard .solution{display:none;margin-top:11px;border-top:2px solid var(--ocean-mid);padding-top:9px;}
+  .sitecard .solution.show{display:block;animation:pbFade .3s ease;}
+  .sitecard .sol-h{display:block;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+    color:var(--ocean-mid);margin-bottom:2px;}
+  .sitecard .facts{list-style:none;margin:0;padding:0;font-size:.86rem;}
+  .sitecard .facts li{position:relative;padding:5px 0 5px 22px;border-top:1px dashed var(--line);color:var(--ink-soft);}
+  .sitecard .facts li:first-child{border-top:0;}
+  .sitecard .facts li::before{content:"🔍";position:absolute;left:0;top:5px;font-size:.8rem;}
+  .choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;}
+  .choice label{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;background:#fbfdfe;
+    padding:11px 13px;cursor:pointer;font-size:.95rem;font-weight:600;color:var(--ink);transition:.14s;}
+  .choice label:hover{background:var(--ocean-pale);border-color:var(--ocean-mid);}
+  .choice input{width:20px;height:20px;accent-color:var(--ocean-mid);flex:none;}
+  .choice label:has(input:checked){border-color:var(--ocean-mid);background:var(--ocean-pale);}
+  .mt-field{margin-top:12px;}
+  .mt-field label{display:block;font-size:.82rem;font-weight:700;color:var(--ocean-deep);
+    text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .mt-field textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+    font-family:inherit;font-size:.95rem;color:var(--ink);background:#fbfdfe;resize:vertical;line-height:1.5;}
+  .mt-field textarea:focus{outline:none;border-color:var(--ocean-mid);box-shadow:0 0 0 3px rgba(8,131,149,.12);}
+  @media (max-width:720px){.sitecards,.choice{grid-template-columns:1fr;}}
+
   /* ===== Aufgaben ===== */
   .sheet h2{color:var(--ocean-deep);font-size:1.25rem;margin:0 0 4px;display:flex;align-items:center;gap:10px;font-weight:700;}
   .sheet .subline{color:var(--ink-soft);font-size:.92rem;margin:0 0 16px;}
@@ -284,6 +363,7 @@
     .pb-clue:hover{transform:none;}
     .pb-line.show{animation:none;}
     .pb-summary{transition:none;}
+    .mt-fb.show{animation:none;}
   }
 
   /* ===== Druck / PDF: alle Aufgaben-Stationen ===== */
@@ -297,6 +377,13 @@
     .station{display:none!important;}
     .station.task{display:block!important;margin-bottom:18px;}
     .station.task + .station.task{break-before:page;}
+    /* Station 8: nur die Anwendungs-Aufgabe mitdrucken */
+    #st-check{display:block!important;margin-bottom:18px;break-after:page;}
+    #st-check > :not(.mini-task){display:none!important;}
+    #st-check .mini-task{border-color:#000!important;}
+    .sitecard{break-inside:avoid;box-shadow:none;}
+    .mt-field textarea{background:#fff;border:1px solid #999;}
+    .choice label{border-color:#000!important;background:#fff!important;}
     .q,.task-intro,.meta .fld input,.bonus-card,.quellname input,ul.checklist label{border-color:#000!important;}
     .q input,.q textarea,.quellname input,.bonus-card input,.bonus-card textarea{background:#fff;border:1px solid #999;}
     ul.checklist label:has(input:checked){background:#fff!important;}
@@ -472,7 +559,7 @@
           nächsten Station kennen.</div>
       </section>
 
-      <!-- Station 4 -->
+      <!-- Station 4: Datenschutzfreundliche Alternativen -->
       <section class="station" id="st-alternativen" data-title="Datenschutzfreundliche Alternativen zu Google">
         <p>Google merkt sich sehr viel über dich: wonach du suchst, wo du bist und was dich interessiert.
           Es gibt Suchmaschinen, die <b>weniger Daten über dich sammeln</b> &ndash; oder die extra für Kinder
@@ -504,20 +591,19 @@
             <span class="tag kids">Für Kinder</span><h3>fragFINN</h3>
             <p>Zeigt nur geprüfte, sichere Seiten für Kinder. Ideal zum Recherchieren.</p>
             <span class="url">www.fragfinn.de</span></a>
-          <a class="mini" href="https://www.blinde-kuh.de" target="_blank" rel="noopener noreferrer">
-            <span class="tag kids">Für Kinder</span><h3>Blinde Kuh 🐮</h3>
-            <p>Eine der ersten Kindersuchmaschinen &ndash; einfach und sicher.</p>
-            <span class="url">www.blinde-kuh.de</span></a>
-          <a class="mini" href="https://www.helles-koepfchen.de" target="_blank" rel="noopener noreferrer">
-            <span class="tag kids">Für Kinder</span><h3>Helles Köpfchen 💡</h3>
-            <p>Suchmaschine und Wissensportal mit vielen erklärten Themen.</p>
-            <span class="url">www.helles-koepfchen.de</span></a>
+          <a class="mini" href="https://schule.helles-koepfchen.de" target="_blank" rel="noopener noreferrer">
+            <span class="tag kids">Für Kinder · werbefrei</span><h3>Helles Köpfchen 💡</h3>
+            <p>Suchmaschine und Wissensportal mit vielen erklärten Themen &ndash;
+              die Schul-Version zeigt <b>keine Werbung</b>.</p>
+            <span class="url">schule.helles-koepfchen.de</span></a>
         </div>
-        <div class="note good">✅ <b>Tipp:</b> Für die Schule sind <b>Kindersuchmaschinen</b> wie fragFINN oder Blinde Kuh
-          besonders gut &ndash; dort landest du nicht aus Versehen auf Seiten, die nichts für dich sind.</div>
+        <div class="note good">✅ <b>Tipp:</b> Für die Schule sind <b>Kindersuchmaschinen</b> wie fragFINN oder
+          Helles Köpfchen besonders gut &ndash; dort landest du nicht aus Versehen auf Seiten, die nichts für dich sind.
+          Nutze bei Helles Köpfchen die Adresse <b>schule.helles-koepfchen.de</b>: Diese Version ist <b>werbefrei</b>,
+          du kannst also keine Werbung mit einem echten Suchergebnis verwechseln.</div>
       </section>
 
-      <!-- Station 4 -->
+      <!-- Station 5: Tipps für gute Suchen -->
       <section class="station" id="st-tipps" data-title="Tipps für gute Suchen">
         <p>Mit ein paar Tricks findest du viel schneller, was du suchst:</p>
         <ul class="ticks">
@@ -534,9 +620,67 @@
         <div class="note warn">🔐 <b>Schütze dich:</b> Gib in einer Suchmaschine <b>niemals</b> deinen vollen Namen,
           deine Adresse, Telefonnummer oder Passwörter ein. Suchmaschinen sind zum <b>Suchen</b> da &ndash;
           nicht zum Verraten deiner Daten.</div>
+
+        <!-- Kurze Anwendung zu Station 5 -->
+        <div class="mini-task" data-minitask>
+          <h3>✏️ Kurze Anwendung: Probiere es gleich aus</h3>
+          <p class="mt-intro">Klicke bei jeder Aufgabe auf die Antwort, die du für richtig hältst.
+            Du bekommst sofort eine Rückmeldung.</p>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">1</span>Du sollst herausfinden, <b>wie hoch der Eiffelturm ist</b>.
+              Welche Eingabe ist die beste?</p>
+            <div class="mt-opts">
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Das ist ein ganzer Satz. Die Suchmaschine braucht nur die wichtigen Wörter – „Wie“, „ist“ und „der“ helfen ihr nicht weiter.">
+                <span class="mt-mark">?</span><span>Wie hoch ist eigentlich der Eiffelturm in Paris?</span></button>
+              <button type="button" class="mt-opt" data-ok="1"
+                data-fb="Genau! Zwei kurze Schlüsselwörter – das Thema und das, was du wissen willst. So findet die Suchmaschine schnell die passenden Seiten.">
+                <span class="mt-mark">?</span><span>Eiffelturm Höhe</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Zu ungenau und mit Tippfehler: „turm hoch frankreich“ passt auf Tausende Seiten – und Tippfehler führen oft zu schlechten Ergebnissen.">
+                <span class="mt-mark">?</span><span>turm hoch frankreich</span></button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">2</span>Du suchst <b>genau diese Wortgruppe</b> in dieser Reihenfolge:
+              <i>Ritter im Mittelalter</i>. Wie gibst du das ein?</p>
+            <div class="mt-opts">
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Damit findest du Seiten, auf denen die Wörter irgendwo vorkommen – aber nicht unbedingt genau in dieser Reihenfolge.">
+                <span class="mt-mark">?</span><span>Ritter Mittelalter</span></button>
+              <button type="button" class="mt-opt" data-ok="1"
+                data-fb="Richtig! Anführungszeichen bedeuten: Suche genau diese Wörter in genau dieser Reihenfolge.">
+                <span class="mt-mark">?</span><span><code>&quot;Ritter im Mittelalter&quot;</code></span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Großbuchstaben und Ausrufezeichen bringen gar nichts – die Suchmaschine sucht dadurch kein bisschen genauer.">
+                <span class="mt-mark">?</span><span>RITTER IM MITTELALTER!!!</span></button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">3</span>Deine Suche liefert nur unpassende Treffer.
+              Was machst du <b>zuerst</b>?</p>
+            <div class="mt-opts">
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Das erste Ergebnis ist nicht automatisch das beste – manchmal ist es sogar Werbung. Erst die Suchwörter verbessern!">
+                <span class="mt-mark">?</span><span>Trotzdem das erste Ergebnis anklicken.</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Aufgeben ist zu früh: Meistens liegt es nur an den Suchwörtern, nicht an der Frage.">
+                <span class="mt-mark">?</span><span>Die Suche abbrechen – gibt es wohl nicht im Internet.</span></button>
+              <button type="button" class="mt-opt" data-ok="1"
+                data-fb="Sehr gut! Andere oder genauere Wörter ausprobieren ist der schnellste Weg zu besseren Treffern – und danach mehrere Ergebnisse vergleichen.">
+                <span class="mt-mark">?</span><span>Andere Wörter ausprobieren, z.&nbsp;B. Wörter mit gleicher Bedeutung.</span></button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+        </div>
       </section>
 
-      <!-- Station 5 -->
+      <!-- Station 6: Vorsicht vor KI-Antworten -->
       <section class="station" id="st-ki" data-title="Vorsicht vor KI-Antworten">
         <p>Immer öfter zeigt dir die Suchmaschine ganz oben eine <b>Antwort von einer Künstlichen Intelligenz (KI)</b>.
           Das sieht bequem aus &ndash; aber sei vorsichtig:</p>
@@ -552,7 +696,7 @@
           niemals einfach die KI-Antwort kopieren.</div>
       </section>
 
-      <!-- Station 6 -->
+      <!-- Station 7: Quellen richtig angeben -->
       <section class="station" id="st-quellen" data-title="Wie gebe ich Quellen richtig an?">
         <p>Eine <b>Quelle</b> zeigt, <b>woher</b> du eine Information hast. Das ist wichtig, denn:</p>
         <ul class="ticks">
@@ -571,9 +715,66 @@
         </div>
         <div class="note hint">✏️ <b>Wichtig:</b> Schreibe die Antwort immer in <b>eigenen Worten</b>.
           Wort-für-Wort abschreiben ist kein gutes Arbeiten &ndash; und aus einer KI kopieren erst recht nicht.</div>
+
+        <!-- Kurze Anwendung zu Station 7 -->
+        <div class="mini-task" data-minitask>
+          <h3>✏️ Kurze Anwendung: Quellenangaben prüfen</h3>
+          <p class="mt-intro">Klicke deine Antwort an &ndash; du siehst sofort, ob sie stimmt.</p>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">1</span>Welche Quellenangabe ist <b>vollständig</b>?</p>
+            <div class="mt-opts">
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Hier fehlt die Adresse (URL). Ohne sie kann niemand die Seite wiederfinden.">
+                <span class="mt-mark">?</span><span>&bdquo;Warum blinken Glühwürmchen?&ldquo; &ndash; abgerufen am 12.05.2026</span></button>
+              <button type="button" class="mt-opt" data-ok="1"
+                data-fb="Perfekt! Titel + Adresse (URL) + Abrufdatum – so gehört eine Quellenangabe.">
+                <span class="mt-mark">?</span><span>&bdquo;Warum blinken Glühwürmchen?&ldquo; &ndash;
+                  <code>www.beispielseite.de/gluehwuermchen</code> &ndash; abgerufen am 12.05.2026</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Hier fehlen Titel und Abrufdatum. Eine Adresse allein sagt nicht, worum es ging und wann du die Seite gelesen hast.">
+                <span class="mt-mark">?</span><span><code>www.beispielseite.de/gluehwuermchen</code></span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Das ist keine Quelle: Google ist nur die Suchmaschine, nicht die Seite, auf der die Information steht.">
+                <span class="mt-mark">?</span><span>Gefunden bei Google</span></button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+
+          <div class="mt-item" data-mtpick>
+            <p class="mt-q"><span class="mt-n">2</span>Welche <b>drei Bausteine</b> gehören in eine Quellenangabe?
+              Klicke sie an.</p>
+            <div class="mt-chips">
+              <button type="button" class="mt-chip" data-ok="1">Titel der Seite</button>
+              <button type="button" class="mt-chip" data-ok="0">Wie lange du gesucht hast</button>
+              <button type="button" class="mt-chip" data-ok="1">Adresse (URL)</button>
+              <button type="button" class="mt-chip" data-ok="0">Anzahl der Bilder auf der Seite</button>
+              <button type="button" class="mt-chip" data-ok="1">Abrufdatum</button>
+              <button type="button" class="mt-chip" data-ok="0">Deine Lieblingsfarbe</button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">3</span>Du hast auf einer Webseite gelesen, warum der Mars rot ist.
+              Wie schreibst du deine Antwort auf?</p>
+            <div class="mt-opts">
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Wort für Wort kopieren ist abschreiben – auch dann, wenn du die Quelle darunter schreibst.">
+                <span class="mt-mark">?</span><span>Ich kopiere den Text der Seite und setze die Quelle darunter.</span></button>
+              <button type="button" class="mt-opt" data-ok="1"
+                data-fb="Genau so ist es richtig: erst lesen und verstehen, dann in eigenen Worten aufschreiben – und die Quelle dazu.">
+                <span class="mt-mark">?</span><span>Ich lese den Text, schreibe ihn in eigenen Worten auf und notiere die Quelle.</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Ohne Quelle kann niemand nachprüfen, woher deine Information stammt – und es sieht so aus, als hättest du sie dir ausgedacht.">
+                <span class="mt-mark">?</span><span>Ich schreibe alles in eigenen Worten, lasse die Quelle aber weg.</span></button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+        </div>
       </section>
 
-      <!-- Station 7 -->
+      <!-- Station 8: Ist die Seite vertrauenswürdig? -->
       <section class="station" id="st-check" data-title="Ist die Seite vertrauenswürdig?">
         <p>Nicht jede Webseite sagt die Wahrheit. Bevor du eine Information glaubst, stelle dir diese Fragen:</p>
         <ul class="ticks">
@@ -585,9 +786,91 @@
         </ul>
         <div class="note good">📚 <b>Gut zu wissen:</b> Seiten wie das <b>Klexikon</b> (das Wikipedia für Kinder) oder
           Wikipedia sind ein guter <b>Start</b>. Aber auch dort gilt: nachdenken und mit anderen Quellen vergleichen.</div>
+
+        <!-- Kurze Anwendung zu Station 8: zwei erfundene Beispielseiten -->
+        <div class="mini-task" data-minitask>
+          <h3>🕵️ Kurze Anwendung: Welche Seite ist seriös?</h3>
+          <p class="mt-intro">Du hast gesucht: <b>Warum wechselt ein Chamäleon die Farbe?</b>
+            Zwei Treffer sehen so aus. Beide Seiten sind <b>erfunden</b> &ndash; du kannst sie nicht anklicken.
+            Lies sie genau und <b>entscheide</b>, welcher Seite du glauben kannst.
+            Die <b>Auflösung</b> siehst du erst, wenn du dich entschieden hast.</p>
+
+          <div class="sitecards">
+            <!-- Beispielseite A -->
+            <div class="sitecard">
+              <div class="bar"><span class="dots"><i></i><i></i><i></i></span>
+                <span class="addr">www.tierwissen-fuer-kinder.de/chamaeleon</span></div>
+              <div class="body">
+                <span class="who">Seite A</span>
+                <h4>Warum wechselt ein Chamäleon die Farbe?</h4>
+                <p class="byline">Von Dr. Anna Berg, Biologin &nbsp;·&nbsp; Zuletzt aktualisiert: 14.03.2026</p>
+                <p class="snippet">Viele denken, Chamäleons färben sich wie ihre Umgebung, um sich zu tarnen.
+                  Forscherinnen und Forscher haben aber herausgefunden: Die Farbe hängt vor allem von der
+                  <b>Stimmung</b>, der <b>Temperatur</b> und dem <b>Licht</b> ab. Ein aufgeregtes Chamäleon wird
+                  zum Beispiel oft heller …</p>
+                <div class="foot"><b>Über uns · Impressum · Quellen</b><br>
+                  Herausgeber: Naturkundemuseum Musterstadt, Schulabteilung</div>
+                <div class="solution">
+                  <span class="sol-h">🔎 Auflösung: darauf kannst du dich verlassen</span>
+                  <ul class="facts">
+                    <li>Es steht dabei, <b>wer</b> den Text geschrieben hat.</li>
+                    <li>Es gibt ein <b>Impressum</b> und eine Quellenliste.</li>
+                    <li>Ein <b>Datum</b> zeigt, wie aktuell die Info ist.</li>
+                    <li><b>Keine Werbung</b>, nichts wird verkauft.</li>
+                    <li>Die Sprache ist <b>sachlich</b>, nicht übertrieben.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Beispielseite B -->
+            <div class="sitecard">
+              <div class="bar"><span class="dots"><i></i><i></i><i></i></span>
+                <span class="addr">www.mega-tier-fakten-xxl.de/schock-chamaeleon</span></div>
+              <div class="body">
+                <span class="who">Seite B</span>
+                <h4>SCHOCK! Das Chamäleon-Geheimnis, das dir keiner verrät!!!</h4>
+                <p class="byline">Von TierFan2000 &nbsp;·&nbsp; kein Datum</p>
+                <p class="snippet">Unglaublich, aber wahr: Chamäleons können <b>jede</b> Farbe der Welt annehmen und
+                  sich sogar <b>unsichtbar</b> machen! Forscher wollen das geheim halten. Wie das genau geht,
+                  erfährst du in unserem <b>Super-Tierbuch für nur 19,99&nbsp;€ &ndash; jetzt bestellen!</b></p>
+                <div class="adbox">🛒 Anzeige: Jetzt Chamäleon-Poster kaufen! · 📢 Werbung · 🎁 Gewinnspiel</div>
+                <div class="foot">Kein Impressum &nbsp;·&nbsp; Kontakt: &ndash;</div>
+                <div class="solution">
+                  <span class="sol-h">🔎 Auflösung: hier ist Vorsicht nötig</span>
+                  <ul class="facts">
+                    <li>Man erfährt <b>nicht</b>, wer dahintersteckt.</li>
+                    <li><b>Kein Impressum</b>, keine Quellen.</li>
+                    <li><b>Kein Datum</b> &ndash; die Info kann uralt sein.</li>
+                    <li>Viel <b>Werbung</b>, es soll etwas <b>verkauft</b> werden.</li>
+                    <li>Die Sprache ist <b>übertrieben</b> („SCHOCK!!!“, „unsichtbar“).</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-item" data-mtchoice style="margin-top:16px;">
+            <p class="mt-q"><span class="mt-n">1</span>Welcher Seite kannst du <b>glauben</b>?</p>
+            <div class="choice">
+              <label><input type="radio" name="seriosWahl" id="serA" value="Seite A" data-ok="1"><span>Seite A &ndash; Tierwissen für Kinder</span></label>
+              <label><input type="radio" name="seriosWahl" id="serB" value="Seite B" data-ok="0"><span>Seite B &ndash; Mega-Tier-Fakten XXL</span></label>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">2</span><b>Begründe</b> deine Entscheidung: Nenne <b>mindestens zwei</b>
+              Merkmale, an denen du die seriöse Seite erkennst &ndash; und zwei, die dich bei der anderen stutzig machen.</p>
+            <div class="mt-field">
+              <label for="serBegruendung">Meine Begründung</label>
+              <textarea id="serBegruendung" placeholder="Seite … ist seriös, weil … / Bei Seite … bin ich misstrauisch, weil …"></textarea>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <!-- Station 8: Schritt für Schritt -->
+      <!-- Station 9: Schritt für Schritt -->
       <section class="station" id="st-vorgehen" data-title="So gehst du Schritt für Schritt vor">
         <p>Wenn du eine Frage im Internet recherchieren sollst, arbeite diese Schritte der Reihe nach ab:</p>
         <ol class="recipe">
@@ -838,11 +1121,13 @@ goTo(0);
    Speichern (Browser) + Export
    ============================================================ */
 const STORAGE_KEY = "suchmaschinen-aufgabe-v2";
-const fields = () => [...document.querySelectorAll(".station.task input, .station.task textarea")];
+const fields = () => [...document.querySelectorAll(
+  ".station.task input, .station.task textarea, .mini-task input, .mini-task textarea")];
+const isTick = f => f.type === "checkbox" || f.type === "radio";
 
 function save(){
   const data = {};
-  fields().forEach(f => data[f.id] = (f.type === "checkbox" ? f.checked : f.value));
+  fields().forEach(f => data[f.id] = (isTick(f) ? f.checked : f.value));
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
 }
 function load(){
@@ -850,11 +1135,11 @@ function load(){
   try { data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e){ data = {}; }
   fields().forEach(f => {
     if(data[f.id] == null) return;
-    if(f.type === "checkbox") f.checked = !!data[f.id]; else f.value = data[f.id];
+    if(isTick(f)) f.checked = !!data[f.id]; else f.value = data[f.id];
   });
 }
 load();
-fields().forEach(f => f.addEventListener(f.type === "checkbox" ? "change" : "input", save));
+fields().forEach(f => f.addEventListener(isTick(f) ? "change" : "input", save));
 
 function val(id){ const el = document.getElementById(id); return el ? el.value.trim() : ""; }
 function checked(id){ const el = document.getElementById(id); return !!(el && el.checked); }
@@ -893,8 +1178,15 @@ function buildDocHtml(){
     a3 += '<p class="chk">' + (checked("chk" + (i + 1)) ? "☑" : "☐") + " " + esc(text) + '</p>';
   });
 
+  // Station 8: Entscheidung + Begründung
+  const wahl = checked("serA") ? "Seite A – Tierwissen für Kinder"
+             : (checked("serB") ? "Seite B – Mega-Tier-Fakten XXL" : "");
+  const s8 = '<div class="qblock"><p class="qtitle"><b>Welcher Seite kann ich glauben?</b></p>' +
+    '<p class="lbl">Meine Entscheidung:</p><p class="val">' + line(wahl) + '</p>' +
+    '<p class="lbl">Begründung (mindestens zwei Merkmale):</p><p class="val">' + para(val("serBegruendung")) + '</p></div>';
+
   // Für Schnelle
-  let bonus = '<div class="qblock"><p class="qtitle"><b>Stimmt das wirklich? (Chamäleon &amp; Tarnung)</b></p>' +
+  let bonus ='<div class="qblock"><p class="qtitle"><b>Stimmt das wirklich? (Chamäleon &amp; Tarnung)</b></p>' +
     '<p class="lbl">Quelle 1:</p><p class="val">' + line(val("sbQuelle1")) + '</p>' +
     '<p class="lbl">Quelle 2:</p><p class="val">' + line(val("sbQuelle2")) + '</p>' +
     '<p class="lbl">Antwort:</p><p class="val">' + para(val("sbAntwort")) + '</p></div>' +
@@ -928,6 +1220,7 @@ function buildDocHtml(){
     '<h2>Aufgabe 2: Gute Suchbegriffe finden</h2>' +
     '<p class="sub">Schreibe zu jeder Frage 2–3 Schlüsselwörter auf.</p>' + a2 +
     '<h2>Aufgabe 3: Quellen bewerten</h2>' + a3 +
+    '<h2>Station 8: Welche Seite ist seriös? (Beispielseiten A und B)</h2>' + s8 +
     '<h2>Für Schnelle: Such-Detektiv</h2>' + bonus +
     '</body></html>';
 }
@@ -950,9 +1243,110 @@ document.getElementById("btnWord").addEventListener("click", downloadWord);
 document.getElementById("btnPdf").addEventListener("click", () => window.print());
 document.getElementById("btnClear").addEventListener("click", () => {
   if(confirm("Möchtest du wirklich alle deine Eingaben in allen Aufgaben löschen?")){
-    fields().forEach(f => { if(f.type === "checkbox") f.checked = false; else f.value = ""; });
+    fields().forEach(f => { if(isTick(f)) f.checked = false; else f.value = ""; });
+    resetMiniTasks();
     save();
   }
+});
+
+/* ============================================================
+   Kurze Anwendungs-Aufgaben (Stationen 5, 7 und 8)
+   ============================================================ */
+function setFb(fb, kind, html){
+  if(!fb) return;
+  if(!kind){ fb.className = "mt-fb"; fb.innerHTML = ""; return; }
+  fb.className = "mt-fb show " + kind;
+  fb.innerHTML = html;
+}
+function resetMiniTasks(){
+  document.querySelectorAll(".mini-task .mt-fb").forEach(fb => setFb(fb, null));
+  document.querySelectorAll(".mini-task .mt-opt").forEach(opt => {
+    opt.classList.remove("right","wrong");
+    opt.disabled = false;
+    const m = opt.querySelector(".mt-mark"); if(m) m.textContent = "?";
+  });
+  document.querySelectorAll(".mini-task .mt-chip").forEach(chip => {
+    chip.classList.remove("wrong");
+    chip.setAttribute("aria-pressed","false");
+  });
+  document.querySelectorAll(".mini-task .sitecard .solution").forEach(s => s.classList.remove("show"));
+}
+
+/* ---- Einfachauswahl: eine Antwort anklicken ---- */
+document.querySelectorAll(".mini-task .mt-opts").forEach(group => {
+  const opts = [...group.querySelectorAll(".mt-opt")];
+  const fb = group.parentElement.querySelector(".mt-fb");
+  opts.forEach(opt => {
+    opt.addEventListener("click", () => {
+      const ok = opt.dataset.ok === "1";
+      const mark = opt.querySelector(".mt-mark");
+      opt.classList.remove("right","wrong");
+      opt.classList.add(ok ? "right" : "wrong");
+      if(mark) mark.textContent = ok ? "✓" : "✕";
+      setFb(fb, ok ? "ok" : "no", (ok ? "" : "<b>Noch nicht &ndash; versuch es noch einmal.</b> ") + (opt.dataset.fb || ""));
+      if(ok){
+        opts.forEach(o => {
+          o.disabled = true;
+          if(o !== opt){
+            o.classList.remove("wrong");
+            const m = o.querySelector(".mt-mark"); if(m) m.textContent = "·";
+          }
+        });
+      }
+    });
+  });
+});
+
+/* ---- Mehrfachauswahl: Bausteine einer Quellenangabe ---- */
+document.querySelectorAll(".mini-task [data-mtpick]").forEach(item => {
+  const chips = [...item.querySelectorAll(".mt-chip")];
+  const fb = item.querySelector(".mt-fb");
+  chips.forEach(c => c.setAttribute("aria-pressed","false"));
+  chips.forEach(chip => {
+    chip.addEventListener("click", () => {
+      if(chip.dataset.ok === "1"){
+        chip.setAttribute("aria-pressed", chip.getAttribute("aria-pressed") === "true" ? "false" : "true");
+      } else {
+        chip.classList.toggle("wrong");
+      }
+      const anyWrong = chips.some(c => c.dataset.ok !== "1" && c.classList.contains("wrong"));
+      const gotAll = chips.filter(c => c.dataset.ok === "1")
+                          .every(c => c.getAttribute("aria-pressed") === "true");
+      if(anyWrong){
+        setFb(fb, "no", "<b>Das gehört nicht dazu.</b> Für eine Quellenangabe braucht niemand deine Suchdauer, " +
+          "die Zahl der Bilder oder deine Lieblingsfarbe. Klicke die rote Karte noch einmal an, um sie abzuwählen.");
+      } else if(gotAll){
+        setFb(fb, "ok", "<b>Super!</b> <b>Titel</b>, <b>Adresse (URL)</b> und <b>Abrufdatum</b> &ndash; mit diesen drei " +
+          "Bausteinen kann jede Person deine Quelle wiederfinden und nachprüfen.");
+      } else {
+        setFb(fb, null);
+      }
+    });
+  });
+});
+
+/* ---- Station 8: Entscheidung zwischen zwei Beispielseiten ---- */
+document.querySelectorAll(".mini-task [data-mtchoice]").forEach(item => {
+  const radios = [...item.querySelectorAll('input[type="radio"]')];
+  const fb = item.querySelector(".mt-fb");
+  const station = item.closest(".station");
+  const solutions = station ? [...station.querySelectorAll(".sitecard .solution")] : [];
+  function showChoice(){
+    const sel = radios.find(r => r.checked);
+    solutions.forEach(s => s.classList.toggle("show", !!sel));
+    if(!sel){ setFb(fb, null); return; }
+    if(sel.dataset.ok === "1"){
+      setFb(fb, "ok", "<b>Richtig!</b> Bei <b>Seite A</b> steht, <b>wer</b> den Text geschrieben hat, es gibt ein " +
+        "<b>Impressum</b> mit Herausgeber, ein <b>aktuelles Datum</b> und <b>Quellen</b>. Die Seite <b>verkauft nichts</b> " +
+        "und schreibt sachlich. Schreibe jetzt unten auf, woran du das erkannt hast.");
+    } else {
+      setFb(fb, "no", "<b>Schau noch einmal genau hin.</b> Bei <b>Seite B</b> fehlen Impressum, Autorenname und Datum, " +
+        "die Seite ist voller <b>Werbung</b> und will dir ein Buch <b>verkaufen</b>. Außerdem klingt sie stark " +
+        "<b>übertrieben</b> („SCHOCK!!!“, „unsichtbar“) &ndash; das sind typische Warnzeichen.");
+    }
+  }
+  radios.forEach(r => r.addEventListener("change", showChoice));
+  showChoice();
 });
 
 /* ============================================================
