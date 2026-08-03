@@ -1,0 +1,1366 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Umgang mit dem Computer</title>
+<style>
+  :root{
+    --ocean-deep:#0a4d68; --ocean-mid:#088395; --ocean-bright:#13b8d4; --ocean-pale:#e6f3f7;
+    --bg:#f1f7fa; --card:#fff; --ink:#143540; --ink-soft:#4a6670; --line:#d4e6ec;
+    --success:#2a9d8f; --success-soft:#e4f5f1; --hint:#d98324; --hint-soft:#fbf0e2;
+    --warn:#c0392b; --warn-soft:#fdecea;
+    --shadow:0 10px 30px rgba(10,77,104,.10); --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;min-height:100%;overflow-x:hidden;}
+  body{font-family:"Segoe UI","Frutiger",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--ink);
+    -webkit-font-smoothing:antialiased;line-height:1.55;min-height:100vh;display:flex;flex-direction:column;}
+
+  /* ===== Kopf mit Stationsleiste ===== */
+  header.app{background:linear-gradient(120deg,var(--ocean-deep),var(--ocean-mid) 55%,var(--ocean-bright));
+    color:#fff;padding:14px 22px;display:flex;align-items:center;gap:18px;
+    box-shadow:0 4px 18px rgba(10,77,104,.25);flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:1.22rem;white-space:nowrap;}
+  .brand .glyph{font-size:1.5rem;}
+  .brand small{display:block;font-weight:400;font-size:.7rem;opacity:.82;letter-spacing:.5px;text-transform:uppercase;}
+  .progress{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap;}
+  .stamp{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:999px;
+    padding:5px 11px 5px 7px;font-size:.74rem;display:flex;align-items:center;gap:6px;cursor:pointer;transition:.18s;white-space:nowrap;
+    font-family:inherit;}
+  .stamp:hover{background:rgba(255,255,255,.26);}
+  .stamp .dot{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:.72rem;line-height:1;}
+  .stamp.done{background:#fff;color:var(--ocean-deep);border-color:#fff;font-weight:600;}
+  .stamp.done .dot{background:var(--success);color:#fff;}
+  .stamp.active{outline:2px solid #fff;outline-offset:1px;}
+  .stamp.task{background:rgba(217,131,36,.22);border-color:rgba(255,255,255,.4);}
+  .stamp.task.done{background:#fff;color:#8a5616;}
+  .stamp:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+
+  /* ===== Stationsmenü als ☰-Drawer ===== */
+  .navbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:40px;height:40px;
+    border-radius:10px;font-size:1.2rem;cursor:pointer;display:grid;place-items:center;font-family:inherit;}
+  .navbtn:hover{background:rgba(255,255,255,.28);}
+  .navbtn:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .stationnow{margin-right:auto;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);color:#fff;
+    border-radius:999px;padding:6px 14px;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap;
+    max-width:60vw;overflow:hidden;text-overflow:ellipsis;font-family:inherit;}
+  .stationnow:hover{background:rgba(255,255,255,.26);}
+  .stationnow:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(7,40,53,.5);z-index:59;display:none;}
+  .drawer-backdrop.open{display:block;}
+  .drawer{position:fixed;left:0;top:0;bottom:0;width:min(300px,86vw);z-index:60;display:flex;flex-direction:column;
+    background:linear-gradient(160deg,var(--ocean-deep),var(--ocean-mid));box-shadow:6px 0 24px rgba(0,0,0,.3);
+    transform:translateX(-100%);transition:transform .25s ease;}
+  .drawer.open{transform:none;}
+  .drawer-head{display:flex;align-items:center;gap:8px;padding:14px 14px 10px;color:#fff;font-weight:700;font-size:1rem;
+    border-bottom:1px solid rgba(255,255,255,.18);}
+  .drawer-head .drawer-progress{margin-left:auto;font-size:.76rem;font-weight:600;background:rgba(255,255,255,.15);
+    border-radius:999px;padding:3px 9px;}
+  .drawer-x{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:30px;height:30px;
+    border-radius:8px;font-size:1.1rem;cursor:pointer;display:grid;place-items:center;font-family:inherit;}
+  .drawer-x:hover{background:rgba(255,255,255,.3);}
+  #drawer .progress{flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;
+    overflow-y:auto;gap:6px;padding:10px;flex:1;}
+  #drawer .stamp{justify-content:flex-start;width:100%;font-size:.86rem;padding:9px 12px;}
+  #drawer .stamp .dot{width:22px;height:22px;font-size:.8rem;}
+
+  main{flex:1;display:flex;justify-content:center;padding:22px 18px 30px;}
+  .card{background:var(--card);width:min(980px,100%);border-radius:var(--radius);box-shadow:var(--shadow);
+    overflow:hidden;display:flex;flex-direction:column;min-height:520px;}
+
+  /* Kopfzeile der aktuellen Station */
+  .instruct{display:flex;gap:14px;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line);background:var(--ocean-pale);}
+  .bot{flex:none;width:54px;height:54px;border-radius:50%;background:#fff;border:2px solid var(--ocean-bright);
+    display:grid;place-items:center;box-shadow:0 4px 12px rgba(10,77,104,.12);}
+  .bot svg{width:32px;height:32px;}
+  .instruct .txt{flex:1;}
+  .instruct h1{margin:0;font-size:1.4rem;color:var(--ocean-deep);font-weight:700;}
+  .instruct .stationlbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;color:var(--ocean-mid);font-weight:700;margin-bottom:2px;}
+
+  .play{padding:24px 26px;flex:1;}
+
+  /* ===== Stationen ===== */
+  .station{display:none;}
+  .station.active{display:block;animation:fade .28s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .station p{margin:0 0 12px;}
+  .station p:last-child{margin-bottom:0;}
+  .station b{color:var(--ocean-deep);}
+  .lead{color:var(--ink-soft);font-size:1rem;}
+  .leitfrage{display:inline-flex;align-items:center;gap:9px;background:var(--ocean-pale);border:1px solid var(--line);
+    border-radius:999px;padding:7px 15px;font-size:.9rem;font-weight:600;color:var(--ocean-deep);margin:0 0 14px;}
+  .leitfrage .lf-ico{font-size:1.1rem;}
+
+  /* Lernziele-Box */
+  .goals{background:#fff;border:1.5px solid var(--ocean-mid);border-radius:14px;padding:16px 18px;margin:4px 0 18px;}
+  .goals h3{margin:0 0 4px;color:var(--ocean-deep);font-size:1.05rem;display:flex;align-items:center;gap:8px;}
+  .goals .goals-intro{margin:0 0 10px;font-size:.92rem;color:var(--ink-soft);}
+  ul.goallist{list-style:none;margin:0;padding:0;}
+  ul.goallist li{position:relative;padding:7px 0 7px 30px;font-size:.95rem;border-bottom:1px dashed var(--line);}
+  ul.goallist li:last-child{border-bottom:0;}
+  ul.goallist li::before{content:"🎯";position:absolute;left:0;top:7px;font-size:.9rem;}
+
+  /* Schritte / Spalten */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:6px 0 4px;}
+  .step{background:var(--ocean-pale);border:1px solid var(--line);border-radius:14px;padding:16px 16px 18px;text-align:center;}
+  .step .ico{font-size:2rem;line-height:1;}
+  .step h3{margin:8px 0 6px;font-size:1.02rem;color:var(--ocean-deep);}
+  .step p{font-size:.9rem;color:var(--ink-soft);margin:0;}
+  .step .snum{display:inline-block;background:var(--ocean-mid);color:#fff;border-radius:999px;font-size:.72rem;
+    font-weight:700;padding:2px 9px;margin-bottom:4px;}
+
+  .cardgroup-title{color:var(--ocean-deep);margin:20px 0 8px;font-size:1.08rem;display:flex;align-items:center;gap:8px;}
+  .cardgroup-title:first-child{margin-top:6px;}
+
+  /* Listen mit Häkchen / Kreuzen */
+  ul.ticks{list-style:none;margin:4px 0 0;padding:0;}
+  ul.ticks li{position:relative;padding:7px 0 7px 30px;border-bottom:1px solid var(--line);font-size:.95rem;}
+  ul.ticks li:last-child{border-bottom:0;}
+  ul.ticks li::before{content:"✔";position:absolute;left:0;top:7px;width:20px;height:20px;border-radius:50%;
+    background:var(--success-soft);color:var(--success);display:grid;place-items:center;font-size:.72rem;font-weight:700;}
+  ul.ticks.cross li::before{content:"✕";background:var(--warn-soft);color:var(--warn);}
+
+  /* Hinweisboxen */
+  .note{border-radius:12px;padding:13px 16px;font-size:.92rem;margin-top:16px;line-height:1.5;}
+  .note.warn{background:var(--warn-soft);border:1px solid #f3c6c0;color:#7a241c;}
+  .note.hint{background:var(--hint-soft);border:1px solid #f0d9b8;color:#8a5616;}
+  .note.good{background:var(--success-soft);border:1px solid #bfe6de;color:#1f6e63;}
+  .note b{color:inherit;}
+
+  /* Merksatz-Box */
+  .merke{background:linear-gradient(90deg,var(--ocean-deep),var(--ocean-mid));color:#fff;border-radius:14px;
+    padding:16px 20px;margin-top:16px;box-shadow:var(--shadow);}
+  .merke .merke-h{font-size:.75rem;text-transform:uppercase;letter-spacing:.6px;font-weight:700;opacity:.85;margin-bottom:5px;
+    display:flex;align-items:center;gap:7px;}
+  .merke p{margin:0 0 4px;font-size:1.02rem;}
+  .merke p:last-child{margin-bottom:0;}
+  .merke b{color:#fff;}
+
+  /* ===== Bildkarten (Station 1): Ist das ein Computer? ===== */
+  .bildkarten{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:10px 0 4px;}
+  .bk{font-family:inherit;cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:16px 12px 14px;text-align:center;transition:.16s;position:relative;overflow:hidden;}
+  .bk:hover{border-color:var(--ocean-mid);box-shadow:0 8px 20px rgba(10,77,104,.14);transform:translateY(-2px);}
+  .bk:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .bk .bk-emoji{font-size:2.4rem;line-height:1;}
+  .bk .bk-name{display:block;margin-top:7px;font-weight:600;color:var(--ocean-deep);font-size:.95rem;}
+  .bk .bk-reveal{display:none;margin-top:9px;font-size:.82rem;color:var(--ink-soft);line-height:1.4;
+    border-top:1px dashed var(--line);padding-top:8px;}
+  .bk .bk-badge{position:absolute;top:8px;right:8px;font-size:.66rem;font-weight:700;text-transform:uppercase;
+    letter-spacing:.4px;border-radius:6px;padding:2px 7px;opacity:0;transition:.16s;}
+  .bk.revealed{border-color:var(--success);background:var(--success-soft);}
+  .bk.revealed .bk-reveal{display:block;animation:pbFade .3s ease;}
+  .bk.revealed .bk-badge{opacity:1;background:var(--success);color:#fff;}
+  @keyframes pbFade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  /* ===== Komponenten (Station 2) ===== */
+  .komp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:8px 0 4px;}
+  .komp{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;transition:.16s;cursor:pointer;
+    text-align:left;font-family:inherit;width:100%;}
+  .komp:hover{border-color:var(--ocean-mid);box-shadow:0 6px 16px rgba(10,77,104,.12);}
+  .komp:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .komp .komp-top{display:flex;align-items:center;gap:10px;}
+  .komp .komp-ico{font-size:1.6rem;line-height:1;flex:none;}
+  .komp .komp-name{font-weight:700;color:var(--ocean-deep);font-size:1rem;flex:1;}
+  .komp .komp-plus{flex:none;width:22px;height:22px;border-radius:50%;background:var(--ocean-pale);color:var(--ocean-mid);
+    display:grid;place-items:center;font-size:.85rem;font-weight:700;}
+  .komp .komp-desc{display:none;margin-top:9px;font-size:.88rem;color:var(--ink-soft);line-height:1.45;
+    border-top:1px dashed var(--line);padding-top:8px;}
+  .komp[aria-expanded="true"]{border-color:var(--ocean-mid);background:var(--ocean-pale);}
+  .komp[aria-expanded="true"] .komp-plus{background:var(--ocean-mid);color:#fff;}
+  .komp[aria-expanded="true"] .komp-desc{display:block;animation:pbFade .3s ease;}
+
+  /* ===== Sortierspiel (Station 3): Hardware oder Software? ===== */
+  .sortgame{margin:10px 0 0;display:flex;flex-direction:column;gap:10px;}
+  .sortrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;
+    background:#fff;padding:11px 14px;}
+  .sortrow .sr-item{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--ink);flex:1 1 150px;font-size:.98rem;}
+  .sortrow .sr-item .sr-emoji{font-size:1.4rem;}
+  .sortrow .sr-btns{display:flex;gap:8px;flex:none;}
+  .sr-btn{font-family:inherit;cursor:pointer;border:1px solid var(--line);border-radius:9px;background:#fbfdfe;
+    padding:8px 14px;font-size:.9rem;font-weight:600;color:var(--ink);transition:.14s;}
+  .sr-btn:hover{border-color:var(--ocean-mid);background:var(--ocean-pale);}
+  .sr-btn:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .sr-btn.right{border-color:var(--success);background:var(--success-soft);color:#1f6e63;}
+  .sr-btn.wrong{border-color:var(--warn);background:var(--warn-soft);color:#7a241c;}
+  .sortrow .sr-fb{flex-basis:100%;font-size:.85rem;color:var(--ink-soft);display:none;}
+  .sortrow.done .sr-fb{display:block;}
+  .sortrow.done .sr-btn:not(.right){opacity:.5;}
+
+  /* ===== EVA-Diagramm (Station 4) ===== */
+  .eva-flow{display:flex;align-items:stretch;gap:10px;margin:12px 0 4px;flex-wrap:wrap;}
+  .eva-box{flex:1 1 200px;border-radius:14px;padding:15px 16px 17px;border:1px solid var(--line);background:#fff;}
+  .eva-box.ein{border-top:4px solid var(--ocean-bright);}
+  .eva-box.ver{border-top:4px solid var(--hint);}
+  .eva-box.aus{border-top:4px solid var(--success);}
+  .eva-box .eva-letter{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;color:#fff;
+    font-weight:800;font-size:1.1rem;margin-bottom:6px;}
+  .eva-box.ein .eva-letter{background:var(--ocean-bright);}
+  .eva-box.ver .eva-letter{background:var(--hint);}
+  .eva-box.aus .eva-letter{background:var(--success);}
+  .eva-box h3{margin:0 0 8px;color:var(--ocean-deep);font-size:1.05rem;}
+  .eva-box ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;}
+  .eva-box li{font-size:.9rem;display:flex;align-items:center;gap:8px;}
+  .eva-box li .e-ico{font-size:1.05rem;}
+  .eva-arrow{display:grid;place-items:center;font-size:1.6rem;color:var(--ocean-mid);flex:none;align-self:center;}
+  .eva-arrow .ea-down{display:none;}
+  @media (max-width:760px){
+    .eva-arrow{width:100%;}
+    .eva-arrow .ea-right{display:none;}
+    .eva-arrow .ea-down{display:block;}
+  }
+
+  /* EVA-Beispiel-Karten (Station 5) */
+  .eva-examples{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+  .eva-ex{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 4px 14px rgba(10,77,104,.07);}
+  .eva-ex .eva-ex-head{background:var(--ocean-pale);border-bottom:1px solid var(--line);padding:11px 15px;
+    font-weight:700;color:var(--ocean-deep);display:flex;align-items:center;gap:8px;}
+  .eva-ex .eva-ex-body{padding:12px 15px 14px;display:flex;flex-direction:column;gap:8px;}
+  .eva-step{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;}
+  .eva-step .es-tag{flex:none;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#fff;
+    border-radius:6px;padding:3px 8px;margin-top:1px;min-width:78px;text-align:center;}
+  .es-tag.ein{background:var(--ocean-bright);}
+  .es-tag.ver{background:var(--hint);}
+  .es-tag.aus{background:var(--success);}
+  @media (max-width:640px){.eva-examples{grid-template-columns:1fr;}}
+
+  /* ===== Kurze Anwendungs-Aufgaben (Mini-Quiz) ===== */
+  .mini-task{border:1.5px solid var(--ocean-mid);border-radius:14px;background:#fff;padding:15px 17px 17px;margin-top:18px;}
+  .mini-task > h3{margin:0 0 4px;font-size:1.04rem;color:var(--ocean-deep);display:flex;align-items:center;gap:8px;}
+  .mini-task .mt-intro{margin:0 0 6px;font-size:.92rem;color:var(--ink-soft);}
+  .mt-item{margin-top:15px;padding-top:13px;border-top:1px dashed var(--line);}
+  .mt-item:first-of-type{margin-top:8px;padding-top:0;border-top:0;}
+  .mt-q{font-size:.95rem;font-weight:600;color:var(--ink);margin:0 0 9px;}
+  .mt-q .mt-n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--ocean-mid);
+    color:#fff;font-size:.8rem;margin-right:7px;vertical-align:-6px;}
+  .mt-opts{display:flex;flex-direction:column;gap:8px;}
+  .mt-opt{font-family:inherit;text-align:left;cursor:pointer;background:#fbfdfe;border:1px solid var(--line);border-radius:10px;
+    padding:10px 13px;font-size:.94rem;color:var(--ink);transition:.14s;display:flex;gap:10px;align-items:flex-start;width:100%;}
+  .mt-opt:hover{border-color:var(--ocean-mid);background:var(--ocean-pale);}
+  .mt-opt:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .mt-opt .mt-mark{flex:none;width:22px;height:22px;border-radius:50%;background:var(--ocean-pale);color:var(--ocean-mid);
+    display:grid;place-items:center;font-size:.78rem;font-weight:700;margin-top:1px;}
+  .mt-opt.right{border-color:var(--success);background:var(--success-soft);}
+  .mt-opt.right .mt-mark{background:var(--success);color:#fff;}
+  .mt-opt.wrong{border-color:var(--warn);background:var(--warn-soft);}
+  .mt-opt.wrong .mt-mark{background:var(--warn);color:#fff;}
+  .mt-opt:disabled{cursor:default;color:var(--ink);}
+  .mt-opt:disabled:not(.right){color:var(--ink-soft);}
+  .mt-opt:disabled:hover{border-color:var(--line);background:#fbfdfe;}
+  .mt-opt.right:disabled:hover{border-color:var(--success);background:var(--success-soft);}
+  .mt-fb{display:none;margin-top:9px;border-radius:10px;padding:9px 12px;font-size:.9rem;line-height:1.5;}
+  .mt-fb.show{display:block;animation:pbFade .25s ease;}
+  .mt-fb.ok{background:var(--success-soft);border:1px solid #bfe6de;color:#1f6e63;}
+  .mt-fb.no{background:var(--warn-soft);border:1px solid #f3c6c0;color:#7a241c;}
+  .mt-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .mt-chip{font-family:inherit;cursor:pointer;background:#fbfdfe;border:1px solid var(--line);border-radius:999px;
+    padding:8px 15px;font-size:.92rem;color:var(--ink);transition:.14s;}
+  .mt-chip:hover{border-color:var(--ocean-mid);background:var(--ocean-pale);}
+  .mt-chip:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+  .mt-chip[aria-pressed="true"]{border-color:var(--success);background:var(--success-soft);color:#1f6e63;font-weight:600;}
+  .mt-chip.wrong{border-color:var(--warn);background:var(--warn-soft);color:#7a241c;font-weight:600;}
+
+  /* ===== Aufgaben (Arbeitsblatt) ===== */
+  .sheet h2{color:var(--ocean-deep);font-size:1.25rem;margin:0 0 4px;display:flex;align-items:center;gap:10px;font-weight:700;}
+  .sheet .subline{color:var(--ink-soft);font-size:.92rem;margin:0 0 16px;}
+  .meta{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:24px;}
+  .meta .fld{display:flex;align-items:center;gap:8px;font-size:.92rem;}
+  .meta .fld label{font-weight:700;color:var(--ocean-deep);white-space:nowrap;}
+  .meta .fld input{border:none;border-bottom:1.5px solid var(--ink-soft);background:transparent;font-family:inherit;
+    font-size:.95rem;padding:3px 4px;color:var(--ink);min-width:150px;}
+  .meta .fld.klasse input{min-width:80px;}
+  .meta .fld.datum input{min-width:110px;}
+  .meta .fld input:focus{outline:none;border-bottom-color:var(--ocean-mid);}
+
+  .task-intro{background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:8px;font-size:.95rem;}
+  .task-intro b{color:var(--ocean-deep);}
+
+  .q{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:16px;background:#fff;}
+  .q .qhead{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;}
+  .q .qnum{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ocean-mid);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:.95rem;}
+  .q .qtext{font-size:1rem;font-weight:600;color:var(--ink);}
+  .q .field{margin-top:8px;}
+  .q .field label{display:block;font-size:.82rem;font-weight:700;color:var(--ocean-deep);
+    text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .q input.txt{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit;
+    font-size:.92rem;color:var(--ink);background:#fbfdfe;}
+  .q textarea.answer{width:100%;min-height:80px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+    font-family:inherit;font-size:.95rem;color:var(--ink);background:#fbfdfe;resize:vertical;line-height:1.5;}
+  .q input:focus,.q textarea:focus{outline:none;border-color:var(--ocean-mid);box-shadow:0 0 0 3px rgba(8,131,149,.12);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  @media (max-width:560px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+  /* Zuordnungs-Tabelle im Arbeitsblatt */
+  .evatable{width:100%;border-collapse:collapse;margin-top:8px;font-size:.92rem;}
+  .evatable th{background:var(--ocean-pale);color:var(--ocean-deep);text-align:left;padding:8px 10px;border:1px solid var(--line);
+    font-size:.8rem;text-transform:uppercase;letter-spacing:.4px;}
+  .evatable td{border:1px solid var(--line);padding:6px 8px;vertical-align:middle;}
+  .evatable td.sit{font-weight:600;color:var(--ink);background:#fbfdfe;}
+  .evatable input{width:100%;border:none;background:transparent;font-family:inherit;font-size:.92rem;color:var(--ink);padding:5px 4px;}
+  .evatable input:focus{outline:none;background:var(--ocean-pale);border-radius:6px;}
+
+  /* Checkliste */
+  .quellname{margin:8px 0 16px;}
+  .quellname label{display:block;font-weight:700;color:var(--ocean-deep);margin-bottom:5px;font-size:.95rem;}
+  .quellname input{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-family:inherit;
+    font-size:.95rem;color:var(--ink);background:#fbfdfe;}
+  .quellname input:focus{outline:none;border-color:var(--ocean-mid);box-shadow:0 0 0 3px rgba(8,131,149,.12);}
+  ul.checklist{list-style:none;margin:6px 0 0;padding:0;}
+  ul.checklist li{margin-bottom:9px;}
+  ul.checklist label{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border:1px solid var(--line);
+    border-radius:10px;background:#fbfdfe;cursor:pointer;font-size:.95rem;transition:.14s;}
+  ul.checklist label:hover{background:var(--ocean-pale);}
+  ul.checklist input{width:20px;height:20px;margin-top:1px;accent-color:var(--ocean-mid);flex:none;}
+  ul.checklist label:has(input:checked){border-color:var(--success);background:var(--success-soft);}
+
+  /* Differenzierung */
+  .bonus-badge{display:inline-flex;align-items:center;gap:7px;background:var(--hint-soft);color:#8a5616;
+    border:1px solid #f0d9b8;border-radius:999px;padding:5px 13px;font-size:.8rem;font-weight:700;margin-bottom:6px;}
+  .bonus-card{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:16px;background:#fff;}
+  .bonus-card h3{margin:0 0 6px;color:var(--ocean-deep);font-size:1.05rem;display:flex;align-items:center;gap:8px;}
+  .bonus-card p{margin:0 0 10px;font-size:.95rem;}
+  .bonus-card .field{margin-top:8px;}
+  .bonus-card .field label{display:block;font-size:.82rem;font-weight:700;color:var(--ocean-deep);
+    text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .bonus-card input.txt{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+    font-family:inherit;font-size:.92rem;color:var(--ink);background:#fbfdfe;}
+  .bonus-card textarea.answer{width:100%;min-height:80px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+    font-family:inherit;font-size:.95rem;color:var(--ink);background:#fbfdfe;resize:vertical;line-height:1.5;}
+  .bonus-card input:focus,.bonus-card textarea:focus{outline:none;border-color:var(--ocean-mid);box-shadow:0 0 0 3px rgba(8,131,149,.12);}
+
+  /* ===== Fußnavigation ===== */
+  .footbar{display:flex;align-items:center;gap:12px;padding:14px 24px;border-top:1px solid var(--line);background:#fbfdfe;flex-wrap:wrap;}
+  .stationcount{font-size:.88rem;color:var(--ink-soft);white-space:nowrap;}
+  .stationcount b{color:var(--ocean-mid);}
+  .exporttools{display:none;gap:7px;flex-wrap:nowrap;align-items:center;flex:1;justify-content:center;}
+  .exporttools.show{display:flex;}
+  .exporttools .btn{padding:6px 11px;font-size:.8rem;white-space:nowrap;}
+  .footspacer{flex:1;}
+  .btn{font-family:inherit;font-size:.95rem;font-weight:600;border-radius:10px;padding:10px 18px;cursor:pointer;
+    border:0;transition:.16s;display:inline-flex;align-items:center;gap:7px;}
+  .btn-small{padding:8px 13px;font-size:.86rem;}
+  .btn-primary{background:var(--ocean-mid);color:#fff;}
+  .btn-primary:hover{background:var(--ocean-deep);}
+  .btn-ghost{background:#fff;color:var(--ocean-mid);border:1.5px solid var(--ocean-mid);}
+  .btn-ghost:hover{background:var(--ocean-pale);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
+
+  footer.sitefooter{background:linear-gradient(120deg,var(--ocean-deep),var(--ocean-mid) 55%,var(--ocean-bright));
+    color:#fff;padding:14px 22px;text-align:center;font-size:.8rem;line-height:1.5;
+    box-shadow:0 -4px 18px rgba(10,77,104,.25);}
+  footer.sitefooter p{margin:2px 0;}
+  footer.sitefooter a{color:#fff;text-decoration:underline;}
+
+  @media (max-width:680px){
+    .brand small{display:none;}
+    .steps{grid-template-columns:1fr;}
+    .exporttools{order:5;flex-basis:100%;overflow-x:auto;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .station.active{animation:none;}
+    .bk:hover{transform:none;}
+    .bk.revealed .bk-reveal{animation:none;}
+    .komp[aria-expanded="true"] .komp-desc{animation:none;}
+    .mt-fb.show{animation:none;}
+  }
+
+  /* ===== Druck / PDF ===== */
+  @media print{
+    @page{margin:14mm;}
+    body{background:#fff;}
+    header.app,footer.sitefooter,.footbar,.instruct{display:none!important;}
+    main{padding:0;}
+    .card{box-shadow:none;border-radius:0;min-height:0;}
+    .play{padding:0;}
+    .station{display:none!important;}
+    .station.task{display:block!important;margin-bottom:18px;}
+    .station.task + .station.task{break-before:page;}
+    .q,.task-intro,.meta .fld input,.bonus-card,.quellname input,ul.checklist label{border-color:#000!important;}
+    .q input,.q textarea,.quellname input,.bonus-card input,.bonus-card textarea,.evatable input{background:#fff;border:1px solid #999;}
+    ul.checklist label:has(input:checked){background:#fff!important;}
+    .q{break-inside:avoid;}
+    .bonus-badge{border-color:#000;}
+    .evatable th{background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div class="brand"><span class="glyph">💻</span><span>Umgang mit dem Computer<small>Aufbau · Hardware &amp; Software · EVA-Prinzip</small></span></div>
+  <button class="navbtn" id="navBtn" aria-label="Stationen öffnen" aria-expanded="false">☰</button>
+  <button class="stationnow" id="stationNow" aria-label="Aktuelle Station">Station 1</button>
+</header>
+
+<main>
+  <div class="card">
+    <div class="instruct">
+      <div class="bot" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none">
+          <rect x="6" y="8" width="28" height="19" rx="2.5" fill="none" stroke="#088395" stroke-width="3"/>
+          <line x1="15" y1="32" x2="25" y2="32" stroke="#0a4d68" stroke-width="3" stroke-linecap="round"/>
+          <line x1="20" y1="27" x2="20" y2="32" stroke="#0a4d68" stroke-width="3"/>
+          <circle cx="15" cy="17" r="1.9" fill="#0a4d68"/><circle cx="25" cy="17" r="1.9" fill="#0a4d68"/>
+          <path d="M14 21.5c1.8 1.6 8.2 1.6 10 0" stroke="#d98324" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <div class="stationlbl" id="stationLbl">Station 1</div>
+        <h1 id="stationTitle">Willkommen in der Informatik</h1>
+      </div>
+    </div>
+
+    <div class="play">
+
+      <!-- Station 1: Willkommen in der Informatik -->
+      <section class="station active" id="st-willkommen" data-title="Willkommen in der Informatik">
+        <div class="leitfrage"><span class="lf-ico">❓</span><span>Leitfrage: Was ist eigentlich ein Computer?</span></div>
+
+        <div class="goals">
+          <h3>🎓 Das lernst du in dieser Einheit</h3>
+          <p class="goals-intro">Die Schülerinnen und Schüler können&nbsp;…</p>
+          <ul class="goallist">
+            <li>den <b>Aufbau eines Computers</b> beschreiben.</li>
+            <li><b>Eingabe-, Ausgabe- und Speichergeräte</b> unterscheiden.</li>
+            <li><b>Hardware und Software</b> voneinander abgrenzen.</li>
+            <li>das <b>EVA-Prinzip</b> erläutern.</li>
+            <li>einfache Abläufe am Computer mithilfe des <b>EVA-Prinzips</b> analysieren.</li>
+          </ul>
+        </div>
+
+        <p class="lead">Computer sind überall &ndash; nicht nur auf dem Schreibtisch. In deiner Hosentasche, im Auto,
+          sogar in der Waschmaschine steckt ein Computer. Ein Computer ist eine <b>universelle Maschine</b>:
+          Er kann ganz viele verschiedene Aufgaben erledigen, weil man ihm immer wieder neue Anweisungen geben kann.</p>
+
+        <h3 class="cardgroup-title">💡 Computer im Alltag</h3>
+        <p>Überall, wo Daten <b>eingegeben</b>, <b>verarbeitet</b> und wieder <b>ausgegeben</b> werden, arbeitet ein Computer.
+          Manchmal siehst du ihn (dein Laptop), oft ist er aber <b>versteckt</b> in einem anderen Gerät eingebaut.</p>
+
+        <h3 class="cardgroup-title">🖼️ Aktivierung: Welche davon sind eigentlich Computer?</h3>
+        <p>Sieh dir die Bildkarten an und überlege zuerst selbst: In welchen Geräten steckt wohl ein Computer?
+          <b>Tippe dann jede Karte an</b> und decke die Lösung auf. Die Überraschung: <b>In allen steckt einer!</b></p>
+
+        <div class="bildkarten" id="bildkarten">
+          <button class="bk" type="button">
+            <span class="bk-badge">Computer!</span>
+            <span class="bk-emoji" aria-hidden="true">📱</span><span class="bk-name">Smartphone</span>
+            <span class="bk-reveal">Ein kleiner, sehr leistungsstarker Computer zum Telefonieren, Fotografieren und Surfen.</span>
+          </button>
+          <button class="bk" type="button">
+            <span class="bk-badge">Computer!</span>
+            <span class="bk-emoji" aria-hidden="true">💻</span><span class="bk-name">Laptop</span>
+            <span class="bk-reveal">Ein klassischer Computer, den man überallhin mitnehmen kann.</span>
+          </button>
+          <button class="bk" type="button">
+            <span class="bk-badge">Computer!</span>
+            <span class="bk-emoji" aria-hidden="true">🎮</span><span class="bk-name">Spielekonsole</span>
+            <span class="bk-reveal">Ein Computer, der besonders gut Spiele berechnen und anzeigen kann.</span>
+          </button>
+          <button class="bk" type="button">
+            <span class="bk-badge">Computer!</span>
+            <span class="bk-emoji" aria-hidden="true">⌚</span><span class="bk-name">Smartwatch</span>
+            <span class="bk-reveal">Ein winziger Computer am Handgelenk &ndash; misst Schritte, zeigt Nachrichten an.</span>
+          </button>
+          <button class="bk" type="button">
+            <span class="bk-badge">Computer!</span>
+            <span class="bk-emoji" aria-hidden="true">🏧</span><span class="bk-name">Geldautomat</span>
+            <span class="bk-reveal">Ein Computer, der Karten prüft und Geld auszahlt.</span>
+          </button>
+          <button class="bk" type="button">
+            <span class="bk-badge">Computer!</span>
+            <span class="bk-emoji" aria-hidden="true">🚗</span><span class="bk-name">Auto</span>
+            <span class="bk-reveal">In modernen Autos stecken viele Computer &ndash; z.&nbsp;B. für Bremsen, Navi und Motor.</span>
+          </button>
+          <button class="bk" type="button">
+            <span class="bk-badge">Computer!</span>
+            <span class="bk-emoji" aria-hidden="true">🧺</span><span class="bk-name">Waschmaschine</span>
+            <span class="bk-reveal">Ein versteckter Computer steuert die Programme, die Temperatur und die Zeit.</span>
+          </button>
+        </div>
+
+        <div class="note good">✅ <b>Aha!</b> In <b>allen</b> diesen Geräten steckt ein Computer. Deshalb sagt man:
+          Der Computer ist eine <b>universelle Maschine</b>. Das Fach, das erforscht, wie Computer arbeiten und
+          Informationen verarbeitet werden, heißt <b>Informatik</b>.</div>
+      </section>
+
+      <!-- Station 2: Komponenten des Computers -->
+      <section class="station" id="st-komponenten" data-title="Komponenten des Computers">
+        <div class="leitfrage"><span class="lf-ico">❓</span><span>Leitfrage: Woraus besteht ein Computer?</span></div>
+        <p>Ein Computer besteht aus vielen Teilen. Manche siehst du von <b>außen</b>, andere sind fest im Gehäuse
+          <b>innen</b> verbaut. <b>Tippe auf eine Karte</b>, um herauszufinden, wofür das Bauteil da ist.</p>
+
+        <h3 class="cardgroup-title">🖥️ Von außen sichtbar</h3>
+        <div class="komp-grid">
+          <button class="komp" type="button" aria-expanded="false">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🖥️</span><span class="komp-name">Monitor</span><span class="komp-plus">+</span></span>
+            <span class="komp-desc">Zeigt Bilder, Texte und Videos an. Ein <b>Ausgabegerät</b>.</span>
+          </button>
+          <button class="komp" type="button" aria-expanded="false">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">⌨️</span><span class="komp-name">Tastatur</span><span class="komp-plus">+</span></span>
+            <span class="komp-desc">Zum Eintippen von Buchstaben und Zahlen. Ein <b>Eingabegerät</b>.</span>
+          </button>
+          <button class="komp" type="button" aria-expanded="false">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🖱️</span><span class="komp-name">Maus</span><span class="komp-plus">+</span></span>
+            <span class="komp-desc">Zum Zeigen und Klicken auf dem Bildschirm. Ein <b>Eingabegerät</b>.</span>
+          </button>
+          <button class="komp" type="button" aria-expanded="false">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🔊</span><span class="komp-name">Lautsprecher</span><span class="komp-plus">+</span></span>
+            <span class="komp-desc">Geben Töne und Musik aus. Ein <b>Ausgabegerät</b>.</span>
+          </button>
+          <button class="komp" type="button" aria-expanded="false">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">📷</span><span class="komp-name">Webcam</span><span class="komp-plus">+</span></span>
+            <span class="komp-desc">Nimmt Bilder und Videos auf, z.&nbsp;B. für Videochats. Ein <b>Eingabegerät</b>.</span>
+          </button>
+          <button class="komp" type="button" aria-expanded="false">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🎤</span><span class="komp-name">Mikrofon</span><span class="komp-plus">+</span></span>
+            <span class="komp-desc">Nimmt Töne und Sprache auf. Ein <b>Eingabegerät</b>.</span>
+          </button>
+        </div>
+
+        <h3 class="cardgroup-title">🔧 Von innen (im Gehäuse verbaut)</h3>
+        <div class="komp-grid">
+          <button class="komp" type="button" aria-expanded="false">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🧠</span><span class="komp-name">Prozessor</span><span class="komp-plus">+</span></span>
+            <span class="komp-desc">Das &bdquo;Gehirn&ldquo; des Computers. Er <b>rechnet</b> und <b>steuert</b> alles. Kurz: CPU.</span>
+          </button>
+          <button class="komp" type="button" aria-expanded="false">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">⚡</span><span class="komp-name">Arbeitsspeicher</span><span class="komp-plus">+</span></span>
+            <span class="komp-desc">Merkt sich <b>kurzfristig</b>, woran gerade gearbeitet wird. Beim Ausschalten wird er leer. Kurz: RAM.</span>
+          </button>
+          <button class="komp" type="button" aria-expanded="false">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">💾</span><span class="komp-name">Festplatte / SSD</span><span class="komp-plus">+</span></span>
+            <span class="komp-desc">Speichert Dateien <b>dauerhaft</b> &ndash; auch nach dem Ausschalten. Ein <b>Speichergerät</b>.</span>
+          </button>
+          <button class="komp" type="button" aria-expanded="false">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🔌</span><span class="komp-name">Mainboard</span><span class="komp-plus">+</span></span>
+            <span class="komp-desc">Die große Platine, die <b>alle Teile miteinander verbindet</b>. Auch Hauptplatine genannt.</span>
+          </button>
+          <button class="komp" type="button" aria-expanded="false">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🎨</span><span class="komp-name">Grafikkarte</span><span class="komp-plus">+</span></span>
+            <span class="komp-desc">Berechnet die Bilder, die auf dem Monitor erscheinen &ndash; besonders wichtig bei Spielen.</span>
+          </button>
+        </div>
+
+        <!-- Kurze Anwendung -->
+        <div class="mini-task" data-minitask>
+          <h3>🧩 Kurze Anwendung: Innen oder außen?</h3>
+          <p class="mt-intro">Klicke die Antwort an, die du für richtig hältst.</p>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">1</span>Welches Bauteil ist das &bdquo;Gehirn&ldquo; des Computers und
+              steckt <b>innen</b>?</p>
+            <div class="mt-opts">
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Der Monitor ist ein Ausgabegerät und steht außen – er rechnet nichts.">
+                <span class="mt-mark">?</span><span>Der Monitor</span></button>
+              <button type="button" class="mt-opt" data-ok="1"
+                data-fb="Richtig! Der Prozessor (CPU) rechnet und steuert alles – er sitzt gut geschützt im Gehäuse.">
+                <span class="mt-mark">?</span><span>Der Prozessor</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Die Tastatur ist ein Eingabegerät von außen – sie tippt nur ein, sie rechnet nicht.">
+                <span class="mt-mark">?</span><span>Die Tastatur</span></button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">2</span>Womit werden Dateien <b>dauerhaft</b> gespeichert &ndash; auch
+              wenn der Computer aus ist?</p>
+            <div class="mt-opts">
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Der Arbeitsspeicher (RAM) merkt sich nur kurzfristig etwas. Beim Ausschalten wird er leer.">
+                <span class="mt-mark">?</span><span>Arbeitsspeicher (RAM)</span></button>
+              <button type="button" class="mt-opt" data-ok="1"
+                data-fb="Genau! Die Festplatte oder SSD speichert deine Dateien dauerhaft.">
+                <span class="mt-mark">?</span><span>Festplatte / SSD</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Der Lautsprecher gibt nur Töne aus – gespeichert wird dort nichts.">
+                <span class="mt-mark">?</span><span>Lautsprecher</span></button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Station 3: Hardware und Software -->
+      <section class="station" id="st-hwsw" data-title="Hardware und Software">
+        <div class="leitfrage"><span class="lf-ico">❓</span><span>Leitfrage: Was kann man anfassen &ndash; und was nicht?</span></div>
+        <p>Alles an einem Computer gehört entweder zur <b>Hardware</b> oder zur <b>Software</b>.
+          Der Unterschied ist ganz einfach:</p>
+
+        <div class="grid2" style="margin-top:6px;">
+          <div class="step" style="text-align:left;">
+            <div class="ico">🔩</div>
+            <h3>Hardware</h3>
+            <p style="color:var(--ink-soft);">Alle Teile, die man <b>anfassen</b> kann.<br>
+              Beispiele: Maus, Monitor, SSD, Drucker.</p>
+          </div>
+          <div class="step" style="text-align:left;">
+            <div class="ico">🪟</div>
+            <h3>Software</h3>
+            <p style="color:var(--ink-soft);">Alle <b>Programme und Daten</b> &ndash; man kann sie <b>nicht anfassen</b>.<br>
+              Beispiele: Windows, Browser, Word, Minecraft, Moodle.</p>
+          </div>
+        </div>
+
+        <div class="merke">
+          <div class="merke-h"><span>📌</span><span>Merksatz</span></div>
+          <p><b>Hardware</b> ist alles, was man <b>anfassen</b> kann.</p>
+          <p><b>Software</b> sind <b>Programme und Daten</b>.</p>
+        </div>
+
+        <h3 class="cardgroup-title">🎯 Sortierspiel: Hardware oder Software?</h3>
+        <p>Entscheide bei jedem Beispiel: Kann man es anfassen (Hardware) oder nicht (Software)?
+          Klicke auf deine Antwort.</p>
+
+        <div class="sortgame" id="sortgame">
+          <!-- data-type: hw = Hardware, sw = Software -->
+          <div class="sortrow" data-type="hw">
+            <span class="sr-item"><span class="sr-emoji" aria-hidden="true">🖱️</span>Maus</span>
+            <span class="sr-btns"><button type="button" class="sr-btn" data-pick="hw">Hardware</button><button type="button" class="sr-btn" data-pick="sw">Software</button></span>
+            <span class="sr-fb">Eine Maus kann man anfassen &ndash; also <b>Hardware</b>.</span>
+          </div>
+          <div class="sortrow" data-type="sw">
+            <span class="sr-item"><span class="sr-emoji" aria-hidden="true">🪟</span>Windows</span>
+            <span class="sr-btns"><button type="button" class="sr-btn" data-pick="hw">Hardware</button><button type="button" class="sr-btn" data-pick="sw">Software</button></span>
+            <span class="sr-fb">Windows ist ein Programm (Betriebssystem) &ndash; also <b>Software</b>.</span>
+          </div>
+          <div class="sortrow" data-type="hw">
+            <span class="sr-item"><span class="sr-emoji" aria-hidden="true">🖨️</span>Drucker</span>
+            <span class="sr-btns"><button type="button" class="sr-btn" data-pick="hw">Hardware</button><button type="button" class="sr-btn" data-pick="sw">Software</button></span>
+            <span class="sr-fb">Einen Drucker kann man anfassen &ndash; also <b>Hardware</b>.</span>
+          </div>
+          <div class="sortrow" data-type="sw">
+            <span class="sr-item"><span class="sr-emoji" aria-hidden="true">🌐</span>Browser</span>
+            <span class="sr-btns"><button type="button" class="sr-btn" data-pick="hw">Hardware</button><button type="button" class="sr-btn" data-pick="sw">Software</button></span>
+            <span class="sr-fb">Ein Browser ist ein Programm zum Surfen &ndash; also <b>Software</b>.</span>
+          </div>
+          <div class="sortrow" data-type="hw">
+            <span class="sr-item"><span class="sr-emoji" aria-hidden="true">💾</span>SSD</span>
+            <span class="sr-btns"><button type="button" class="sr-btn" data-pick="hw">Hardware</button><button type="button" class="sr-btn" data-pick="sw">Software</button></span>
+            <span class="sr-fb">Eine SSD ist ein Speicher-Bauteil zum Anfassen &ndash; also <b>Hardware</b>.</span>
+          </div>
+          <div class="sortrow" data-type="sw">
+            <span class="sr-item"><span class="sr-emoji" aria-hidden="true">🎮</span>Minecraft</span>
+            <span class="sr-btns"><button type="button" class="sr-btn" data-pick="hw">Hardware</button><button type="button" class="sr-btn" data-pick="sw">Software</button></span>
+            <span class="sr-fb">Minecraft ist ein Spiel (Programm) &ndash; also <b>Software</b>.</span>
+          </div>
+          <div class="sortrow" data-type="hw">
+            <span class="sr-item"><span class="sr-emoji" aria-hidden="true">🖥️</span>Monitor</span>
+            <span class="sr-btns"><button type="button" class="sr-btn" data-pick="hw">Hardware</button><button type="button" class="sr-btn" data-pick="sw">Software</button></span>
+            <span class="sr-fb">Einen Monitor kann man anfassen &ndash; also <b>Hardware</b>.</span>
+          </div>
+          <div class="sortrow" data-type="sw">
+            <span class="sr-item"><span class="sr-emoji" aria-hidden="true">📚</span>Moodle</span>
+            <span class="sr-btns"><button type="button" class="sr-btn" data-pick="hw">Hardware</button><button type="button" class="sr-btn" data-pick="sw">Software</button></span>
+            <span class="sr-fb">Moodle ist eine Lernplattform (Programm) &ndash; also <b>Software</b>.</span>
+          </div>
+        </div>
+        <div class="note hint">💡 <b>Tipp zum Merken:</b> Software braucht immer Hardware, um zu laufen &ndash; genau wie ein
+          Film (Software) einen Fernseher (Hardware) braucht, damit du ihn sehen kannst.</div>
+      </section>
+
+      <!-- Station 4: Das EVA-Prinzip -->
+      <section class="station" id="st-eva" data-title="Das EVA-Prinzip">
+        <div class="leitfrage"><span class="lf-ico">❓</span><span>Leitfrage: Wie arbeitet jeder Computer?</span></div>
+        <p>Egal ob Smartphone, Laptop oder Waschmaschine &ndash; jeder Computer arbeitet nach demselben Muster.
+          Es heißt <b>EVA-Prinzip</b>. EVA steht für <b>E</b>ingabe &ndash; <b>V</b>erarbeitung &ndash; <b>A</b>usgabe.</p>
+
+        <div class="eva-flow">
+          <div class="eva-box ein">
+            <span class="eva-letter" aria-hidden="true">E</span>
+            <h3>Eingabe</h3>
+            <ul>
+              <li><span class="e-ico" aria-hidden="true">⌨️</span>Tastatur</li>
+              <li><span class="e-ico" aria-hidden="true">🖱️</span>Maus</li>
+              <li><span class="e-ico" aria-hidden="true">🎤</span>Mikrofon</li>
+              <li><span class="e-ico" aria-hidden="true">📷</span>Kamera</li>
+              <li><span class="e-ico" aria-hidden="true">🖨️</span>Scanner</li>
+            </ul>
+          </div>
+          <div class="eva-arrow" aria-hidden="true"><span class="ea-right">➡️</span><span class="ea-down">⬇️</span></div>
+          <div class="eva-box ver">
+            <span class="eva-letter" aria-hidden="true">V</span>
+            <h3>Verarbeitung</h3>
+            <ul>
+              <li><span class="e-ico" aria-hidden="true">🧠</span>Prozessor</li>
+              <li><span class="e-ico" aria-hidden="true">⚡</span>Arbeitsspeicher</li>
+            </ul>
+            <p style="font-size:.85rem;color:var(--ink-soft);margin:10px 0 0;">Hier werden die Daten
+              <b>berechnet und bearbeitet</b>.</p>
+          </div>
+          <div class="eva-arrow" aria-hidden="true"><span class="ea-right">➡️</span><span class="ea-down">⬇️</span></div>
+          <div class="eva-box aus">
+            <span class="eva-letter" aria-hidden="true">A</span>
+            <h3>Ausgabe</h3>
+            <ul>
+              <li><span class="e-ico" aria-hidden="true">🖥️</span>Monitor</li>
+              <li><span class="e-ico" aria-hidden="true">🔊</span>Lautsprecher</li>
+              <li><span class="e-ico" aria-hidden="true">🖨️</span>Drucker</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note good">✅ <b>So merkst du es dir:</b> Zuerst kommt etwas <b>hinein</b> (Eingabe),
+          in der Mitte wird es <b>verarbeitet</b>, und am Ende kommt ein Ergebnis wieder <b>heraus</b> (Ausgabe).</div>
+
+        <div class="merke">
+          <div class="merke-h"><span>📌</span><span>Merksatz</span></div>
+          <p><b>E</b>ingabe &nbsp;→&nbsp; <b>V</b>erarbeitung &nbsp;→&nbsp; <b>A</b>usgabe.</p>
+          <p>Nach diesem Prinzip arbeitet <b>jeder</b> Computer.</p>
+        </div>
+
+        <!-- Kurze Anwendung -->
+        <div class="mini-task" data-minitask>
+          <h3>✏️ Kurze Anwendung: Wohin gehört das Gerät?</h3>
+          <p class="mt-intro">Ordne jedes Gerät dem richtigen Schritt des EVA-Prinzips zu.</p>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">1</span>Die <b>Tastatur</b> gehört zu welchem Schritt?</p>
+            <div class="mt-opts">
+              <button type="button" class="mt-opt" data-ok="1"
+                data-fb="Richtig! Mit der Tastatur gibst du etwas ein – das ist die Eingabe.">
+                <span class="mt-mark">?</span><span>Eingabe</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Verarbeitung passiert im Prozessor. Die Tastatur liefert nur die Daten dorthin.">
+                <span class="mt-mark">?</span><span>Verarbeitung</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Ausgabe wäre z. B. der Monitor. Die Tastatur gibt aber nichts aus, sie nimmt auf.">
+                <span class="mt-mark">?</span><span>Ausgabe</span></button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">2</span>Der <b>Monitor</b> gehört zu welchem Schritt?</p>
+            <div class="mt-opts">
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Eingabe wären Tastatur oder Maus. Der Monitor nimmt nichts auf.">
+                <span class="mt-mark">?</span><span>Eingabe</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Verarbeitet wird im Prozessor. Der Monitor zeigt nur das Ergebnis.">
+                <span class="mt-mark">?</span><span>Verarbeitung</span></button>
+              <button type="button" class="mt-opt" data-ok="1"
+                data-fb="Genau! Der Monitor zeigt das Ergebnis an – das ist die Ausgabe.">
+                <span class="mt-mark">?</span><span>Ausgabe</span></button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+
+          <div class="mt-item" data-mtpick>
+            <p class="mt-q"><span class="mt-n">3</span>Welche Geräte gehören zur <b>Verarbeitung</b>? Klicke <b>beide</b> an.</p>
+            <div class="mt-chips">
+              <button type="button" class="mt-chip" data-ok="1">Prozessor</button>
+              <button type="button" class="mt-chip" data-ok="0">Drucker</button>
+              <button type="button" class="mt-chip" data-ok="1">Arbeitsspeicher</button>
+              <button type="button" class="mt-chip" data-ok="0">Mikrofon</button>
+              <button type="button" class="mt-chip" data-ok="0">Lautsprecher</button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Station 5: Alltagssituationen analysieren -->
+      <section class="station" id="st-alltag" data-title="Alltagssituationen mit EVA analysieren">
+        <div class="leitfrage"><span class="lf-ico">❓</span><span>Leitfrage: Wo stecken Eingabe, Verarbeitung und Ausgabe?</span></div>
+        <p>Jetzt wendest du das EVA-Prinzip auf <b>echte Situationen</b> an. Schau dir die Beispiele an:
+          Bei jeder Tätigkeit findest du wieder <b>Eingabe &ndash; Verarbeitung &ndash; Ausgabe</b>.</p>
+
+        <div class="eva-examples">
+          <div class="eva-ex">
+            <div class="eva-ex-head"><span aria-hidden="true">📝</span><span>Text schreiben</span></div>
+            <div class="eva-ex-body">
+              <div class="eva-step"><span class="es-tag ein">Eingabe</span><span>Du tippst auf der <b>Tastatur</b>.</span></div>
+              <div class="eva-step"><span class="es-tag ver">Verarbeitung</span><span>Der Computer <b>verarbeitet</b> den Text.</span></div>
+              <div class="eva-step"><span class="es-tag aus">Ausgabe</span><span>Der Text erscheint auf dem <b>Monitor</b>.</span></div>
+            </div>
+          </div>
+          <div class="eva-ex">
+            <div class="eva-ex-head"><span aria-hidden="true">📸</span><span>Foto aufnehmen</span></div>
+            <div class="eva-ex-body">
+              <div class="eva-step"><span class="es-tag ein">Eingabe</span><span>Die <b>Kamera</b> nimmt das Bild auf.</span></div>
+              <div class="eva-step"><span class="es-tag ver">Verarbeitung</span><span>Das Bild wird <b>berechnet und gespeichert</b>.</span></div>
+              <div class="eva-step"><span class="es-tag aus">Ausgabe</span><span>Das Foto erscheint auf dem <b>Display</b>.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kurze Anwendung -->
+        <div class="mini-task" data-minitask>
+          <h3>🔎 Kurze Anwendung: Musik hören</h3>
+          <p class="mt-intro">Du hörst am Computer ein Lied. Ordne die Schritte richtig zu.</p>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">1</span>Du klickst mit der <b>Maus</b> auf den Play-Knopf.
+              Welcher Schritt ist das?</p>
+            <div class="mt-opts">
+              <button type="button" class="mt-opt" data-ok="1"
+                data-fb="Richtig! Mit der Maus klickst du – das ist deine Eingabe.">
+                <span class="mt-mark">?</span><span>Eingabe</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Verarbeitet wird gleich – aber der Klick selbst ist die Eingabe.">
+                <span class="mt-mark">?</span><span>Verarbeitung</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Ausgabe kommt erst am Ende, wenn das Lied zu hören ist.">
+                <span class="mt-mark">?</span><span>Ausgabe</span></button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+
+          <div class="mt-item">
+            <p class="mt-q"><span class="mt-n">2</span>Aus dem <b>Lautsprecher</b> ertönt die Musik.
+              Welcher Schritt ist das?</p>
+            <div class="mt-opts">
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Eingabe war dein Klick mit der Maus. Der Lautsprecher gibt etwas aus.">
+                <span class="mt-mark">?</span><span>Eingabe</span></button>
+              <button type="button" class="mt-opt" data-ok="0"
+                data-fb="Verarbeitet hat der Prozessor die Musikdatei. Der Lautsprecher macht daraus Töne.">
+                <span class="mt-mark">?</span><span>Verarbeitung</span></button>
+              <button type="button" class="mt-opt" data-ok="1"
+                data-fb="Genau! Der Lautsprecher gibt die Musik aus – das ist die Ausgabe.">
+                <span class="mt-mark">?</span><span>Ausgabe</span></button>
+            </div>
+            <div class="mt-fb"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Station 6: Alles arbeitet zusammen -->
+      <section class="station" id="st-zusammen" data-title="Alles arbeitet zusammen">
+        <div class="leitfrage"><span class="lf-ico">🧩</span><span>Jetzt verbindest du alles, was du gelernt hast.</span></div>
+        <p>In dieser letzten Lern-Station kommt alles zusammen: <b>Komponenten</b>, <b>Hardware &amp; Software</b>
+          und das <b>EVA-Prinzip</b>. Stell dir vor:</p>
+
+        <div class="note hint" style="font-size:1rem;">✉️ <b>Du schreibst einen Brief am Computer und druckst ihn aus.</b></div>
+
+        <p style="margin-top:14px;">Überlege bei diesem Beispiel Schritt für Schritt:</p>
+        <ul class="ticks">
+          <li>Welche <b>Hardware</b> benutzt du? <span style="color:var(--ink-soft);">(z.&nbsp;B. Tastatur, Monitor, Drucker)</span></li>
+          <li>Welche <b>Software</b> brauchst du? <span style="color:var(--ink-soft);">(z.&nbsp;B. ein Schreibprogramm wie Word)</span></li>
+          <li>Wo findet die <b>Eingabe</b> statt? <span style="color:var(--ink-soft);">(beim Tippen auf der Tastatur)</span></li>
+          <li>Wo erfolgt die <b>Verarbeitung</b>? <span style="color:var(--ink-soft);">(im Prozessor und Arbeitsspeicher)</span></li>
+          <li>Wo wird das Ergebnis <b>ausgegeben</b>? <span style="color:var(--ink-soft);">(auf dem Monitor und über den Drucker)</span></li>
+        </ul>
+
+        <div class="note good">✅ <b>Wenn du diese fünf Fragen beantworten kannst, hast du die ganze Einheit verstanden!</b>
+          Genau diese Fragen bearbeitest du gleich selbst auf dem <b>Arbeitsblatt</b>.</div>
+
+        <div class="note hint">➡️ <b>Weiter geht's:</b> Auf der nächsten Station findest du die Aufgaben zum Ausfüllen.
+          Du kannst sie am Computer bearbeiten und als Word- oder PDF-Datei speichern.</div>
+      </section>
+
+      <!-- Station 7: Aufgaben -->
+      <section class="station sheet task" id="st-aufgaben" data-title="Aufgaben">
+        <div class="meta">
+          <div class="fld name"><label for="mName">Name:</label><input id="mName" type="text" autocomplete="off"></div>
+          <div class="fld klasse"><label for="mKlasse">Klasse:</label><input id="mKlasse" type="text" autocomplete="off"></div>
+          <div class="fld datum"><label for="mDatum">Datum:</label><input id="mDatum" type="text" placeholder="TT.MM.JJJJ" autocomplete="off"></div>
+        </div>
+
+        <h2>🖥️ Aufgabe 1: Der Aufbau eines Computers</h2>
+        <p class="subline">Zeige, dass du die Bauteile kennst. Fülle das Blatt am Computer aus und speichere es am Ende als Word- oder PDF-Datei.</p>
+        <div class="task-intro">
+          <b>Aufgabe:</b> Nenne zu jedem Bereich <b>zwei Bauteile</b> und schreibe kurz auf, was sie machen.
+        </div>
+        <div class="q">
+          <div class="qhead"><div class="qnum">a</div><div class="qtext">Nenne zwei Bauteile, die man <b>von außen</b> sieht.</div></div>
+          <div class="grid2">
+            <div class="field"><label for="a1out1">Bauteil 1 &amp; Aufgabe</label><input class="txt" id="a1out1" type="text" autocomplete="off" placeholder="z. B. Monitor – zeigt Bilder an"></div>
+            <div class="field"><label for="a1out2">Bauteil 2 &amp; Aufgabe</label><input class="txt" id="a1out2" type="text" autocomplete="off" placeholder="z. B. Tastatur – zum Eintippen"></div>
+          </div>
+          <div class="qhead" style="margin-top:14px;"><div class="qnum">b</div><div class="qtext">Nenne zwei Bauteile, die <b>innen</b> verbaut sind.</div></div>
+          <div class="grid2">
+            <div class="field"><label for="a1in1">Bauteil 1 &amp; Aufgabe</label><input class="txt" id="a1in1" type="text" autocomplete="off" placeholder="z. B. Prozessor – rechnet und steuert"></div>
+            <div class="field"><label for="a1in2">Bauteil 2 &amp; Aufgabe</label><input class="txt" id="a1in2" type="text" autocomplete="off" placeholder="z. B. Festplatte – speichert dauerhaft"></div>
+          </div>
+        </div>
+
+        <h2 style="margin-top:32px;">🔩 Aufgabe 2: Hardware oder Software?</h2>
+        <p class="subline">Trage bei jedem Beispiel ein, ob es sich um Hardware oder Software handelt &ndash; und begründe kurz.</p>
+        <div class="task-intro">
+          <b>Erinnerung:</b> Hardware kann man <b>anfassen</b>. Software sind <b>Programme und Daten</b>.
+        </div>
+        <div id="hwsw"></div>
+
+        <h2 style="margin-top:32px;">🔁 Aufgabe 3: Das EVA-Prinzip anwenden</h2>
+        <p class="subline">Analysiere die Alltagssituationen mit dem EVA-Prinzip. Trage passende Geräte oder Vorgänge ein.</p>
+        <div class="task-intro">
+          <b>Aufgabe:</b> Fülle die Tabelle aus. Überlege bei jeder Situation: Was ist die <b>Eingabe</b>,
+          was die <b>Verarbeitung</b> und was die <b>Ausgabe</b>?
+        </div>
+        <table class="evatable">
+          <thead>
+            <tr><th style="width:24%;">Situation</th><th>Eingabe (E)</th><th>Verarbeitung (V)</th><th>Ausgabe (A)</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="sit">Einen Text tippen</td>
+              <td><input id="ev1e" type="text" autocomplete="off" placeholder="Tastatur"></td>
+              <td><input id="ev1v" type="text" autocomplete="off" placeholder="Text wird verarbeitet"></td>
+              <td><input id="ev1a" type="text" autocomplete="off" placeholder="Monitor"></td>
+            </tr>
+            <tr>
+              <td class="sit">Ein Foto aufnehmen</td>
+              <td><input id="ev2e" type="text" autocomplete="off" placeholder="Kamera"></td>
+              <td><input id="ev2v" type="text" autocomplete="off" placeholder="Bild wird gespeichert"></td>
+              <td><input id="ev2a" type="text" autocomplete="off" placeholder="Display"></td>
+            </tr>
+            <tr>
+              <td class="sit">Ein Lied abspielen</td>
+              <td><input id="ev3e" type="text" autocomplete="off" placeholder="…"></td>
+              <td><input id="ev3v" type="text" autocomplete="off" placeholder="…"></td>
+              <td><input id="ev3a" type="text" autocomplete="off" placeholder="…"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 style="margin-top:32px;">✉️ Aufgabe 4: Alles arbeitet zusammen</h2>
+        <p class="subline">Du schreibst einen Brief am Computer und druckst ihn aus. Beantworte die fünf Fragen in ganzen Sätzen.</p>
+        <div class="q">
+          <div class="qhead"><div class="qnum">1</div><div class="qtext">Welche <b>Hardware</b> benutzt du?</div></div>
+          <div class="field"><textarea class="answer" id="z1" placeholder="Ich benutze …"></textarea></div>
+          <div class="qhead" style="margin-top:12px;"><div class="qnum">2</div><div class="qtext">Welche <b>Software</b> brauchst du?</div></div>
+          <div class="field"><textarea class="answer" id="z2" placeholder="Ich brauche …"></textarea></div>
+          <div class="qhead" style="margin-top:12px;"><div class="qnum">3</div><div class="qtext">Wo findet die <b>Eingabe</b> statt?</div></div>
+          <div class="field"><textarea class="answer" id="z3" placeholder="Die Eingabe findet … statt."></textarea></div>
+          <div class="qhead" style="margin-top:12px;"><div class="qnum">4</div><div class="qtext">Wo erfolgt die <b>Verarbeitung</b>?</div></div>
+          <div class="field"><textarea class="answer" id="z4" placeholder="Die Verarbeitung erfolgt …"></textarea></div>
+          <div class="qhead" style="margin-top:12px;"><div class="qnum">5</div><div class="qtext">Wo wird das Ergebnis <b>ausgegeben</b>?</div></div>
+          <div class="field"><textarea class="answer" id="z5" placeholder="Das Ergebnis wird … ausgegeben."></textarea></div>
+        </div>
+      </section>
+
+      <!-- Station 8: Für Schnelle -->
+      <section class="station sheet task" id="st-schnelle" data-title="Für Schnelle: Computer-Detektiv">
+        <span class="bonus-badge">🚀 Für Schnelle &ndash; Zusatzaufgabe</span>
+        <h2>🕵️ Computer-Detektiv</h2>
+        <p class="subline">Fertig? Dann knacke diese Detektiv-Aufgaben rund um Computer im Alltag.</p>
+
+        <div class="bonus-card">
+          <h3>🔍 Versteckte Computer</h3>
+          <p>Auf Station 1 hast du gesehen: In vielen Geräten steckt ein Computer. Finde <b>drei weitere Geräte</b>
+            (nicht aus der Liste!), in denen heimlich ein Computer arbeitet. Schreibe zu jedem kurz auf, was er dort steuert.</p>
+          <div class="field"><label for="db1">Gerät 1 &ndash; was steuert der Computer?</label><input class="txt" id="db1" type="text" autocomplete="off" placeholder="z. B. Fahrkartenautomat – prüft Geld und druckt Tickets"></div>
+          <div class="field"><label for="db2">Gerät 2 &ndash; was steuert der Computer?</label><input class="txt" id="db2" type="text" autocomplete="off" placeholder="…"></div>
+          <div class="field"><label for="db3">Gerät 3 &ndash; was steuert der Computer?</label><input class="txt" id="db3" type="text" autocomplete="off" placeholder="…"></div>
+        </div>
+
+        <div class="bonus-card">
+          <h3>🧠 Knifflige Frage</h3>
+          <p>Warum ist die <b>Festplatte (SSD)</b> etwas anderes als der <b>Arbeitsspeicher (RAM)</b>, obwohl beide
+            &bdquo;Speicher&ldquo; heißen? Erkläre den Unterschied in eigenen Worten.</p>
+          <div class="field"><label for="db4">Meine Erklärung</label><textarea class="answer" id="db4" placeholder="Der Unterschied ist …"></textarea></div>
+        </div>
+
+        <div class="bonus-card">
+          <h3>💡 Eigenes EVA-Beispiel</h3>
+          <p>Denke dir eine <b>eigene Alltagssituation</b> aus (z.&nbsp;B. Geldautomat, Videospiel, Sprachnachricht)
+            und beschreibe Eingabe, Verarbeitung und Ausgabe.</p>
+          <div class="field"><label for="db5">Meine Situation</label><input class="txt" id="db5" type="text" autocomplete="off" placeholder="z. B. Geld am Automaten abheben"></div>
+          <div class="grid3">
+            <div class="field"><label for="db5e">Eingabe (E)</label><input class="txt" id="db5e" type="text" autocomplete="off" placeholder="…"></div>
+            <div class="field"><label for="db5v">Verarbeitung (V)</label><input class="txt" id="db5v" type="text" autocomplete="off" placeholder="…"></div>
+            <div class="field"><label for="db5a">Ausgabe (A)</label><input class="txt" id="db5a" type="text" autocomplete="off" placeholder="…"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="footbar">
+      <button class="btn btn-ghost" id="prevBtn" disabled>← Zurück</button>
+      <span class="stationcount" id="stationCount"></span>
+      <div class="exporttools" id="exportTools">
+        <button class="btn btn-primary btn-small" id="btnWord">📄 Als Word speichern</button>
+        <button class="btn btn-ghost btn-small" id="btnPdf">🖨️ Als PDF / drucken</button>
+        <button class="btn btn-ghost btn-small" id="btnClear">🗑️ Leeren</button>
+      </div>
+      <span class="footspacer"></span>
+      <button class="btn btn-primary" id="nextBtn">Weiter →</button>
+    </div>
+  </div>
+</main>
+
+<footer class="sitefooter">
+  <p>© 2026 Wolfgang Schneider</p>
+</footer>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <span>Stationen</span>
+    <span class="drawer-progress" id="drawerProgress"></span>
+    <button class="drawer-x" id="drawerClose" aria-label="Schließen">×</button>
+  </div>
+  <nav class="progress" id="progress" aria-label="Stationen"></nav>
+</aside>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Inhalte für das Arbeitsblatt
+   ============================================================ */
+const HWSW = [
+  "Drucker",
+  "Word",
+  "Maus",
+  "Minecraft",
+  "SSD (Festplatte)",
+  "Moodle"
+];
+
+/* ---- Aufgabe 2: Hardware oder Software (Arbeitsblatt) ---- */
+const hwswWrap = document.getElementById("hwsw");
+HWSW.forEach((text, i) => {
+  const n = i + 1;
+  const q = document.createElement("div");
+  q.className = "q";
+  q.innerHTML =
+    '<div class="qhead"><div class="qnum">' + n + '</div><div class="qtext">' + text + '</div></div>' +
+    '<div class="grid2">' +
+      '<div class="field"><label for="hw' + n + '">Hardware oder Software?</label>' +
+      '<input class="txt" id="hw' + n + '" type="text" autocomplete="off" placeholder="Hardware / Software"></div>' +
+      '<div class="field"><label for="hwb' + n + '">Kurze Begründung</label>' +
+      '<input class="txt" id="hwb' + n + '" type="text" autocomplete="off" placeholder="weil …"></div>' +
+    '</div>';
+  hwswWrap.appendChild(q);
+});
+
+/* ============================================================
+   Stationen-Navigation
+   ============================================================ */
+const stations = [...document.querySelectorAll(".station")];
+const STAMP_LABELS = ["Willkommen","Komponenten","Hardware & Software","EVA-Prinzip","Alltag & EVA",
+  "Alles zusammen","Aufgaben","Für Schnelle"];
+const progressEl = document.getElementById("progress");
+const stationTitle = document.getElementById("stationTitle");
+const stationLbl = document.getElementById("stationLbl");
+const stationCount = document.getElementById("stationCount");
+const stationNow = document.getElementById("stationNow");
+const drawerProgress = document.getElementById("drawerProgress");
+const navBtn = document.getElementById("navBtn");
+const drawer = document.getElementById("drawer");
+const drawerBackdrop = document.getElementById("drawerBackdrop");
+const drawerClose = document.getElementById("drawerClose");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const exportTools = document.getElementById("exportTools");
+let current = 0;
+
+stations.forEach((st, i) => {
+  const b = document.createElement("button");
+  b.className = "stamp" + (st.classList.contains("task") ? " task" : "");
+  b.type = "button";
+  b.innerHTML = '<span class="dot">' + (i + 1) + '</span><span>' + (STAMP_LABELS[i] || ("Station " + (i + 1))) + '</span>';
+  b.addEventListener("click", () => { closeDrawer(); goTo(i); });
+  progressEl.appendChild(b);
+});
+const stamps = [...progressEl.children];
+
+function goTo(i){
+  current = Math.max(0, Math.min(stations.length - 1, i));
+  const st = stations[current];
+  stations.forEach((s, k) => s.classList.toggle("active", k === current));
+  stamps.forEach((s, k) => {
+    s.classList.toggle("active", k === current);
+    s.classList.toggle("done", k < current);
+  });
+  stationTitle.textContent = st.dataset.title;
+  stationLbl.textContent = "Station " + (current + 1) + " von " + stations.length;
+  stationCount.innerHTML = "Station <b>" + (current + 1) + "</b> von " + stations.length;
+  stationNow.textContent = "Station " + (current + 1) + " · " + (STAMP_LABELS[current] || st.dataset.title);
+  drawerProgress.textContent = (current + 1) + " / " + stations.length;
+  prevBtn.disabled = current === 0;
+  nextBtn.style.visibility = current === stations.length - 1 ? "hidden" : "visible";
+  exportTools.classList.toggle("show", st.classList.contains("task"));
+  document.querySelector(".card").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+prevBtn.addEventListener("click", () => goTo(current - 1));
+nextBtn.addEventListener("click", () => goTo(current + 1));
+
+/* ---- Stationsmenü (Drawer) ---- */
+function openDrawer(){
+  drawer.classList.add("open"); drawerBackdrop.classList.add("open");
+  navBtn.setAttribute("aria-expanded", "true"); drawer.setAttribute("aria-hidden", "false");
+  const a = progressEl.querySelector(".stamp.active"); if(a) a.scrollIntoView({ block: "nearest" });
+}
+function closeDrawer(){
+  drawer.classList.remove("open"); drawerBackdrop.classList.remove("open");
+  navBtn.setAttribute("aria-expanded", "false"); drawer.setAttribute("aria-hidden", "true");
+}
+navBtn.addEventListener("click", openDrawer);
+drawerClose.addEventListener("click", closeDrawer);
+drawerBackdrop.addEventListener("click", closeDrawer);
+document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeDrawer(); });
+
+goTo(0);
+
+/* ============================================================
+   Speichern (Browser) + Export
+   ============================================================ */
+const STORAGE_KEY = "umgang-computer-v1";
+const fields = () => [...document.querySelectorAll(
+  ".station.task input, .station.task textarea, .mini-task input, .mini-task textarea")];
+const isTick = f => f.type === "checkbox" || f.type === "radio";
+
+function save(){
+  const data = {};
+  fields().forEach(f => data[f.id] = (isTick(f) ? f.checked : f.value));
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
+}
+function load(){
+  let data;
+  try { data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e){ data = {}; }
+  fields().forEach(f => {
+    if(data[f.id] == null) return;
+    if(isTick(f)) f.checked = !!data[f.id]; else f.value = data[f.id];
+  });
+}
+load();
+fields().forEach(f => f.addEventListener(isTick(f) ? "change" : "input", save));
+
+function val(id){ const el = document.getElementById(id); return el ? el.value.trim() : ""; }
+function esc(s){
+  return String(s || "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function nl2br(s){ return esc(s).replace(/\r?\n/g,"<br>"); }
+function line(s){ return s ? esc(s) : "&nbsp;"; }
+function para(s){ return s ? nl2br(s) : "&nbsp;"; }
+
+/* ---- Word-Dokument mit allen Aufgaben ---- */
+function buildDocHtml(){
+  const name = val("mName"), klasse = val("mKlasse"), datum = val("mDatum");
+
+  // Aufgabe 1
+  const a1 = '<div class="qblock"><p class="qtitle"><b>a) Zwei Bauteile von außen</b></p>' +
+    '<p class="lbl">Bauteil 1:</p><p class="val">' + line(val("a1out1")) + '</p>' +
+    '<p class="lbl">Bauteil 2:</p><p class="val">' + line(val("a1out2")) + '</p>' +
+    '<p class="qtitle" style="margin-top:8pt;"><b>b) Zwei Bauteile von innen</b></p>' +
+    '<p class="lbl">Bauteil 1:</p><p class="val">' + line(val("a1in1")) + '</p>' +
+    '<p class="lbl">Bauteil 2:</p><p class="val">' + line(val("a1in2")) + '</p></div>';
+
+  // Aufgabe 2
+  let a2 = "";
+  HWSW.forEach((text, i) => {
+    const n = i + 1;
+    a2 += '<div class="qblock"><p class="qtitle"><b>' + n + '. ' + esc(text) + '</b></p>' +
+      '<p class="lbl">Hardware oder Software:</p><p class="val">' + line(val("hw" + n)) + '</p>' +
+      '<p class="lbl">Begründung:</p><p class="val">' + line(val("hwb" + n)) + '</p></div>';
+  });
+
+  // Aufgabe 3 (EVA-Tabelle)
+  const rows = [
+    ["Einen Text tippen", "ev1e", "ev1v", "ev1a"],
+    ["Ein Foto aufnehmen", "ev2e", "ev2v", "ev2a"],
+    ["Ein Lied abspielen", "ev3e", "ev3v", "ev3a"]
+  ];
+  let a3 = '<table class="doctab"><tr><th>Situation</th><th>Eingabe</th><th>Verarbeitung</th><th>Ausgabe</th></tr>';
+  rows.forEach(r => {
+    a3 += '<tr><td><b>' + esc(r[0]) + '</b></td><td>' + line(val(r[1])) + '</td><td>' +
+      line(val(r[2])) + '</td><td>' + line(val(r[3])) + '</td></tr>';
+  });
+  a3 += '</table>';
+
+  // Aufgabe 4
+  const a4 = '<div class="qblock">' +
+    '<p class="lbl">1. Welche Hardware?</p><p class="val">' + para(val("z1")) + '</p>' +
+    '<p class="lbl">2. Welche Software?</p><p class="val">' + para(val("z2")) + '</p>' +
+    '<p class="lbl">3. Wo findet die Eingabe statt?</p><p class="val">' + para(val("z3")) + '</p>' +
+    '<p class="lbl">4. Wo erfolgt die Verarbeitung?</p><p class="val">' + para(val("z4")) + '</p>' +
+    '<p class="lbl">5. Wo wird das Ergebnis ausgegeben?</p><p class="val">' + para(val("z5")) + '</p></div>';
+
+  // Für Schnelle
+  const bonus = '<div class="qblock"><p class="qtitle"><b>Versteckte Computer</b></p>' +
+    '<p class="val">' + line(val("db1")) + '</p><p class="val">' + line(val("db2")) + '</p>' +
+    '<p class="val">' + line(val("db3")) + '</p></div>' +
+    '<div class="qblock"><p class="qtitle"><b>Unterschied SSD und RAM</b></p>' +
+    '<p class="val">' + para(val("db4")) + '</p></div>' +
+    '<div class="qblock"><p class="qtitle"><b>Eigenes EVA-Beispiel: ' + line(val("db5")) + '</b></p>' +
+    '<p class="lbl">Eingabe:</p><p class="val">' + line(val("db5e")) + '</p>' +
+    '<p class="lbl">Verarbeitung:</p><p class="val">' + line(val("db5v")) + '</p>' +
+    '<p class="lbl">Ausgabe:</p><p class="val">' + line(val("db5a")) + '</p></div>';
+
+  return '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+    'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>Umgang mit dem Computer – Aufgaben</title>' +
+    '<style>' +
+    'body{font-family:Calibri,"Segoe UI",Arial,sans-serif;color:#143540;font-size:11pt;line-height:1.5;}' +
+    'h1{color:#0a4d68;font-size:16pt;margin:0 0 4pt;}' +
+    'h2{color:#088395;font-size:13pt;margin:16pt 0 6pt;border-bottom:1px solid #d4e6ec;padding-bottom:3pt;}' +
+    '.sub{color:#4a6670;font-size:10pt;margin:0 0 10pt;}' +
+    '.meta{font-size:11pt;margin:0 0 12pt;}' +
+    '.meta span{margin-right:24pt;}' +
+    '.intro{border:1px solid #088395;background:#e6f3f7;padding:8pt 10pt;font-size:10.5pt;margin:0 0 12pt;}' +
+    '.qblock{border:1px solid #d4e6ec;padding:8pt 10pt;margin:0 0 10pt;}' +
+    '.qtitle{color:#0a4d68;margin:0 0 6pt;}' +
+    '.lbl{color:#088395;font-size:9pt;text-transform:uppercase;margin:6pt 0 2pt;font-weight:bold;}' +
+    '.val{margin:0;padding:4pt 0;border-bottom:1px solid #d4e6ec;min-height:14pt;}' +
+    '.doctab{width:100%;border-collapse:collapse;margin:0 0 10pt;}' +
+    '.doctab th{background:#e6f3f7;color:#0a4d68;text-align:left;padding:6pt 8pt;border:1px solid #d4e6ec;font-size:9.5pt;}' +
+    '.doctab td{border:1px solid #d4e6ec;padding:6pt 8pt;vertical-align:top;}' +
+    '</style></head><body>' +
+    '<h1>Umgang mit dem Computer – Aufgaben</h1>' +
+    '<p class="meta"><span><b>Name:</b> ' + (name ? esc(name) : "________________") + '</span>' +
+      '<span><b>Klasse:</b> ' + (klasse ? esc(klasse) : "______") + '</span>' +
+      '<span><b>Datum:</b> ' + (datum ? esc(datum) : "__________") + '</span></p>' +
+    '<h2>Aufgabe 1: Der Aufbau eines Computers</h2>' + a1 +
+    '<h2>Aufgabe 2: Hardware oder Software?</h2>' +
+    '<p class="sub">Hardware kann man anfassen. Software sind Programme und Daten.</p>' + a2 +
+    '<h2>Aufgabe 3: Das EVA-Prinzip anwenden</h2>' + a3 +
+    '<h2>Aufgabe 4: Alles arbeitet zusammen (Brief schreiben und drucken)</h2>' + a4 +
+    '<h2>Für Schnelle: Computer-Detektiv</h2>' + bonus +
+    '</body></html>';
+}
+
+function downloadWord(){
+  const html = buildDocHtml();
+  const blob = new Blob(["﻿", html], { type: "application/msword" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const name = val("mName").replace(/[^\wäöüÄÖÜß\- ]/g,"").trim();
+  a.href = url;
+  a.download = "Umgang-mit-dem-Computer" + (name ? "_" + name.replace(/\s+/g,"-") : "") + ".doc";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+document.getElementById("btnWord").addEventListener("click", downloadWord);
+document.getElementById("btnPdf").addEventListener("click", () => window.print());
+document.getElementById("btnClear").addEventListener("click", () => {
+  if(confirm("Möchtest du wirklich alle deine Eingaben in allen Aufgaben löschen?")){
+    fields().forEach(f => { if(isTick(f)) f.checked = false; else f.value = ""; });
+    resetMiniTasks();
+    save();
+  }
+});
+
+/* ============================================================
+   Kurze Anwendungs-Aufgaben (Mini-Quiz)
+   ============================================================ */
+function setFb(fb, kind, html){
+  if(!fb) return;
+  if(!kind){ fb.className = "mt-fb"; fb.innerHTML = ""; return; }
+  fb.className = "mt-fb show " + kind;
+  fb.innerHTML = html;
+}
+function resetMiniTasks(){
+  document.querySelectorAll(".mini-task .mt-fb").forEach(fb => setFb(fb, null));
+  document.querySelectorAll(".mini-task .mt-opt").forEach(opt => {
+    opt.classList.remove("right","wrong");
+    opt.disabled = false;
+    const m = opt.querySelector(".mt-mark"); if(m) m.textContent = "?";
+  });
+  document.querySelectorAll(".mini-task .mt-chip").forEach(chip => {
+    chip.classList.remove("wrong");
+    chip.setAttribute("aria-pressed","false");
+  });
+  document.querySelectorAll(".bk").forEach(bk => bk.classList.remove("revealed"));
+  document.querySelectorAll(".komp").forEach(k => k.setAttribute("aria-expanded","false"));
+  document.querySelectorAll(".sortrow").forEach(row => {
+    row.classList.remove("done");
+    row.querySelectorAll(".sr-btn").forEach(b => b.classList.remove("right","wrong"));
+  });
+}
+
+/* ---- Einfachauswahl ---- */
+document.querySelectorAll(".mini-task .mt-opts").forEach(group => {
+  const opts = [...group.querySelectorAll(".mt-opt")];
+  const fb = group.parentElement.querySelector(".mt-fb");
+  opts.forEach(opt => {
+    opt.addEventListener("click", () => {
+      const ok = opt.dataset.ok === "1";
+      const mark = opt.querySelector(".mt-mark");
+      opt.classList.remove("right","wrong");
+      opt.classList.add(ok ? "right" : "wrong");
+      if(mark) mark.textContent = ok ? "✓" : "✕";
+      setFb(fb, ok ? "ok" : "no", (ok ? "" : "<b>Noch nicht &ndash; versuch es noch einmal.</b> ") + (opt.dataset.fb || ""));
+      if(ok){
+        opts.forEach(o => {
+          o.disabled = true;
+          if(o !== opt){
+            o.classList.remove("wrong");
+            const m = o.querySelector(".mt-mark"); if(m) m.textContent = "·";
+          }
+        });
+      }
+    });
+  });
+});
+
+/* ---- Mehrfachauswahl ---- */
+document.querySelectorAll(".mini-task [data-mtpick]").forEach(item => {
+  const chips = [...item.querySelectorAll(".mt-chip")];
+  const fb = item.querySelector(".mt-fb");
+  chips.forEach(c => c.setAttribute("aria-pressed","false"));
+  chips.forEach(chip => {
+    chip.addEventListener("click", () => {
+      if(chip.dataset.ok === "1"){
+        chip.setAttribute("aria-pressed", chip.getAttribute("aria-pressed") === "true" ? "false" : "true");
+      } else {
+        chip.classList.toggle("wrong");
+      }
+      const anyWrong = chips.some(c => c.dataset.ok !== "1" && c.classList.contains("wrong"));
+      const gotAll = chips.filter(c => c.dataset.ok === "1")
+                          .every(c => c.getAttribute("aria-pressed") === "true");
+      if(anyWrong){
+        setFb(fb, "no", "<b>Das gehört nicht zur Verarbeitung.</b> Drucker, Mikrofon und Lautsprecher sind " +
+          "Ein- oder Ausgabegeräte. Klicke die rote Karte noch einmal an, um sie abzuwählen.");
+      } else if(gotAll){
+        setFb(fb, "ok", "<b>Super!</b> <b>Prozessor</b> und <b>Arbeitsspeicher</b> sind für die " +
+          "Verarbeitung zuständig &ndash; sie berechnen und bearbeiten die Daten.");
+      } else {
+        setFb(fb, null);
+      }
+    });
+  });
+});
+
+/* ============================================================
+   Station 1: Bildkarten aufdecken
+   ============================================================ */
+document.querySelectorAll("#bildkarten .bk").forEach(bk => {
+  bk.addEventListener("click", () => bk.classList.toggle("revealed"));
+});
+
+/* ============================================================
+   Station 2: Komponenten aufklappen
+   ============================================================ */
+document.querySelectorAll(".komp").forEach(k => {
+  k.addEventListener("click", () => {
+    k.setAttribute("aria-expanded", k.getAttribute("aria-expanded") === "true" ? "false" : "true");
+  });
+});
+
+/* ============================================================
+   Station 3: Sortierspiel Hardware / Software
+   ============================================================ */
+document.querySelectorAll("#sortgame .sortrow").forEach(row => {
+  const correct = row.dataset.type;
+  const btns = [...row.querySelectorAll(".sr-btn")];
+  btns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      if(row.classList.contains("done")) return;
+      const ok = btn.dataset.pick === correct;
+      btn.classList.add(ok ? "right" : "wrong");
+      if(ok){
+        row.classList.add("done");
+      } else {
+        // kurze Fehler-Rückmeldung, dann darf nochmal probiert werden
+        setTimeout(() => btn.classList.remove("wrong"), 700);
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
