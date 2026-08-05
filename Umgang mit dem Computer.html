@@ -35,6 +35,9 @@
   .stamp.active{outline:2px solid #fff;outline-offset:1px;}
   .stamp.task{background:rgba(217,131,36,.22);border-color:rgba(255,255,255,.4);}
   .stamp.task.done{background:#fff;color:#8a5616;}
+  .stamp.lernzettel{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.45);}
+  .stamp.lernzettel .dot{background:rgba(255,255,255,.28);font-size:.9rem;}
+  .stamp.lernzettel.done{background:#fff;color:var(--ocean-deep);}
   .stamp:focus-visible{outline:3px solid var(--hint);outline-offset:2px;}
 
   /* ===== Stationsmenü als ☰-Drawer ===== */
@@ -170,6 +173,13 @@
   .komp[aria-expanded="true"]{border-color:var(--ocean-mid);background:var(--ocean-pale);}
   .komp[aria-expanded="true"] .komp-plus{background:var(--ocean-mid);color:#fff;}
   .komp[aria-expanded="true"] .komp-desc{display:block;animation:pbFade .3s ease;}
+  /* Feste Kacheln: Beschreibung immer sichtbar, kein Aufklappen */
+  .komp-grid.tiles .komp{cursor:default;}
+  .komp-grid.tiles .komp:hover{border-color:var(--line);box-shadow:none;}
+  .komp-grid.tiles .komp .komp-desc{display:block;margin-top:9px;border-top:1px dashed var(--line);padding-top:8px;}
+
+  /* Lernzettel-Download-Buttons */
+  .lz-actions{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 20px;}
 
   /* ===== Sortierspiel (Station 3): Hardware oder Software? ===== */
   .sortgame{margin:10px 0 0;display:flex;flex-direction:column;gap:10px;}
@@ -401,11 +411,11 @@
     <div class="instruct">
       <div class="bot" aria-hidden="true">
         <svg viewBox="0 0 40 40" fill="none">
-          <rect x="6" y="8" width="28" height="19" rx="2.5" fill="none" stroke="#088395" stroke-width="3"/>
-          <line x1="15" y1="32" x2="25" y2="32" stroke="#0a4d68" stroke-width="3" stroke-linecap="round"/>
-          <line x1="20" y1="27" x2="20" y2="32" stroke="#0a4d68" stroke-width="3"/>
-          <circle cx="15" cy="17" r="1.9" fill="#0a4d68"/><circle cx="25" cy="17" r="1.9" fill="#0a4d68"/>
-          <path d="M14 21.5c1.8 1.6 8.2 1.6 10 0" stroke="#d98324" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <rect x="9" y="13" width="22" height="18" rx="5" fill="#13b8d4"/>
+          <rect x="13" y="18" width="14" height="8" rx="3" fill="#fff"/>
+          <circle cx="17" cy="22" r="2" fill="#0a4d68"/><circle cx="23" cy="22" r="2" fill="#0a4d68"/>
+          <rect x="18.5" y="6" width="3" height="6" rx="1.5" fill="#088395"/><circle cx="20" cy="5" r="2.5" fill="#d98324"/>
+          <rect x="6" y="19" width="3" height="7" rx="1.5" fill="#088395"/><rect x="31" y="19" width="3" height="7" rx="1.5" fill="#088395"/>
         </svg>
       </div>
       <div class="txt">
@@ -418,19 +428,7 @@
 
       <!-- Station 1: Willkommen in der Informatik -->
       <section class="station active" id="st-willkommen" data-title="Willkommen in der Informatik">
-        <div class="leitfrage"><span class="lf-ico">❓</span><span>Leitfrage: Was ist eigentlich ein Computer?</span></div>
-
-        <div class="goals">
-          <h3>🎓 Das lernst du in dieser Einheit</h3>
-          <p class="goals-intro">Die Schülerinnen und Schüler können&nbsp;…</p>
-          <ul class="goallist">
-            <li>den <b>Aufbau eines Computers</b> beschreiben.</li>
-            <li><b>Eingabe-, Ausgabe- und Speichergeräte</b> unterscheiden.</li>
-            <li><b>Hardware und Software</b> voneinander abgrenzen.</li>
-            <li>das <b>EVA-Prinzip</b> erläutern.</li>
-            <li>einfache Abläufe am Computer mithilfe des <b>EVA-Prinzips</b> analysieren.</li>
-          </ul>
-        </div>
+        <p class="lead"><b>Hallo, ich bin Codi! 🤖</b> Schön, dass du da bist &ndash; ich begleite dich durch diese Einheit rund um den Computer.</p>
 
         <p class="lead">Computer sind überall &ndash; nicht nur auf dem Schreibtisch. In deiner Hosentasche, im Auto,
           sogar in der Waschmaschine steckt ein Computer. Ein Computer ist eine <b>universelle Maschine</b>:
@@ -489,61 +487,66 @@
 
       <!-- Station 2: Komponenten des Computers -->
       <section class="station" id="st-komponenten" data-title="Komponenten des Computers">
-        <div class="leitfrage"><span class="lf-ico">❓</span><span>Leitfrage: Woraus besteht ein Computer?</span></div>
         <p>Ein Computer besteht aus vielen Teilen. Manche siehst du von <b>außen</b>, andere sind fest im Gehäuse
-          <b>innen</b> verbaut. <b>Tippe auf eine Karte</b>, um herauszufinden, wofür das Bauteil da ist.</p>
+          <b>innen</b> verbaut. Bei jeder Kachel steht, wofür das Bauteil da ist.</p>
 
         <h3 class="cardgroup-title">🖥️ Von außen sichtbar</h3>
-        <div class="komp-grid">
-          <button class="komp" type="button" aria-expanded="false">
-            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🖥️</span><span class="komp-name">Monitor</span><span class="komp-plus">+</span></span>
+        <div class="komp-grid tiles">
+          <div class="komp">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🖥️</span><span class="komp-name">Monitor</span></span>
             <span class="komp-desc">Zeigt Bilder, Texte und Videos an. Ein <b>Ausgabegerät</b>.</span>
-          </button>
-          <button class="komp" type="button" aria-expanded="false">
-            <span class="komp-top"><span class="komp-ico" aria-hidden="true">⌨️</span><span class="komp-name">Tastatur</span><span class="komp-plus">+</span></span>
+          </div>
+          <div class="komp">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">⌨️</span><span class="komp-name">Tastatur</span></span>
             <span class="komp-desc">Zum Eintippen von Buchstaben und Zahlen. Ein <b>Eingabegerät</b>.</span>
-          </button>
-          <button class="komp" type="button" aria-expanded="false">
-            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🖱️</span><span class="komp-name">Maus</span><span class="komp-plus">+</span></span>
+          </div>
+          <div class="komp">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🖱️</span><span class="komp-name">Maus</span></span>
             <span class="komp-desc">Zum Zeigen und Klicken auf dem Bildschirm. Ein <b>Eingabegerät</b>.</span>
-          </button>
-          <button class="komp" type="button" aria-expanded="false">
-            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🔊</span><span class="komp-name">Lautsprecher</span><span class="komp-plus">+</span></span>
+          </div>
+          <div class="komp">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🔊</span><span class="komp-name">Lautsprecher</span></span>
             <span class="komp-desc">Geben Töne und Musik aus. Ein <b>Ausgabegerät</b>.</span>
-          </button>
-          <button class="komp" type="button" aria-expanded="false">
-            <span class="komp-top"><span class="komp-ico" aria-hidden="true">📷</span><span class="komp-name">Webcam</span><span class="komp-plus">+</span></span>
+          </div>
+          <div class="komp">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">📷</span><span class="komp-name">Webcam</span></span>
             <span class="komp-desc">Nimmt Bilder und Videos auf, z.&nbsp;B. für Videochats. Ein <b>Eingabegerät</b>.</span>
-          </button>
-          <button class="komp" type="button" aria-expanded="false">
-            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🎤</span><span class="komp-name">Mikrofon</span><span class="komp-plus">+</span></span>
+          </div>
+          <div class="komp">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🎤</span><span class="komp-name">Mikrofon</span></span>
             <span class="komp-desc">Nimmt Töne und Sprache auf. Ein <b>Eingabegerät</b>.</span>
-          </button>
+          </div>
         </div>
 
         <h3 class="cardgroup-title">🔧 Von innen (im Gehäuse verbaut)</h3>
-        <div class="komp-grid">
-          <button class="komp" type="button" aria-expanded="false">
-            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🧠</span><span class="komp-name">Prozessor</span><span class="komp-plus">+</span></span>
+        <div class="komp-grid tiles">
+          <div class="komp">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🧠</span><span class="komp-name">Prozessor</span></span>
             <span class="komp-desc">Das &bdquo;Gehirn&ldquo; des Computers. Er <b>rechnet</b> und <b>steuert</b> alles. Kurz: CPU.</span>
-          </button>
-          <button class="komp" type="button" aria-expanded="false">
-            <span class="komp-top"><span class="komp-ico" aria-hidden="true">⚡</span><span class="komp-name">Arbeitsspeicher</span><span class="komp-plus">+</span></span>
+          </div>
+          <div class="komp">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">⚡</span><span class="komp-name">Arbeitsspeicher</span></span>
             <span class="komp-desc">Merkt sich <b>kurzfristig</b>, woran gerade gearbeitet wird. Beim Ausschalten wird er leer. Kurz: RAM.</span>
-          </button>
-          <button class="komp" type="button" aria-expanded="false">
-            <span class="komp-top"><span class="komp-ico" aria-hidden="true">💾</span><span class="komp-name">Festplatte / SSD</span><span class="komp-plus">+</span></span>
+          </div>
+          <div class="komp">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">💾</span><span class="komp-name">Festplatte / SSD</span></span>
             <span class="komp-desc">Speichert Dateien <b>dauerhaft</b> &ndash; auch nach dem Ausschalten. Ein <b>Speichergerät</b>.</span>
-          </button>
-          <button class="komp" type="button" aria-expanded="false">
-            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🔌</span><span class="komp-name">Mainboard</span><span class="komp-plus">+</span></span>
+          </div>
+          <div class="komp">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🔌</span><span class="komp-name">Mainboard</span></span>
             <span class="komp-desc">Die große Platine, die <b>alle Teile miteinander verbindet</b>. Auch Hauptplatine genannt.</span>
-          </button>
-          <button class="komp" type="button" aria-expanded="false">
-            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🎨</span><span class="komp-name">Grafikkarte</span><span class="komp-plus">+</span></span>
+          </div>
+          <div class="komp">
+            <span class="komp-top"><span class="komp-ico" aria-hidden="true">🎨</span><span class="komp-name">Grafikkarte</span></span>
             <span class="komp-desc">Berechnet die Bilder, die auf dem Monitor erscheinen &ndash; besonders wichtig bei Spielen.</span>
-          </button>
+          </div>
         </div>
+      </section>
+
+      <!-- Station: Anwendung – Innen oder außen? -->
+      <section class="station" id="st-anwendung-innen" data-title="Anwendung: Innen oder außen?">
+        <p>Du hast die Bauteile kennengelernt. Prüfe jetzt selbst: Steckt das Bauteil <b>innen</b> im Gehäuse
+          oder ist es <b>von außen</b> sichtbar?</p>
 
         <!-- Kurze Anwendung -->
         <div class="mini-task" data-minitask>
@@ -588,7 +591,6 @@
 
       <!-- Station 3: Hardware und Software -->
       <section class="station" id="st-hwsw" data-title="Hardware und Software">
-        <div class="leitfrage"><span class="lf-ico">❓</span><span>Leitfrage: Was kann man anfassen &ndash; und was nicht?</span></div>
         <p>Alles an einem Computer gehört entweder zur <b>Hardware</b> oder zur <b>Software</b>.
           Der Unterschied ist ganz einfach:</p>
 
@@ -666,7 +668,6 @@
 
       <!-- Station 4: Das EVA-Prinzip -->
       <section class="station" id="st-eva" data-title="Das EVA-Prinzip">
-        <div class="leitfrage"><span class="lf-ico">❓</span><span>Leitfrage: Wie arbeitet jeder Computer?</span></div>
         <p>Egal ob Smartphone, Laptop oder Waschmaschine &ndash; jeder Computer arbeitet nach demselben Muster.
           Es heißt <b>EVA-Prinzip</b>. EVA steht für <b>E</b>ingabe &ndash; <b>V</b>erarbeitung &ndash; <b>A</b>usgabe.</p>
 
@@ -713,6 +714,12 @@
           <p><b>E</b>ingabe &nbsp;→&nbsp; <b>V</b>erarbeitung &nbsp;→&nbsp; <b>A</b>usgabe.</p>
           <p>Nach diesem Prinzip arbeitet <b>jeder</b> Computer.</p>
         </div>
+      </section>
+
+      <!-- Station: Anwendung – Wohin gehört das Gerät? -->
+      <section class="station" id="st-anwendung-eva" data-title="Anwendung: Wohin gehört das Gerät?">
+        <p>Jetzt wendest du das EVA-Prinzip selbst an. Ordne jedes Gerät dem richtigen Schritt zu:
+          <b>Eingabe</b>, <b>Verarbeitung</b> oder <b>Ausgabe</b>.</p>
 
         <!-- Kurze Anwendung -->
         <div class="mini-task" data-minitask>
@@ -767,7 +774,6 @@
 
       <!-- Station 5: Alltagssituationen analysieren -->
       <section class="station" id="st-alltag" data-title="Alltagssituationen mit EVA analysieren">
-        <div class="leitfrage"><span class="lf-ico">❓</span><span>Leitfrage: Wo stecken Eingabe, Verarbeitung und Ausgabe?</span></div>
         <p>Jetzt wendest du das EVA-Prinzip auf <b>echte Situationen</b> an. Schau dir die Beispiele an:
           Bei jeder Tätigkeit findest du wieder <b>Eingabe &ndash; Verarbeitung &ndash; Ausgabe</b>.</p>
 
@@ -833,7 +839,6 @@
 
       <!-- Station 6: Alles arbeitet zusammen -->
       <section class="station" id="st-zusammen" data-title="Alles arbeitet zusammen">
-        <div class="leitfrage"><span class="lf-ico">🧩</span><span>Jetzt verbindest du alles, was du gelernt hast.</span></div>
         <p>In dieser letzten Lern-Station kommt alles zusammen: <b>Komponenten</b>, <b>Hardware &amp; Software</b>
           und das <b>EVA-Prinzip</b>. Stell dir vor:</p>
 
@@ -853,6 +858,52 @@
 
         <div class="note hint">➡️ <b>Weiter geht's:</b> Auf der nächsten Station findest du die Aufgaben zum Ausfüllen.
           Du kannst sie am Computer bearbeiten und als Word- oder PDF-Datei speichern.</div>
+      </section>
+
+      <!-- Station: Lernzettel zum Download -->
+      <section class="station" id="st-lernzettel" data-title="Lernzettel: Umgang mit dem Computer">
+        <p class="lead">Hier findest du das Wichtigste der ganzen Einheit auf einen Blick. Du kannst den Lernzettel als
+          <b>Word</b>- oder <b>PDF</b>-Datei herunterladen, ausdrucken und zum Lernen behalten.</p>
+
+        <div class="lz-actions">
+          <button class="btn btn-primary btn-small" type="button" id="btnLzWord">📄 Lernzettel als Word</button>
+          <button class="btn btn-ghost btn-small" type="button" id="btnLzPdf">🖨️ Lernzettel als PDF / drucken</button>
+        </div>
+
+        <h3 class="cardgroup-title">💻 Was ist ein Computer?</h3>
+        <p>Ein Computer ist eine <b>universelle Maschine</b>: Er kann viele verschiedene Aufgaben erledigen, weil man
+          ihm immer wieder neue Anweisungen geben kann. Computer stecken überall &ndash; im Smartphone, im Auto, sogar
+          in der Waschmaschine. Das Fach, das erforscht, wie Computer arbeiten, heißt <b>Informatik</b>.</p>
+
+        <h3 class="cardgroup-title">🧩 Aufbau: die Bauteile</h3>
+        <p><b>Von außen sichtbar:</b> Monitor, Tastatur, Maus, Lautsprecher, Webcam, Mikrofon.<br>
+          <b>Von innen (im Gehäuse):</b> Prozessor (CPU), Arbeitsspeicher (RAM), Festplatte/SSD, Mainboard, Grafikkarte.</p>
+
+        <h3 class="cardgroup-title">⌨️ Eingabe, Ausgabe und Speicher</h3>
+        <ul class="ticks">
+          <li><b>Eingabegeräte</b> bringen Daten hinein: Tastatur, Maus, Mikrofon, Kamera, Scanner.</li>
+          <li><b>Ausgabegeräte</b> geben Ergebnisse aus: Monitor, Lautsprecher, Drucker.</li>
+          <li><b>Speichergeräte</b> bewahren Daten auf: Festplatte/SSD (dauerhaft), Arbeitsspeicher/RAM (nur kurzfristig).</li>
+        </ul>
+
+        <h3 class="cardgroup-title">🔩 Hardware und Software</h3>
+        <div class="merke">
+          <div class="merke-h"><span>📌</span><span>Merksatz</span></div>
+          <p><b>Hardware</b> ist alles, was man <b>anfassen</b> kann (Maus, Monitor, SSD, Drucker).</p>
+          <p><b>Software</b> sind <b>Programme und Daten</b> (Windows, Browser, Word, Minecraft, Moodle).</p>
+        </div>
+
+        <h3 class="cardgroup-title">🔁 Das EVA-Prinzip</h3>
+        <p>Jeder Computer arbeitet nach demselben Muster: <b>E</b>ingabe &nbsp;→&nbsp; <b>V</b>erarbeitung
+          &nbsp;→&nbsp; <b>A</b>usgabe.</p>
+        <ul class="ticks">
+          <li><b>Eingabe:</b> Daten kommen hinein (z.&nbsp;B. über Tastatur oder Maus).</li>
+          <li><b>Verarbeitung:</b> Prozessor und Arbeitsspeicher berechnen und bearbeiten die Daten.</li>
+          <li><b>Ausgabe:</b> Das Ergebnis kommt heraus (z.&nbsp;B. auf Monitor, Lautsprecher oder Drucker).</li>
+        </ul>
+
+        <div class="note good">✅ <b>Beispiel:</b> Beim Schreiben tippst du auf der <b>Tastatur</b> (Eingabe), der Computer
+          <b>verarbeitet</b> den Text (Verarbeitung) und er erscheint auf dem <b>Monitor</b> (Ausgabe).</div>
       </section>
 
       <!-- Station 7: Aufgaben -->
@@ -989,6 +1040,7 @@
 
 <footer class="sitefooter">
   <p>© 2026 Wolfgang Schneider</p>
+  <p>Einzelne Programmierteile mit KI-Unterstützung entwickelt und redaktionell geprüft.</p>
 </footer>
 
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
@@ -1037,8 +1089,8 @@ HWSW.forEach((text, i) => {
    Stationen-Navigation
    ============================================================ */
 const stations = [...document.querySelectorAll(".station")];
-const STAMP_LABELS = ["Willkommen","Komponenten","Hardware & Software","EVA-Prinzip","Alltag & EVA",
-  "Alles zusammen","Aufgaben","Für Schnelle"];
+const STAMP_LABELS = ["Willkommen","Komponenten","Innen oder außen?","Hardware & Software","EVA-Prinzip",
+  "Wohin gehört das Gerät?","Alltag & EVA","Alles zusammen","Lernzettel","Aufgaben","Für Schnelle"];
 const progressEl = document.getElementById("progress");
 const stationTitle = document.getElementById("stationTitle");
 const stationLbl = document.getElementById("stationLbl");
@@ -1056,9 +1108,14 @@ let current = 0;
 
 stations.forEach((st, i) => {
   const b = document.createElement("button");
-  b.className = "stamp" + (st.classList.contains("task") ? " task" : "");
+  const isLz = st.id === "st-lernzettel";
+  let cls = "stamp";
+  if(st.classList.contains("task")) cls += " task";
+  if(isLz) cls += " lernzettel";
+  b.className = cls;
   b.type = "button";
-  b.innerHTML = '<span class="dot">' + (i + 1) + '</span><span>' + (STAMP_LABELS[i] || ("Station " + (i + 1))) + '</span>';
+  const dot = isLz ? "📋" : (i + 1);
+  b.innerHTML = '<span class="dot">' + dot + '</span><span>' + (STAMP_LABELS[i] || ("Station " + (i + 1))) + '</span>';
   b.addEventListener("click", () => { closeDrawer(); goTo(i); });
   progressEl.appendChild(b);
 });
@@ -1245,6 +1302,87 @@ document.getElementById("btnClear").addEventListener("click", () => {
 });
 
 /* ============================================================
+   Lernzettel (Zusammenfassung) als Word / PDF
+   ============================================================ */
+function buildLernzettelHtml(){
+  return '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+    'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>Umgang mit dem Computer – Lernzettel</title>' +
+    '<style>' +
+    'body{font-family:Calibri,"Segoe UI",Arial,sans-serif;color:#143540;font-size:11pt;line-height:1.5;}' +
+    'h1{color:#0a4d68;font-size:17pt;margin:0 0 2pt;}' +
+    '.sub{color:#4a6670;font-size:10pt;margin:0 0 12pt;}' +
+    'h2{color:#088395;font-size:12.5pt;margin:14pt 0 5pt;border-bottom:1px solid #d4e6ec;padding-bottom:3pt;}' +
+    'p{margin:0 0 8pt;}' +
+    'ul{margin:0 0 8pt;padding-left:18pt;}' +
+    'li{margin:0 0 3pt;}' +
+    '.merke{border:1px solid #088395;background:#e6f3f7;padding:8pt 10pt;margin:0 0 8pt;}' +
+    '.merke p{margin:0 0 3pt;}' +
+    '.tip{border:1px solid #bfe6de;background:#e4f5f1;padding:8pt 10pt;margin:6pt 0 0;color:#1f6e63;}' +
+    '</style></head><body>' +
+    '<h1>Umgang mit dem Computer &ndash; Lernzettel</h1>' +
+    '<p class="sub">Aufbau &middot; Hardware &amp; Software &middot; EVA-Prinzip</p>' +
+
+    '<h2>Was ist ein Computer?</h2>' +
+    '<p>Ein Computer ist eine <b>universelle Maschine</b>: Er kann viele verschiedene Aufgaben erledigen, weil man ' +
+    'ihm immer wieder neue Anweisungen geben kann. Computer stecken überall &ndash; im Smartphone, im Auto, sogar ' +
+    'in der Waschmaschine. Das Fach dazu heißt <b>Informatik</b>.</p>' +
+
+    '<h2>Aufbau: die Bauteile</h2>' +
+    '<p><b>Von außen sichtbar:</b> Monitor, Tastatur, Maus, Lautsprecher, Webcam, Mikrofon.<br>' +
+    '<b>Von innen (im Gehäuse):</b> Prozessor (CPU), Arbeitsspeicher (RAM), Festplatte/SSD, Mainboard, Grafikkarte.</p>' +
+
+    '<h2>Eingabe, Ausgabe und Speicher</h2>' +
+    '<ul>' +
+    '<li><b>Eingabegeräte</b> bringen Daten hinein: Tastatur, Maus, Mikrofon, Kamera, Scanner.</li>' +
+    '<li><b>Ausgabegeräte</b> geben Ergebnisse aus: Monitor, Lautsprecher, Drucker.</li>' +
+    '<li><b>Speichergeräte</b> bewahren Daten auf: Festplatte/SSD (dauerhaft), Arbeitsspeicher/RAM (nur kurzfristig).</li>' +
+    '</ul>' +
+
+    '<h2>Hardware und Software</h2>' +
+    '<div class="merke">' +
+    '<p><b>Hardware</b> ist alles, was man <b>anfassen</b> kann (Maus, Monitor, SSD, Drucker).</p>' +
+    '<p><b>Software</b> sind <b>Programme und Daten</b> (Windows, Browser, Word, Minecraft, Moodle).</p>' +
+    '</div>' +
+
+    '<h2>Das EVA-Prinzip</h2>' +
+    '<p>Jeder Computer arbeitet nach demselben Muster: <b>E</b>ingabe &rarr; <b>V</b>erarbeitung &rarr; <b>A</b>usgabe.</p>' +
+    '<ul>' +
+    '<li><b>Eingabe:</b> Daten kommen hinein (z.&nbsp;B. über Tastatur oder Maus).</li>' +
+    '<li><b>Verarbeitung:</b> Prozessor und Arbeitsspeicher berechnen und bearbeiten die Daten.</li>' +
+    '<li><b>Ausgabe:</b> Das Ergebnis kommt heraus (z.&nbsp;B. auf Monitor, Lautsprecher oder Drucker).</li>' +
+    '</ul>' +
+    '<div class="tip"><b>Beispiel:</b> Beim Schreiben tippst du auf der Tastatur (Eingabe), der Computer verarbeitet ' +
+    'den Text (Verarbeitung) und er erscheint auf dem Monitor (Ausgabe).</div>' +
+    '</body></html>';
+}
+
+function downloadLernzettelWord(){
+  const html = buildLernzettelHtml();
+  const blob = new Blob(["﻿", html], { type: "application/msword" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Umgang-mit-dem-Computer_Lernzettel.doc";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+function printLernzettel(){
+  const w = window.open("", "_blank");
+  if(!w){ alert("Bitte erlaube Pop-up-Fenster, um den Lernzettel zu drucken."); return; }
+  w.document.write(buildLernzettelHtml());
+  w.document.close();
+  w.focus();
+  setTimeout(() => { try { w.print(); } catch(e){} }, 350);
+}
+
+document.getElementById("btnLzWord").addEventListener("click", downloadLernzettelWord);
+document.getElementById("btnLzPdf").addEventListener("click", printLernzettel);
+
+/* ============================================================
    Kurze Anwendungs-Aufgaben (Mini-Quiz)
    ============================================================ */
 function setFb(fb, kind, html){
@@ -1265,7 +1403,6 @@ function resetMiniTasks(){
     chip.setAttribute("aria-pressed","false");
   });
   document.querySelectorAll(".bk").forEach(bk => bk.classList.remove("revealed"));
-  document.querySelectorAll(".komp").forEach(k => k.setAttribute("aria-expanded","false"));
   document.querySelectorAll(".sortrow").forEach(row => {
     row.classList.remove("done");
     row.querySelectorAll(".sr-btn").forEach(b => b.classList.remove("right","wrong"));
@@ -1333,16 +1470,7 @@ document.querySelectorAll("#bildkarten .bk").forEach(bk => {
 });
 
 /* ============================================================
-   Station 2: Komponenten aufklappen
-   ============================================================ */
-document.querySelectorAll(".komp").forEach(k => {
-  k.addEventListener("click", () => {
-    k.setAttribute("aria-expanded", k.getAttribute("aria-expanded") === "true" ? "false" : "true");
-  });
-});
-
-/* ============================================================
-   Station 3: Sortierspiel Hardware / Software
+   Sortierspiel Hardware / Software
    ============================================================ */
 document.querySelectorAll("#sortgame .sortrow").forEach(row => {
   const correct = row.dataset.type;
