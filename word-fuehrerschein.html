@@ -3,33 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Word-Führerschein</title>
+<title>Textverarbeitungs-Führerschein</title>
 <!--
-  Word-Führerschein – Trainer für Microsoft-Word-Grundoperationen (Einsteiger).
-  Stand: Phase 0 (Grundgerüst). Aufbau bewusst analog zu maus-fuehrerschein-4.html.
-  Die Word-Oberfläche ist NACHGEBAUT (kein echtes Word, keine echte .docx).
-  Voll umgesetzt: Start, Station 1 (Tippen & Cursor), Station 5 (Fett/Kursiv/Unterstrichen).
-  Übrige Stationen: gekennzeichnete Platzhalter (folgen in Phase 1–4).
+  Textverarbeitungs-Führerschein – Trainer für die Grundoperationen einer
+  Textverarbeitung (Einsteiger). Aufbau und Farbschema analog zu maus-fuehrerschein-4.html.
+  Die Programmoberfläche ist NACHGEBAUT und herstellerneutral – kein echtes
+  Textverarbeitungsprogramm, keine echte Datei.
+  Stand: alle Stationen 1–17 ausgebaut, dazu Abschlussprojekt, Prüfung und Urkunde.
 -->
 <style>
   :root{
-    /* An aktuelles Word angelehnte Farben (Word-Blau) */
-    --word-deep:#1b3a6b; --word:#2b579a; --word-bright:#2f6fc5; --word-pale:#eef3fb;
-    --bg:#f3f5f9; --card:#fff; --ink:#1d2733; --ink-soft:#5a6675; --line:#d9e0ea;
-    --success:#217a3e; --success-soft:#e6f4ea; --hint:#b9520b; --hint-soft:#fbeede;
-    --ribbon:#f7f9fc; --ribbon-line:#dbe3ee;
-    --shadow:0 10px 30px rgba(27,58,107,.12); --radius:14px;
+    /* Farbschema des Maus-Führerscheins – hält die Führerschein-Serie einheitlich */
+    --ocean-deep:#0a4d68; --ocean-mid:#088395; --ocean-bright:#13b8d4; --ocean-pale:#e6f3f7;
+    --bg:#f1f7fa; --card:#fff; --ink:#143540; --ink-soft:#4a6670; --line:#d4e6ec;
+    --success:#2a9d8f; --success-soft:#e4f5f1; --hint:#d98324; --hint-soft:#fbf0e2;
+    --ribbon:#f4fafc; --ribbon-line:#cfe3ea;
+    --shadow:0 10px 30px rgba(10,77,104,.10); --radius:16px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;height:100%;}
-  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);
+  body{font-family:"Segoe UI","Frutiger",system-ui,-apple-system,Arial,sans-serif;background:var(--bg);
     color:var(--ink);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh;}
   .no-select{user-select:none;-webkit-user-select:none;}
 
   /* ---- Kopfzeile der App ---- */
-  header.app{background:linear-gradient(120deg,var(--word-deep),var(--word) 60%,var(--word-bright));
+  header.app{background:linear-gradient(120deg,var(--ocean-deep),var(--ocean-mid) 60%,var(--ocean-bright));
     color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px;
-    box-shadow:0 4px 16px rgba(27,58,107,.25);flex-wrap:wrap;}
+    box-shadow:0 4px 16px rgba(10,77,104,.25);flex-wrap:wrap;}
   .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.18rem;white-space:nowrap;}
   .brand .glyph{font-size:1.45rem;}
   .brand small{display:block;font-weight:400;font-size:.68rem;opacity:.85;letter-spacing:.4px;text-transform:uppercase;}
@@ -41,17 +41,17 @@
     max-width:46vw;overflow:hidden;text-overflow:ellipsis;}
   .stationnow:hover{background:rgba(255,255,255,.26);}
   .hud{display:flex;align-items:center;gap:9px;color:#fff;white-space:nowrap;}
-  .hud .lvl{background:#ffd479;color:#5a3a06;font-weight:700;border-radius:999px;padding:4px 10px;font-size:.78rem;}
+  .hud .lvl{background:var(--ocean-bright);color:#06303f;font-weight:700;border-radius:999px;padding:4px 10px;font-size:.78rem;}
   .hud .xpbar{position:relative;width:120px;height:13px;background:rgba(255,255,255,.2);border-radius:8px;overflow:hidden;}
   .hud .xpfill{height:100%;width:0;background:linear-gradient(90deg,var(--hint),#ffd479);transition:width .45s ease;}
-  .hud .xptxt{position:absolute;inset:0;display:grid;place-items:center;font-size:.62rem;font-weight:700;color:#5a3a06;}
+  .hud .xptxt{position:absolute;inset:0;display:grid;place-items:center;font-size:.62rem;font-weight:700;color:#06303f;text-shadow:0 0 3px rgba(255,255,255,.5);}
   .hud .coins{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:600;}
 
   .xpfloat{position:fixed;z-index:90;transform:translateX(-50%);font-weight:800;color:var(--hint);
     text-shadow:0 1px 4px rgba(0,0,0,.2);pointer-events:none;animation:rise 1.1s ease-out forwards;}
   @keyframes rise{0%{opacity:0;transform:translate(-50%,6px) scale(.8);}20%{opacity:1;}100%{opacity:0;transform:translate(-50%,-34px) scale(1.1);}}
-  .toast{position:fixed;top:68px;right:18px;z-index:90;max-width:300px;background:#fff;border-left:5px solid var(--word);
-    border-radius:10px;box-shadow:0 12px 30px rgba(27,58,107,.25);padding:12px 16px;font-size:.9rem;color:var(--ink);line-height:1.4;
+  .toast{position:fixed;top:68px;right:18px;z-index:90;max-width:300px;background:#fff;border-left:5px solid var(--ocean-mid);
+    border-radius:10px;box-shadow:0 12px 30px rgba(10,77,104,.25);padding:12px 16px;font-size:.9rem;color:var(--ink);line-height:1.4;
     opacity:0;transform:translateX(30px);transition:opacity .3s,transform .3s;}
   .toast.show{opacity:1;transform:translateX(0);}
   .toast.good{border-left-color:var(--success);}
@@ -69,65 +69,65 @@
   main{flex:1;display:flex;justify-content:center;padding:20px 16px 28px;}
   .card{background:var(--card);width:min(1000px,100%);border-radius:var(--radius);box-shadow:var(--shadow);
     overflow:hidden;display:flex;flex-direction:column;}
-  .instruct{display:flex;gap:14px;align-items:flex-start;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--word-pale);}
-  .bot.avatar{flex:none;width:48px;height:48px;border-radius:50%;background:#fff;border:2px solid var(--word-bright);
-    display:grid;place-items:center;box-shadow:0 4px 12px rgba(27,58,107,.12);}
+  .instruct{display:flex;gap:14px;align-items:flex-start;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--ocean-pale);}
+  .bot.avatar{flex:none;width:48px;height:48px;border-radius:50%;background:#fff;border:2px solid var(--ocean-bright);
+    display:grid;place-items:center;box-shadow:0 4px 12px rgba(10,77,104,.12);}
   .bot.avatar svg{width:28px;height:28px;}
   .instruct .txt{flex:1;}
-  .instruct h2{margin:0 0 3px;font-size:1.1rem;color:var(--word-deep);}
+  .instruct h2{margin:0 0 3px;font-size:1.1rem;color:var(--ocean-deep);}
   .instruct p{margin:0;color:var(--ink-soft);font-size:.95rem;line-height:1.45;}
   .counter{flex:none;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center;font-size:.76rem;color:var(--ink-soft);min-width:76px;}
-  .counter b{display:block;font-size:1.18rem;color:var(--word);line-height:1.1;}
+  .counter b{display:block;font-size:1.18rem;color:var(--ocean-mid);line-height:1.1;}
 
   .play{padding:20px;min-height:380px;display:flex;flex-direction:column;}
-  .footbar{display:flex;align-items:center;gap:12px;padding:13px 20px;border-top:1px solid var(--line);background:#fbfcfe;min-height:60px;flex-wrap:wrap;}
+  .footbar{display:flex;align-items:center;gap:12px;padding:13px 20px;border-top:1px solid var(--line);background:#fbfdfe;min-height:60px;flex-wrap:wrap;}
   .hint{flex:1;min-width:200px;font-size:.94rem;color:var(--ink-soft);display:flex;align-items:center;gap:9px;transition:.2s;}
   .hint.good{color:var(--success);font-weight:600;}
   .hint.warn{color:var(--hint);}
   .btn{border:none;border-radius:9px;padding:10px 18px;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;}
-  .btn-primary{background:var(--word);color:#fff;}
-  .btn-primary:hover{background:var(--word-deep);}
-  .btn-ghost{background:#fff;color:var(--word);border:1px solid var(--line);}
-  .btn-ghost:hover{background:var(--word-pale);}
+  .btn-primary{background:var(--ocean-mid);color:#fff;}
+  .btn-primary:hover{background:var(--ocean-deep);}
+  .btn-ghost{background:#fff;color:var(--ocean-mid);border:1px solid var(--line);}
+  .btn-ghost:hover{background:var(--ocean-pale);}
   .btn-small{padding:7px 12px;font-size:.85rem;}
 
   /* ---- Startseite ---- */
   .hero{text-align:center;max-width:640px;margin:6px auto;}
-  .hero h1{color:var(--word-deep);font-size:1.7rem;margin:.2em 0;}
+  .hero h1{color:var(--ocean-deep);font-size:1.7rem;margin:.2em 0;}
   .hero p{color:var(--ink-soft);line-height:1.55;}
   .hero .doc-emoji{font-size:3rem;}
 
   /* ---- Erklärseite ---- */
-  .explainer{max-width:740px;margin:6px auto 12px;background:linear-gradient(170deg,#fff,var(--word-pale));
-    border:2px solid var(--word-bright);border-radius:18px;box-shadow:0 8px 26px rgba(27,58,107,.14);overflow:hidden;}
+  .explainer{max-width:740px;margin:6px auto 12px;background:linear-gradient(170deg,#fff,var(--ocean-pale));
+    border:2px solid var(--ocean-bright);border-radius:18px;box-shadow:0 8px 26px rgba(10,77,104,.14);overflow:hidden;}
   .explainer-head{display:flex;align-items:center;gap:10px;padding:11px 18px;
-    background:linear-gradient(90deg,var(--word-deep),var(--word));color:#fff;font-weight:700;font-size:1.05rem;}
+    background:linear-gradient(90deg,var(--ocean-deep),var(--ocean-mid));color:#fff;font-weight:700;font-size:1.05rem;}
   .explainer-head .badge{font-size:1.3rem;line-height:1;}
   .explainer-body{padding:18px 22px 4px;}
   .explainer-lead{margin:0 0 14px;color:var(--ink);font-size:1.0rem;line-height:1.55;}
   .explainer ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;}
   .explainer ul li{display:flex;gap:10px;align-items:flex-start;font-size:.95rem;color:var(--ink-soft);line-height:1.45;}
   .explainer ul li .me{font-size:1.15rem;line-height:1;flex:none;}
-  .explainer-steps{margin:6px 22px 20px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;}
-  .explainer-steps h3{margin:0 0 9px;font-size:1.0rem;color:var(--word-deep);}
+  .explainer-steps{margin:6px 22px 20px;background:var(--ocean-pale);border:1px solid var(--line);border-radius:14px;padding:14px 18px;}
+  .explainer-steps h3{margin:0 0 9px;font-size:1.0rem;color:var(--ocean-deep);}
   .explainer-steps ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:7px;}
   .explainer-steps li{font-size:.94rem;color:var(--ink-soft);line-height:1.5;}
-  .explainer b{color:var(--word-deep);}
+  .explainer b{color:var(--ocean-deep);}
 
   /* ============================================================
-     Nachgebaute Word-Oberfläche (wiederverwendbar)
+     Nachgebaute Oberfläche einer Textverarbeitung (wiederverwendbar)
      ============================================================ */
-  .word{border:1px solid var(--ribbon-line);border-radius:10px;overflow:hidden;box-shadow:0 6px 18px rgba(27,58,107,.10);background:#fff;}
-  .word-title{background:var(--word);color:#fff;display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:.82rem;}
-  .word-title .dot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.55);}
-  .word-title .fname{margin-left:6px;font-weight:600;}
-  .word-title .win{margin-left:auto;display:flex;gap:14px;opacity:.85;}
+  .tv{border:1px solid var(--ribbon-line);border-radius:10px;overflow:hidden;box-shadow:0 6px 18px rgba(10,77,104,.10);background:#fff;}
+  .tv-title{background:var(--ocean-mid);color:#fff;display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:.82rem;}
+  .tv-title .dot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.55);}
+  .tv-title .fname{margin-left:6px;font-weight:600;}
+  .tv-title .win{margin-left:auto;display:flex;gap:14px;opacity:.85;}
   /* Registerkarten */
-  .word-tabs{display:flex;gap:2px;background:var(--word-deep);padding:0 8px;}
-  .word-tab{color:#dce6f5;padding:8px 16px;font-size:.84rem;cursor:pointer;border:none;background:none;font-family:inherit;
+  .tv-tabs{display:flex;gap:2px;background:var(--ocean-deep);padding:0 8px;}
+  .tv-tab{color:#cfe6ee;padding:8px 16px;font-size:.84rem;cursor:pointer;border:none;background:none;font-family:inherit;
     border-top-left-radius:6px;border-top-right-radius:6px;}
-  .word-tab:hover{background:rgba(255,255,255,.12);color:#fff;}
-  .word-tab.active{background:var(--ribbon);color:var(--word-deep);font-weight:600;}
+  .tv-tab:hover{background:rgba(255,255,255,.12);color:#fff;}
+  .tv-tab.active{background:var(--ribbon);color:var(--ocean-deep);font-weight:600;}
   /* Menüband */
   .ribbon{display:flex;gap:0;background:var(--ribbon);border-bottom:1px solid var(--ribbon-line);padding:8px 6px 4px;flex-wrap:wrap;}
   .rb-group{display:flex;flex-direction:column;align-items:center;padding:0 10px;border-right:1px solid var(--ribbon-line);gap:5px;}
@@ -135,76 +135,144 @@
   .rb-label{font-size:.66rem;color:var(--ink-soft);}
   .rb-btn{min-width:34px;height:34px;padding:0 8px;border:1px solid transparent;background:none;border-radius:6px;cursor:pointer;
     font-size:.95rem;font-family:inherit;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:4px;}
-  .rb-btn:hover{background:#e4ecf7;border-color:var(--ribbon-line);}
-  .rb-btn.active{background:#d3e2f7;border-color:var(--word-bright);color:var(--word-deep);}
+  .rb-btn:hover{background:#dceef4;border-color:var(--ribbon-line);}
+  .rb-btn.active{background:#c9e7f0;border-color:var(--ocean-bright);color:var(--ocean-deep);}
   .rb-btn.bold{font-weight:800;}
   .rb-btn.italic{font-style:italic;}
   .rb-btn.underline{text-decoration:underline;}
   .rb-btn:disabled{opacity:.4;cursor:default;}
   .rb-sel{height:30px;border:1px solid var(--ribbon-line);border-radius:6px;font-family:inherit;font-size:.85rem;padding:0 6px;background:#fff;}
   /* Schreibblatt */
-  .word-canvas{background:#e7ebf2;padding:22px;display:flex;justify-content:center;max-height:360px;overflow:auto;}
-  .word-page{background:#fff;width:min(540px,100%);min-height:230px;box-shadow:0 3px 12px rgba(0,0,0,.14);
-    padding:34px 40px;font-size:1rem;line-height:1.7;color:#1d2733;outline:none;}
-  .word-page:focus{box-shadow:0 0 0 2px var(--word-bright),0 3px 12px rgba(0,0,0,.14);}
-  .word-page .tok{cursor:pointer;border-radius:3px;padding:0 1px;}
-  .word-page .tok.sel{background:#cfe0f7;box-shadow:0 0 0 1px var(--word-bright);}
-  .word-page .tok.bold{font-weight:800;}
-  .word-page .tok.italic{font-style:italic;}
-  .word-page .tok.underline{text-decoration:underline;}
+  .tv-canvas{background:#dfeef3;padding:22px;display:flex;justify-content:center;max-height:360px;overflow:auto;}
+  .tv-page{background:#fff;width:min(540px,100%);min-height:230px;box-shadow:0 3px 12px rgba(0,0,0,.14);
+    padding:34px 40px;font-size:1rem;line-height:1.7;color:var(--ink);outline:none;}
+  .tv-page:focus{box-shadow:0 0 0 2px var(--ocean-bright),0 3px 12px rgba(0,0,0,.14);}
+  .tv-page .tok{cursor:pointer;border-radius:3px;padding:0 1px;}
+  .tv-page .tok.sel{background:#cfe9f2;box-shadow:0 0 0 1px var(--ocean-bright);}
+  .tv-page .tok.bold{font-weight:800;}
+  .tv-page .tok.italic{font-style:italic;}
+  .tv-page .tok.underline{text-decoration:underline;}
   .rb-btn svg{display:block;}
   /* Listen im Dokument */
   .doclist .li{padding:1px 0;}
   .doclist[data-type="none"] .li{list-style:none;}
-  .doclist[data-type="bullet"] .li::before{content:"•  ";color:var(--word);font-weight:700;}
+  .doclist[data-type="bullet"] .li::before{content:"•  ";color:var(--ocean-mid);font-weight:700;}
   .doclist[data-type="number"]{counter-reset:li;}
   .doclist[data-type="number"] .li{counter-increment:li;}
-  .doclist[data-type="number"] .li::before{content:counter(li) ".  ";color:var(--word);font-weight:700;}
+  .doclist[data-type="number"] .li::before{content:counter(li) ".  ";color:var(--ocean-mid);font-weight:700;}
   /* Kopieren/Einfügen: Lücke */
-  .word-page .slot{background:#fde7c9;border:1px dashed var(--hint);border-radius:5px;padding:0 6px;color:var(--hint);font-weight:600;}
-  .word-page .slot.filled{background:var(--success-soft);border-style:solid;border-color:var(--success);color:var(--ink);font-weight:400;}
+  .tv-page .slot{background:var(--hint-soft);border:1px dashed var(--hint);border-radius:5px;padding:0 6px;color:var(--hint);font-weight:600;}
+  .tv-page .slot.filled{background:var(--success-soft);border-style:solid;border-color:var(--success);color:var(--ink);font-weight:400;}
   /* Bild, Tabelle, Überschriftszeilen im Dokument */
   .docimg{font-size:3.2rem;text-align:center;margin:8px 0;}
   .doctable{border-collapse:collapse;margin:10px 0;}
-  .doctable td{border:1px solid var(--word);min-width:44px;height:26px;padding:2px 6px;}
+  .doctable td{border:1px solid var(--ocean-mid);min-width:44px;height:26px;padding:2px 6px;}
   .docline{padding:2px 2px;cursor:pointer;border-radius:4px;}
-  .docline.sel{background:#eef3fb;box-shadow:inset 3px 0 0 var(--word-bright);}
-  .docline.heading{font-size:1.5rem;font-weight:700;color:var(--word-deep);}
-  /* Word-Dialog (Ersetzen, Bild, Tabelle) */
+  .docline.sel{background:var(--ocean-pale);box-shadow:inset 3px 0 0 var(--ocean-bright);}
+  .docline.heading{font-size:1.5rem;font-weight:700;color:var(--ocean-deep);}
+  /* Programm-Dialog (Ersetzen, Bild, Tabelle, Speichern) */
   .wdialog{position:fixed;z-index:75;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border:1px solid var(--line);
     border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.32);padding:16px 18px;width:min(360px,92vw);}
-  .wdialog-head{font-weight:700;color:var(--word-deep);margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:8px;}
+  .wdialog-head{font-weight:700;color:var(--ocean-deep);margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:8px;}
   .wdialog label{display:block;margin-bottom:10px;font-size:.9rem;color:var(--ink-soft);}
   .wdialog input{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-family:inherit;font-size:.95rem;margin-top:3px;}
   .wdialog-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:6px;}
   .wgallery{display:flex;gap:10px;justify-content:center;}
   .wgallery button{font-size:2rem;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;}
-  .wgallery button:hover{background:var(--word-pale);border-color:var(--word-bright);}
+  .wgallery button:hover{background:var(--ocean-pale);border-color:var(--ocean-bright);}
   .tgrid{display:grid;grid-template-columns:repeat(5,22px);gap:3px;justify-content:center;margin:8px 0;}
   .tgrid div{width:22px;height:22px;border:1px solid var(--line);border-radius:3px;cursor:pointer;}
-  .tgrid div.on{background:var(--word-bright);border-color:var(--word);}
+  .tgrid div.on{background:var(--ocean-bright);border-color:var(--ocean-mid);}
   .tgrid-label{text-align:center;font-size:.85rem;color:var(--ink-soft);margin-top:4px;}
-  .word-status{display:flex;align-items:center;gap:14px;background:var(--word);color:#fff;font-size:.74rem;padding:4px 14px;}
-  .word-status .right{margin-left:auto;}
+  .tv-status{display:flex;align-items:center;gap:14px;background:var(--ocean-mid);color:#fff;font-size:.74rem;padding:4px 14px;}
+  .tv-status .right{margin-left:auto;}
 
   /* Tipp-Eingabezeile (Station Tippen) */
-  .type-target{background:var(--word-pale);border:1px dashed var(--word-bright);border-radius:8px;padding:8px 12px;
-    font-size:1rem;color:var(--word-deep);margin:0 0 10px;}
+  .type-target{background:var(--ocean-pale);border:1px dashed var(--ocean-bright);border-radius:8px;padding:8px 12px;
+    font-size:1rem;color:var(--ocean-deep);margin:0 0 10px;}
   .type-target b{background:#fff;padding:1px 5px;border-radius:4px;}
 
+  /* ---- Kontextmenü (Rechtsklick) ---- */
+  .ctxmenu{position:fixed;z-index:80;background:#fbfdfe;border:1px solid #b9d4dd;border-radius:8px;
+    box-shadow:0 12px 32px rgba(10,77,104,.3);padding:5px;min-width:186px;font-size:.86rem;display:none;}
+  .ctxmenu .mi{padding:8px 12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--ink);}
+  .ctxmenu .mi:hover{background:var(--ocean-mid);color:#fff;}
+  .ctxmenu .mi.disabled{color:#9bb4bd;cursor:default;}
+  .ctxmenu .mi.disabled:hover{background:transparent;color:#9bb4bd;}
+  .ctxmenu .mi.suggest{font-weight:700;color:var(--ocean-deep);}
+  .ctxmenu .mi.suggest:hover{color:#fff;}
+  .ctxmenu .sep{height:1px;background:var(--line);margin:4px 6px;}
+  .ctxmenu .mi .k{margin-left:auto;font-size:.72rem;opacity:.6;}
+
+  /* ---- Rechtschreibung: rote Wellenlinie ---- */
+  .tv-page .misspell{text-decoration:underline wavy #d33;text-decoration-skip-ink:none;cursor:context-menu;}
+  .tv-page .misspell.fixed{text-decoration:none;background:var(--success-soft);border-radius:3px;padding:0 2px;}
+
+  /* ---- Speichern: Ordnerliste im Dialog ---- */
+  .savelist{display:flex;flex-direction:column;gap:5px;margin:2px 0 12px;}
+  .savelist button{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:8px;
+    padding:8px 11px;font-family:inherit;font-size:.9rem;color:var(--ink);cursor:pointer;text-align:left;}
+  .savelist button:hover{background:var(--ocean-pale);border-color:var(--ocean-bright);}
+  .savelist button.sel{background:var(--ocean-pale);border-color:var(--ocean-bright);font-weight:600;color:var(--ocean-deep);}
+  .wdialog select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-family:inherit;font-size:.95rem;margin-top:3px;background:#fff;}
+
+  /* ---- Drucken: Seitenansicht ---- */
+  .printwrap{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;}
+  .printprev{flex:1;min-width:220px;background:#dfeef3;border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;justify-content:center;}
+  .printpage{background:#fff;width:min(230px,100%);min-height:300px;box-shadow:0 3px 12px rgba(0,0,0,.16);padding:20px 18px;font-size:.7rem;line-height:1.5;color:var(--ink);}
+  .printpage h4{margin:0 0 8px;font-size:1rem;color:var(--ocean-deep);}
+  .printopts{flex:1;min-width:210px;background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:16px;}
+  .printopts h3{margin:0 0 10px;font-size:1rem;color:var(--ocean-deep);}
+  .printopts label{display:block;font-size:.88rem;color:var(--ink-soft);margin-bottom:12px;}
+  .printopts input,.printopts select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;
+    font-family:inherit;font-size:.95rem;margin-top:3px;background:#fff;}
+  .printsheet{margin-top:12px;background:#fff;border:1px dashed var(--ocean-bright);border-radius:10px;padding:10px;text-align:center;font-size:.85rem;color:var(--ink-soft);}
+
+  /* ---- Projekt & Prüfung: Aufgabenliste ---- */
+  .examwrap{flex:1;display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;}
+  .examwrap .examdoc{flex:2;min-width:300px;}
+  .checklist{flex:1;min-width:230px;background:var(--ocean-pale);border:1px solid var(--line);border-radius:12px;padding:16px;}
+  .checklist h3{margin:0 0 12px;color:var(--ocean-deep);font-size:1rem;}
+  .checklist ol{margin:0;padding:0;list-style:none;counter-reset:step;}
+  .checklist li{position:relative;padding:9px 8px 9px 38px;font-size:.84rem;color:var(--ink-soft);border-radius:8px;
+    margin-bottom:4px;counter-increment:step;line-height:1.35;}
+  .checklist li::before{content:counter(step);position:absolute;left:8px;top:8px;width:22px;height:22px;border-radius:50%;background:#fff;
+    border:1.5px solid var(--line);display:grid;place-items:center;font-size:.74rem;font-weight:700;color:var(--ink-soft);}
+  .checklist li.active{background:#fff;color:var(--ink);font-weight:600;}
+  .checklist li.active::before{border-color:var(--ocean-bright);color:var(--ocean-mid);}
+  .checklist li.done{color:var(--success);}
+  .checklist li.done::before{content:"✓";background:var(--success);border-color:var(--success);color:#fff;}
+
+  /* ---- Urkunde ---- */
+  .urkunde{background:#fff;border:3px double var(--ocean-mid);border-radius:14px;padding:34px 30px;text-align:center;max-width:640px;margin:0 auto;}
+  .urkunde .seal{font-size:3rem;}
+  .urkunde h1{font-family:Georgia,"Times New Roman",serif;color:var(--ocean-deep);font-size:1.8rem;margin:6px 0 2px;letter-spacing:1px;}
+  .urkunde .sub{color:var(--ink-soft);font-size:.95rem;margin-bottom:18px;}
+  .urkunde .nameline{margin:18px auto;max-width:380px;}
+  .urkunde .nameline input{width:100%;text-align:center;font-size:1.4rem;font-family:Georgia,serif;color:var(--ocean-deep);
+    border:none;border-bottom:2px solid var(--ocean-bright);padding:6px 4px;background:transparent;}
+  .urkunde .nameline input:focus{outline:none;border-color:var(--ocean-mid);}
+  .urkunde .nameline .cap{font-size:.74rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
+  .urkunde .nameline .privacy-note{font-size:.7rem;color:var(--ink-soft);margin-top:6px;opacity:.85;}
+  .urkunde .badges{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:18px 0;}
+  .urkunde .badge{background:var(--success-soft);color:var(--success);border-radius:20px;padding:5px 11px;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:6px;}
+  .urkunde .badge.ach{background:var(--hint-soft);color:#8a5616;border:1px solid #f0d9b8;}
+  .urkunde .foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:22px;font-size:.82rem;
+    color:var(--ink-soft);border-top:1px solid var(--line);padding-top:14px;}
+
   /* Platzhalter-Stationen */
-  .placeholder{max-width:560px;margin:10px auto;text-align:center;background:var(--word-pale);
+  .placeholder{max-width:560px;margin:10px auto;text-align:center;background:var(--ocean-pale);
     border:1px solid var(--line);border-radius:14px;padding:26px;}
   .placeholder .big{font-size:2.4rem;}
-  .placeholder h3{color:var(--word-deep);margin:.4em 0;}
+  .placeholder h3{color:var(--ocean-deep);margin:.4em 0;}
   .placeholder p{color:var(--ink-soft);line-height:1.5;margin:.3em 0;}
 
   /* ---- Drawer / Fortschritt ---- */
   .progress{display:none;}
-  .drawer-backdrop{position:fixed;inset:0;background:rgba(20,40,70,.5);z-index:59;display:none;}
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(7,40,53,.5);z-index:59;display:none;}
   .drawer-backdrop.open{display:block;}
   .drawer{position:fixed;left:0;top:0;bottom:0;width:min(300px,86vw);z-index:60;display:flex;flex-direction:column;
-    background:linear-gradient(160deg,var(--word-deep),var(--word));box-shadow:6px 0 24px rgba(0,0,0,.3);
+    background:linear-gradient(160deg,var(--ocean-deep),var(--ocean-mid));box-shadow:6px 0 24px rgba(0,0,0,.3);
     transform:translateX(-100%);transition:transform .25s ease;}
   .drawer.open{transform:none;}
   .drawer-head{display:flex;align-items:center;gap:8px;padding:14px;color:#fff;font-weight:700;border-bottom:1px solid rgba(255,255,255,.18);}
@@ -215,15 +283,15 @@
     color:#fff;border-radius:999px;padding:9px 12px;font-size:.86rem;cursor:pointer;text-align:left;font-family:inherit;}
   .stamp:hover{background:rgba(255,255,255,.22);}
   .stamp.active{outline:2px solid #fff;outline-offset:1px;}
-  .stamp.done{background:#fff;color:var(--word-deep);font-weight:600;}
+  .stamp.done{background:#fff;color:var(--ocean-deep);font-weight:600;}
   .stamp .dot{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:.8rem;flex:none;}
   .stamp.done .dot{background:var(--success);color:#fff;}
 
   /* ---- Einstellungen-Overlay ---- */
-  .overlay{position:fixed;inset:0;background:rgba(20,40,70,.5);z-index:70;display:none;align-items:center;justify-content:center;padding:18px;}
+  .overlay{position:fixed;inset:0;background:rgba(7,40,53,.5);z-index:70;display:none;align-items:center;justify-content:center;padding:18px;}
   .overlay.open{display:flex;}
   .panel{background:#fff;border-radius:14px;width:min(440px,100%);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3);}
-  .panel header{background:var(--word);color:#fff;padding:13px 18px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+  .panel header{background:var(--ocean-mid);color:#fff;padding:13px 18px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
   .panel header button{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;}
   .panel .body{padding:18px;}
   .setrow{margin-bottom:16px;}
@@ -231,15 +299,27 @@
   .setrow .help{font-size:.82rem;color:var(--ink-soft);margin-bottom:6px;}
 
   footer.sitefooter{text-align:center;color:var(--ink-soft);font-size:.78rem;padding:14px;line-height:1.5;}
-  footer.sitefooter a{color:var(--word);}
+  footer.sitefooter a{color:var(--ocean-mid);}
 
-  @media (max-width:560px){ .word-page{padding:22px 20px;} .rb-group{padding:0 6px;} }
+  @media (max-width:560px){ .tv-page{padding:22px 20px;} .rb-group{padding:0 6px;} .hud .coins{display:none;} }
+  @media (prefers-reduced-motion:reduce){
+    .xpfloat,.bot.bot-happy,.bot.bot-cheer,.bot.bot-think{animation:none!important;}
+    .toast{transition:none!important;} .drawer{transition:none!important;}
+  }
+  @media print{
+    header.app,.footbar,.instruct,.gear,.overlay,.toast,.xpfloat,.drawer,.drawer-backdrop,.ctxmenu{display:none!important;}
+    body,main,.card{background:#fff!important;box-shadow:none!important;}
+    main{padding:0;} .play{padding:0;}
+    .urkunde{border-color:#000;max-width:100%;}
+    .urkunde .nameline input{border-bottom:1px solid #000;}
+    .urkunde .nameline .privacy-note{display:none!important;}
+  }
 </style>
 </head>
 <body>
 
 <header class="app">
-  <div class="brand"><span class="glyph">📄</span><span>Word-Führerschein<small>Schreiben Schritt für Schritt üben</small></span></div>
+  <div class="brand"><span class="glyph">📄</span><span>Textverarbeitungs-Führerschein<small>Schreiben Schritt für Schritt üben</small></span></div>
   <button class="navbtn" id="navBtn" aria-label="Stationen" aria-expanded="false">☰</button>
   <button class="stationnow" id="stationNow" aria-label="Aktuelle Station">Start</button>
   <div class="hud" id="hud" aria-label="Punktestand">
@@ -255,11 +335,11 @@
     <div class="instruct">
       <div class="bot avatar" aria-hidden="true">
         <svg viewBox="0 0 40 40" fill="none">
-          <rect x="9" y="13" width="22" height="18" rx="5" fill="#2f6fc5"/>
+          <rect x="9" y="13" width="22" height="18" rx="5" fill="#13b8d4"/>
           <rect x="13" y="18" width="14" height="8" rx="3" fill="#fff"/>
-          <circle cx="17" cy="22" r="2" fill="#1b3a6b"/><circle cx="23" cy="22" r="2" fill="#1b3a6b"/>
-          <rect x="18.5" y="6" width="3" height="6" rx="1.5" fill="#2b579a"/><circle cx="20" cy="5" r="2.5" fill="#b9520b"/>
-          <rect x="6" y="19" width="3" height="7" rx="1.5" fill="#2b579a"/><rect x="31" y="19" width="3" height="7" rx="1.5" fill="#2b579a"/>
+          <circle cx="17" cy="22" r="2" fill="#0a4d68"/><circle cx="23" cy="22" r="2" fill="#0a4d68"/>
+          <rect x="18.5" y="6" width="3" height="6" rx="1.5" fill="#088395"/><circle cx="20" cy="5" r="2.5" fill="#d98324"/>
+          <rect x="6" y="19" width="3" height="7" rx="1.5" fill="#088395"/><rect x="31" y="19" width="3" height="7" rx="1.5" fill="#088395"/>
         </svg>
       </div>
       <div class="txt"><h2 id="iTitle">Willkommen</h2><p id="iText">Schön, dass du da bist!</p></div>
@@ -278,10 +358,12 @@
 </main>
 
 <footer class="sitefooter">
-  <p>© 2026 Wolfgang Schneider · <b>Word-Führerschein</b> (im Aufbau · Stationen 1–13 spielbar)</p>
+  <p>© 2026 Wolfgang Schneider · <b>Textverarbeitungs-Führerschein</b></p>
   <p>Lizenz: <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>.
-     Microsoft Word ist eine Marke der Microsoft Corp.; diese Übung ist eine eigenständige Nachbildung zu Lernzwecken.</p>
+     Die Oberfläche ist eine vereinfachte, herstellerneutrale Nachbildung eines Textverarbeitungsprogramms – nur zu Lernzwecken.</p>
 </footer>
+
+<div class="ctxmenu" id="ctxmenu" role="menu"></div>
 
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
 <aside class="drawer" id="drawer" aria-hidden="true">
@@ -331,16 +413,16 @@ const STATIONS = [
   {id:"s11",     short:"Bild",         icon:"🖼️", title:"Bild einfügen",          desc:"Einfügen → Bild platzieren"},
   {id:"s12",     short:"Tabelle",      icon:"▦",  title:"Tabelle einfügen",       desc:"Tabelle erstellen & füllen"},
   {id:"s13",     short:"Überschrift",  icon:"🅷", title:"Überschriften",          desc:"Formatvorlagen & Gliederung"},
-  {id:"s14",     short:"Speichern",    icon:"💾", title:"Speichern",              desc:"Speichern unter · Dateiname"},
-  {id:"s15",     short:"Drucken",      icon:"🖨️", title:"Drucken",                desc:"Seitenansicht & Druckdialog"},
-  {id:"s16",     short:"Rechtschr.",   icon:"✅", title:"Rechtschreibung",        desc:"Unterringeltes Wort korrigieren"},
+  {id:"s14",     short:"Speichern",    icon:"💾", title:"Speichern",              desc:"Speichern unter · Ort & Dateiname"},
+  {id:"s15",     short:"Öffnen",       icon:"📂", title:"Öffnen & Neu",           desc:"Gespeicherte Datei wiederfinden"},
+  {id:"s16",     short:"Drucken",      icon:"🖨️", title:"Drucken",                desc:"Seitenansicht & Druckdialog"},
+  {id:"s17",     short:"Rechtschr.",   icon:"✅", title:"Rechtschreibung",        desc:"Unterringeltes Wort korrigieren"},
   {id:"project", short:"Projekt",      icon:"📝", title:"Projekt: Steckbrief",    desc:"Alles zusammen anwenden"},
-  {id:"exam",    short:"Prüfung",      icon:"🏆", title:"Prüfung",                desc:"Der Word-Führerschein!"}
+  {id:"exam",    short:"Prüfung",      icon:"🏆", title:"Prüfung",                desc:"Der Textverarbeitungs-Führerschein!"}
 ];
+/* „exam_done" (Urkunde) ist bewusst keine Station – sie folgt automatisch nach der Prüfung. */
 const PLAYABLE = STATIONS.filter(s=>s.id!=="start"&&s.id!=="exam");
 const stationNumber = id => PLAYABLE.findIndex(s=>s.id===id)+1;
-/* Stationen, die bereits voll spielbar sind (Phase 0–3): */
-const IMPLEMENTED = ["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","s12","s13"];
 
 /* ============================================================
    Zustand & Gamification (analog Maus-Trainer)
@@ -376,7 +458,8 @@ const BADGES={
   format_artist:{icon:"🎨",title:"Format-Künstler"}, list_pro:{icon:"📋",title:"Listen-Profi"},
   table_master:{icon:"▦",title:"Tabellen-Baumeister"}, image_pro:{icon:"🖼️",title:"Bilder-Profi"},
   saver:{icon:"💾",title:"Sicherungs-Held"}, halfway:{icon:"🌟",title:"Halbzeit-Star"},
-  champion:{icon:"🏆",title:"Word-Champion"}
+  speller:{icon:"✅",title:"Fehler-Finder"}, printer:{icon:"🖨️",title:"Druck-Meister"},
+  project_pro:{icon:"📝",title:"Steckbrief-Profi"}, champion:{icon:"🏆",title:"Schreib-Champion"}
 };
 
 function toast(html,mood){
@@ -425,7 +508,10 @@ function checkStationBadges(id){
   if(id==="s12")unlock("table_master");
   if(id==="s11")unlock("image_pro");
   if(id==="s14")unlock("saver");
-  if(Object.keys(state.done).length>=8)unlock("halfway");
+  if(id==="s16")unlock("printer");
+  if(id==="s17")unlock("speller");
+  if(id==="project")unlock("project_pro");
+  if(Object.keys(state.done).length>=9)unlock("halfway");
   if(id==="exam")unlock("champion");
 }
 
@@ -457,6 +543,7 @@ function refreshProgress(){
   const total=PLAYABLE.length,done=PLAYABLE.filter(s=>state.done[s.id]).length;
   const cur=STATIONS.find(s=>s.id===state.current);
   const label=state.current==="start"?"Start":state.current==="exam"?"🏆 Prüfung"
+    :state.current==="exam_done"?"🏅 Urkunde"
     :`Station ${stationNumber(state.current)}/${total} · ${cur?cur.short:""}`;
   $("#stationNow").textContent=label;
   $("#drawerProgress").textContent=`${done}/${total} ✓`;
@@ -480,7 +567,7 @@ function completeStation(id,msg){
   markDone(id);setHint(msg||"Super gemacht! 🎉","good");sfx.win();showSkip(false);
   if(isNew){ awardXP(id==="exam"?50:20); state.stats.attempts++; checkStationBadges(id); }
   const next=nextStationId();showReplay(true);
-  if(id==="exam"){ showNext(false); }
+  if(id==="exam"){ showNext(true,"Urkunde anzeigen 🏅"); $("#nextBtn").onclick=()=>go("exam_done"); }
   else { showNext(true,'Weiter zu „'+STATIONS.find(s=>s.id===next).short+'“ ›'); $("#nextBtn").onclick=()=>go(next); }
 }
 $("#replayBtn").addEventListener("click",()=>go(state.current));
@@ -489,7 +576,7 @@ $("#replayBtn").addEventListener("click",()=>go(state.current));
    Erklärseiten
    ============================================================ */
 const INTROS={
-  s1:{head:"Tippen & Cursor", lead:"In Word schreibst du in das große weiße Blatt. Der blinkende Strich heißt <b>Cursor</b> – er zeigt, wo der nächste Buchstabe erscheint. Mit einem <b>Klick</b> setzt du den Cursor an eine andere Stelle.",
+  s1:{head:"Tippen & Cursor", lead:"In der Textverarbeitung schreibst du in das große weiße Blatt. Der blinkende Strich heißt <b>Cursor</b> – er zeigt, wo der nächste Buchstabe erscheint. Mit einem <b>Klick</b> setzt du den Cursor an eine andere Stelle.",
     points:[{ic:"👆",txt:"<b>Klicke</b> ins Blatt, um den Cursor dorthin zu setzen."},
       {ic:"⌨️",txt:"<b>Tippe</b> Buchstaben – sie erscheinen am Cursor."},
       {ic:"⏎",txt:"Mit <b>Enter</b> beginnst du eine neue Zeile."}],
@@ -524,7 +611,7 @@ const INTROS={
       {ic:"1️⃣",txt:"<b>Nummerierung</b>: durchgezählte Zeilen."},
       {ic:"🔁",txt:"Nochmal klicken schaltet die Liste wieder aus."}],
     steps:["Schau dir die Zeilen an.","Klicke oben auf Aufzählung oder Nummerierung.","Vor den Zeilen erscheinen Punkte oder Zahlen."]},
-  s9:{head:"Kopieren & Einfügen", lead:"Was du schon geschrieben hast, musst du nicht abtippen: Mit <b>Kopieren</b> (Strg+C) merkt sich Word den Text, mit <b>Einfügen</b> (Strg+V) setzt du ihn an einer neuen Stelle wieder ein.",
+  s9:{head:"Kopieren & Einfügen", lead:"Was du schon geschrieben hast, musst du nicht abtippen: Mit <b>Kopieren</b> (Strg+C) merkt sich das Programm den Text, mit <b>Einfügen</b> (Strg+V) setzt du ihn an einer neuen Stelle wieder ein.",
     points:[{ic:"⧉",txt:"<b>Kopieren</b> (Strg+C): markierten Text merken."},
       {ic:"📋",txt:"<b>Einfügen</b> (Strg+V): an neuer Stelle einsetzen."},
       {ic:"🖱️",txt:"Beides geht auch per <b>Rechtsklick</b>-Menü."}],
@@ -553,7 +640,32 @@ const INTROS={
     points:[{ic:"🖱️",txt:"<b>Erst das Wort anklicken</b> (markieren)."},
       {ic:"𝐁",txt:"<b>F</b> = Fett, <b>K</b> = Kursiv, <b>U</b> = Unterstrichen."},
       {ic:"🔁",txt:"Nochmal klicken schaltet die Formatierung wieder aus."}],
-    steps:["Klicke das gesuchte Wort an, bis es blau markiert ist.","Klicke oben im Menüband auf den richtigen Knopf.","Fertig – das Wort sieht jetzt anders aus."]}
+    steps:["Klicke das gesuchte Wort an, bis es blau markiert ist.","Klicke oben im Menüband auf den richtigen Knopf.","Fertig – das Wort sieht jetzt anders aus."]},
+  s14:{head:"Speichern", lead:"Solange du nur tippst, steht dein Text nur im Arbeitsspeicher – beim Ausschalten wäre er <b>weg</b>. Mit <b>Speichern unter</b> legst du ihn als <b>Datei</b> auf dem Computer ab: mit einem <b>Ort</b> (Ordner) und einem <b>Dateinamen</b>.",
+    points:[{ic:"📁",txt:"Zuerst den <b>Ort</b> wählen – wo soll die Datei liegen?"},
+      {ic:"✏️",txt:"Dann einen <b>Dateinamen</b> eingeben, den du wiederfindest."},
+      {ic:"⌨️",txt:"Kurzbefehl zum Speichern: <b>Strg+S</b>."}],
+    steps:["Klicke im Reiter <b>Datei</b> auf <b>Speichern unter</b>.","Wähle den Ordner und tippe einen Dateinamen ein.","Klicke auf <b>Speichern</b> – oben steht nun dein Dateiname."]},
+  s15:{head:"Öffnen & Neues Dokument", lead:"Eine gespeicherte Datei kannst du später wieder <b>öffnen</b> und weiterschreiben. Und wenn du etwas ganz Neues beginnst, legst du ein <b>neues, leeres Dokument</b> an.",
+    points:[{ic:"📂",txt:"<b>Öffnen</b> zeigt dir deine gespeicherten Dateien."},
+      {ic:"🔎",txt:"Achte auf den <b>Dateinamen</b> – so findest du deine Datei."},
+      {ic:"📄",txt:"<b>Neu</b> gibt dir ein leeres Blatt (Strg+N)."}],
+    steps:["Öffne den Reiter <b>Datei</b>.","Klicke auf <b>Öffnen</b> und suche deine Datei in der Liste.","Mit <b>Neu</b> beginnst du stattdessen ein leeres Dokument."]},
+  s16:{head:"Drucken & Seitenansicht", lead:"Bevor Papier verbraucht wird, zeigt dir die <b>Seitenansicht</b>, wie das Blatt später aussieht. Im <b>Druckdialog</b> stellst du ein, <b>wie oft</b> gedruckt werden soll – erst dann klickst du auf <b>Drucken</b>.",
+    points:[{ic:"👀",txt:"Die <b>Vorschau</b> zeigt die fertige Seite."},
+      {ic:"🔢",txt:"Bei <b>Exemplare</b> stellst du die Anzahl ein."},
+      {ic:"🖨️",txt:"Erst prüfen, dann auf <b>Drucken</b> klicken."}],
+    steps:["Schau dir die Seitenansicht links an.","Stelle die Anzahl der Exemplare ein.","Klicke auf <b>Drucken</b>."]},
+  s17:{head:"Rechtschreibung prüfen", lead:"Die Textverarbeitung liest mit: Wörter, die sie nicht kennt, bekommen eine <b>rote Wellenlinie</b>. Mit einem <b>Rechtsklick</b> auf das Wort bekommst du <b>Vorschläge</b> – ein Klick tauscht das Wort aus.",
+    points:[{ic:"〰️",txt:"<b>Rote Wellenlinie</b> = mögliche Fehlschreibung."},
+      {ic:"🖱️",txt:"<b>Rechtsklick</b> auf das Wort öffnet die Vorschläge."},
+      {ic:"✅",txt:"Der richtige Vorschlag ersetzt das Wort sofort."}],
+    steps:["Suche das rot unterringelte Wort.","Mache einen <b>Rechtsklick</b> darauf.","Klicke auf die richtige Schreibweise."]},
+  project:{head:"Projekt: Steckbrief", lead:"Jetzt kommt alles zusammen! Du schreibst einen kleinen <b>Steckbrief</b> – mit <b>Überschrift</b>, einer <b>Liste</b>, einem <b>Bild</b> und zum Schluss <b>gespeichert</b>. Die Liste rechts sagt dir, was als Nächstes dran ist.",
+    points:[{ic:"🅷",txt:"Titelzeile als <b>Überschrift 1</b> formatieren."},
+      {ic:"•",txt:"Die drei Zeilen zu einer <b>Aufzählung</b> machen."},
+      {ic:"🖼️",txt:"Ein <b>Bild</b> einfügen und alles <b>speichern</b>."}],
+    steps:["Arbeite die Aufgabenliste von oben nach unten ab.","Jeder erledigte Schritt wird grün abgehakt.","Am Ende speicherst du deinen Steckbrief."]}
 };
 let _introSkip=null;
 function stationIntro(id,stage){
@@ -578,15 +690,15 @@ function stationIntro(id,stage){
 }
 
 /* ============================================================
-   Wiederverwendbare Word-Oberfläche
-   buildWord(stage,opts) -> {page, ribbon, setStatus}
+   Wiederverwendbare Oberfläche der Textverarbeitung
+   buildEditor(stage,opts) -> {page, ribbon, setStatus}
    opts.tab: aktive Registerkarte ("start"|"einfuegen"|"layout")
    opts.tools: Liste der Werkzeuge im Start-Menüband, z.B. ["bold","italic","underline"]
    ============================================================ */
-function buildWord(stage, opts={}){
+function buildEditor(stage, opts={}){
   const tab = opts.tab || "start";
   const tools = opts.tools || [];
-  const wrap=document.createElement("div");wrap.className="word no-select";
+  const wrap=document.createElement("div");wrap.className="tv no-select";
   const TOOLBTN={
     bold:`<button class="rb-btn bold" data-tool="bold" title="Fett (Strg+F)">F</button>`,
     italic:`<button class="rb-btn italic" data-tool="italic" title="Kursiv (Strg+K)">K</button>`,
@@ -655,7 +767,7 @@ function buildWord(stage, opts={}){
   const styleGroup = opts.styles ? `
     <div class="rb-group">
       <div class="rb-row">
-        <button class="rb-btn" data-tool="style-h1" style="color:var(--word-deep);font-weight:700;">Überschrift 1</button>
+        <button class="rb-btn" data-tool="style-h1" style="color:var(--ocean-deep);font-weight:700;">Überschrift 1</button>
         <button class="rb-btn" data-tool="style-normal">Standard</button>
       </div>
       <div class="rb-label">Formatvorlagen</div>
@@ -676,31 +788,66 @@ function buildWord(stage, opts={}){
       </div>
       <div class="rb-label">Bearbeiten</div>
     </div>` : "";
+  // Datei-Gruppe (Speichern / Öffnen / Neu) – gehört zur Registerkarte „Datei"
+  const fileTools = opts.fileTools || [];
+  const FILEBTN={
+    save:`<button class="rb-btn" data-tool="save" title="Speichern unter (Strg+S)" style="flex-direction:column;height:auto;padding:4px 8px;">💾<span style="font-size:.6rem">Speichern&nbsp;unter</span></button>`,
+    open:`<button class="rb-btn" data-tool="open" title="Öffnen (Strg+O)" style="flex-direction:column;height:auto;padding:4px 8px;">📂<span style="font-size:.6rem">Öffnen</span></button>`,
+    "new":`<button class="rb-btn" data-tool="new" title="Neues Dokument (Strg+N)" style="flex-direction:column;height:auto;padding:4px 8px;">📄<span style="font-size:.6rem">Neu</span></button>`,
+    print:`<button class="rb-btn" data-tool="print" title="Drucken (Strg+P)" style="flex-direction:column;height:auto;padding:4px 8px;">🖨️<span style="font-size:.6rem">Drucken</span></button>`
+  };
+  const fileGroup = fileTools.length ? `
+    <div class="rb-group">
+      <div class="rb-row">${fileTools.map(t=>FILEBTN[t]||"").join("")}</div>
+      <div class="rb-label">Datei</div>
+    </div>` : "";
+  const tabs = (fileTools.length?[["datei","Datei"]]:[]).concat([["start","Start"],["einfuegen","Einfügen"],["layout","Layout"]]);
   wrap.innerHTML=`
-    <div class="word-title"><span class="dot"></span><span class="fname">${opts.fname||"Dokument1 – Word"}</span>
+    <div class="tv-title"><span class="dot"></span><span class="fname">${opts.fname||"Dokument1 – Textverarbeitung"}</span>
       <span class="win">— ▢ ✕</span></div>
-    <div class="word-tabs">
-      <button class="word-tab${tab==="start"?" active":""}" data-tab="start">Start</button>
-      <button class="word-tab${tab==="einfuegen"?" active":""}" data-tab="einfuegen">Einfügen</button>
-      <button class="word-tab${tab==="layout"?" active":""}" data-tab="layout">Layout</button>
+    <div class="tv-tabs">
+      ${tabs.map(([id,label])=>`<button class="tv-tab${tab===id?" active":""}" data-tab="${id}">${label}</button>`).join("")}
     </div>
-    <div class="ribbon">${clipGroup}${fontGroup}${formatGroup}${alignGroup}${listGroup}${styleGroup}${insertGroup}${editGroup}</div>
-    <div class="word-canvas"><div class="word-page" ${opts.editable?'contenteditable="true"':''} spellcheck="false"></div></div>
-    <div class="word-status"><span id="wStatusL">Seite 1 von 1</span><span class="right" id="wStatusR">Deutsch</span></div>`;
+    <div class="ribbon">${fileGroup}${clipGroup}${fontGroup}${formatGroup}${alignGroup}${listGroup}${styleGroup}${insertGroup}${editGroup}</div>
+    <div class="tv-canvas"><div class="tv-page" ${opts.editable?'contenteditable="true"':''} spellcheck="false"></div></div>
+    <div class="tv-status"><span id="wStatusL">Seite 1 von 1</span><span class="right" id="wStatusR">Deutsch</span></div>`;
   stage.appendChild(wrap);
-  const page=$(".word-page",wrap);
+  const page=$(".tv-page",wrap);
   // Registerkarten: nur Deko-Wechsel (Inhalte folgen je Station)
-  $$(".word-tab",wrap).forEach(t=>t.addEventListener("click",()=>{
-    $$(".word-tab",wrap).forEach(x=>x.classList.remove("active"));t.classList.add("active");
+  $$(".tv-tab",wrap).forEach(t=>t.addEventListener("click",()=>{
+    $$(".tv-tab",wrap).forEach(x=>x.classList.remove("active"));t.classList.add("active");
   }));
   return {
     wrap, page,
     ribbonBtn:(tool)=>$(`.rb-btn[data-tool="${tool}"]`,wrap),
     fontSel:$('select[data-ctl="font"]',wrap),
     sizeSel:$('select[data-ctl="size"]',wrap),
+    setFname:(name)=>{ $(".fname",wrap).textContent=name; },
     setStatus:(l,r)=>{ if(l!=null)$("#wStatusL",wrap).textContent=l; if(r!=null)$("#wStatusR",wrap).textContent=r; }
   };
 }
+
+/* ============================================================
+   Kontextmenü (Rechtsklick) – für Rechtschreibung & Zwischenablage
+   ============================================================ */
+const ctx=$("#ctxmenu");
+function showCtx(x,y,items){
+  ctx.innerHTML="";
+  items.forEach(it=>{
+    if(it.sep){ const s=document.createElement("div");s.className="sep";ctx.appendChild(s);return; }
+    const m=document.createElement("div");
+    m.className="mi"+(it.disabled?" disabled":"")+(it.suggest?" suggest":"");
+    m.innerHTML=`<span>${it.icon||""}</span><span>${it.label}</span>`+(it.key?`<span class="k">${it.key}</span>`:"");
+    if(!it.disabled) m.addEventListener("click",e=>{e.stopPropagation();hideCtx();it.action&&it.action();});
+    ctx.appendChild(m);
+  });
+  ctx.style.display="block";
+  const w=ctx.offsetWidth,h=ctx.offsetHeight;
+  ctx.style.left=Math.min(x,innerWidth-w-6)+"px";ctx.style.top=Math.min(y,innerHeight-h-6)+"px";
+}
+function hideCtx(){ ctx.style.display="none"; }
+document.addEventListener("click",hideCtx);
+document.addEventListener("scroll",hideCtx,true);
 /* Tokenisiert einen Satz in klickbare Wörter (für Markier-/Format-Stationen). */
 function fillTokens(page, text){
   page.innerHTML="";
@@ -719,46 +866,122 @@ const SCREENS={};
 
 /* ---- Start ---- */
 SCREENS.start=(stage)=>{
-  setInstruction("Willkommen beim Word-Führerschein","Hier lernst du Schritt für Schritt, wie man mit Microsoft Word schreibt.");
+  setInstruction("Willkommen beim Textverarbeitungs-Führerschein","Hier lernst du Schritt für Schritt, wie man am Computer Texte schreibt und gestaltet.");
   setHint("Klicke auf „Los geht’s“, um zu starten.","");
   const hero=document.createElement("div");hero.className="hero";
   hero.innerHTML=`
     <div class="doc-emoji">📄</div>
-    <h1>Word-Führerschein</h1>
-    <p>Du übst die wichtigsten Word-Handgriffe: <b>tippen, markieren, formatieren, kopieren, speichern</b> und mehr –
-       an einer nachgebauten Word-Oberfläche. Am Ende wartet ein kleines <b>Schreibprojekt</b> und deine Urkunde.</p>
+    <h1>Textverarbeitungs-Führerschein</h1>
+    <p>Du übst die wichtigsten Handgriffe am Computer: <b>tippen, markieren, formatieren, kopieren, speichern</b> und mehr –
+       an einer nachgebauten Oberfläche, wie sie jedes <b>Textverarbeitungsprogramm</b> hat.
+       Am Ende wartet ein kleines <b>Schreibprojekt</b> und deine Urkunde.</p>
     <p style="font-size:.88rem;opacity:.85">Tipp: Über das ☰-Menü oben links springst du zwischen den Stationen.</p>`;
   stage.appendChild(hero);
   const first=PLAYABLE[0].id;
   showNext(true,"Los geht’s ›");$("#nextBtn").onclick=()=>go(first);
 };
 
+/* Liest den Text des Schreibblatts zeilenweise (leere Zeilen fallen weg). */
+function pageLines(page){
+  return (page.innerText||page.textContent||"").replace(/ /g," ")
+    .split(/\r?\n/).map(s=>s.replace(/\s+/g," ").trim()).filter(s=>s.length>0);
+}
+/* Reiner Text des Schreibblatts (geschützte Leerzeichen normalisiert). */
+function pageText(page){ return (page.textContent||"").replace(/ /g," ").replace(/\s+/g," ").trim(); }
+
+/* ============================================================
+   Wiederverwendbare Bausteine für die späteren Stationen
+   ============================================================ */
+/* Dialog „Speichern unter" – Ort, Dateiname, Dateityp. */
+function saveDialog(stage,opts={}){
+  const places=[{id:"dok",em:"📁",nm:"Dokumente"},{id:"bild",em:"🖼️",nm:"Bilder"},{id:"usb",em:"💾",nm:"USB-Stick"}];
+  const dlg=document.createElement("div");dlg.className="wdialog";dlg.style.display="none";
+  dlg.innerHTML=`
+    <div class="wdialog-head">💾 Speichern unter</div>
+    <div style="font-size:.86rem;color:var(--ink-soft);margin-bottom:5px;">1. Wo soll die Datei liegen?</div>
+    <div class="savelist">${places.map(p=>`<button data-place="${p.id}"><span>${p.em}</span>${p.nm}</button>`).join("")}</div>
+    <label>2. Dateiname:<input type="text" data-fld="name" autocomplete="off" placeholder="z. B. ${opts.placeholder||"Steckbrief"}"></label>
+    <label>3. Dateityp:<select data-fld="type"><option>Textdokument</option><option>PDF-Dokument</option></select></label>
+    <div class="wdialog-btns">
+      <button class="btn btn-ghost btn-small" data-act="cancel">Abbrechen</button>
+      <button class="btn btn-primary btn-small" data-act="save">Speichern</button>
+    </div>`;
+  stage.appendChild(dlg);
+  let place=null;
+  $$(".savelist button",dlg).forEach(b=>b.addEventListener("click",()=>{
+    $$(".savelist button",dlg).forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel");place=b.dataset.place;sfx.step();
+    opts.onPlace&&opts.onPlace(place);
+  }));
+  $('[data-act="cancel"]',dlg).addEventListener("click",()=>{dlg.style.display="none";opts.onCancel&&opts.onCancel();});
+  $('[data-act="save"]',dlg).addEventListener("click",()=>{
+    opts.onSave&&opts.onSave({place, name:$('[data-fld="name"]',dlg).value.trim(),
+      close:()=>{dlg.style.display="none";}});
+  });
+  return {el:dlg, open:()=>{dlg.style.display="block";$('[data-fld="name"]',dlg).focus();},
+          close:()=>{dlg.style.display="none";}};
+}
+
+/* Aufgabenliste rechts neben dem Dokument (Projekt & Prüfung). */
+function buildChecklist(listEl,total){
+  const items=$$("li",listEl), done=new Array(total).fill(false);
+  function paint(){
+    items.forEach((li,i)=>{
+      li.classList.toggle("done",done[i]);
+      li.classList.toggle("active",!done[i]&&i===nextOpen());
+    });
+  }
+  function nextOpen(){ const i=done.findIndex(d=>!d); return i; }
+  paint();
+  return {
+    tick(i){ if(done[i])return false; done[i]=true; sfx.step(); paint(); return true; },
+    isDone:i=>done[i],
+    allDone:()=>done.every(Boolean),
+    nextOpen,
+    labelOf(i){ return i<0?"":items[i].innerHTML; }
+  };
+}
+
 /* ---- Station 1: Tippen & Cursor ---- */
 SCREENS.s1=(stage)=>{
   if(stationIntro("s1",stage))return;
   const st=STATIONS.find(s=>s.id==="s1");
-  setInstruction(`Station ${stationNumber("s1")} · ${st.title}`,"Klicke in das weiße Blatt und tippe den Satz genau ab.");
-  setHint("Klicke ins Blatt und beginne zu tippen.","");
-  const TARGET="Heute lerne ich Word.";
+  setInstruction(`Station ${stationNumber("s1")} · ${st.title}`,"Klicke in das weiße Blatt und tippe genau das, was oben steht.");
+  const TASKS=[
+    {want:["Heute lerne ich schreiben."], preset:"", show:"Heute lerne ich schreiben.",
+     tip:"Klicke ins Blatt und tippe den Satz ab – auch den Punkt am Ende."},
+    {want:["Heute lerne ich schreiben.","Das macht Spaß."], preset:"Heute lerne ich schreiben.",
+     show:"Heute lerne ich schreiben.<br>Das macht Spaß.",
+     tip:"Klicke ans <b>Ende</b> der Zeile, drücke <b>Enter</b> und tippe die zweite Zeile."},
+    {want:["Ich schreibe am schnellen Computer."], preset:"Ich schreibe am Computer.",
+     show:"Ich schreibe am schnellen Computer.",
+     tip:"Klicke mit der Maus <b>direkt vor das Wort „Computer“</b> – dort blinkt dann der Cursor – und tippe <b>schnellen</b> und ein Leerzeichen."}
+  ];
+  let ti=0, lock=false;
   const target=document.createElement("div");target.className="type-target";
-  target.innerHTML=`✍️ Tippe genau ab: <b>${TARGET}</b>`;
   stage.appendChild(target);
-  const w=buildWord(stage,{tab:"start",editable:true,fname:"Übung – Word"});
-  w.page.focus();
-  let done=false;
+  const w=buildEditor(stage,{tab:"start",editable:true,fname:"Übung.txt"});
+  function loadTask(){
+    const t=TASKS[ti];lock=false;
+    setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe");
+    target.innerHTML=`✍️ So soll es aussehen:<br><b>${t.show}</b>`;
+    w.page.textContent=t.preset;
+    setHint("👉 "+t.tip,"");
+    w.page.focus();
+    const sel=window.getSelection();
+    if(sel&&w.page.firstChild){const r=document.createRange();r.selectNodeContents(w.page);r.collapse(false);sel.removeAllRanges();sel.addRange(r);}
+  }
   w.page.addEventListener("input",()=>{
-    const cur=w.page.textContent.replace(/ /g," ");
-    w.setStatus(`Zeichen: ${cur.length}`,null);
-    if(done) return;
-    if(cur.trim()===TARGET){
-      done=true;
-      completeStation("s1","Perfekt abgetippt! ⌨️");
-    } else if(TARGET.startsWith(cur.trim()) || cur.trim().length<TARGET.length){
-      setHint("Weiter so – tippe genau weiter.","");
-    } else {
-      setHint("Kleiner Tippfehler – vergleiche mit der Vorlage oben.","warn");
-    }
+    if(lock)return;
+    const t=TASKS[ti], lines=pageLines(w.page);
+    w.setStatus(`Zeichen: ${pageText(w.page).length}`,null);
+    if(lines.length===t.want.length && lines.every((l,i)=>l===t.want[i])){
+      lock=true;sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ setHint("Genau so! Nächste Aufgabe …","good"); later(()=>{ti++;loadTask();},950); }
+      else completeStation("s1","Tippen, Enter und Cursor sitzen! ⌨️");
+    } else setHint("👉 "+t.tip,"");
   });
+  loadTask();
 };
 
 /* ---- Station 2: Korrigieren (Löschen) ---- */
@@ -767,13 +990,14 @@ SCREENS.s2=(stage)=>{
   const st=STATIONS.find(s=>s.id==="s2");
   setInstruction(`Station ${stationNumber("s2")} · ${st.title}`,"Lösche die Fehler, bis der Satz genau mit der Vorlage übereinstimmt.");
   const TASKS=[
-    {start:"Der Hund belltt laut.",            target:"Der Hund bellt laut.",      tip:'Im Wort „belltt" ist ein <b>t</b> zu viel. Klicke dahinter und drücke die <b>Rücktaste</b>.'},
-    {start:"Die Sonne scheint hell hell.",     target:"Die Sonne scheint hell.",   tip:'Das Wort „hell" steht <b>doppelt</b>. Lösche das zweite davon.'}
+    {start:"Der Hund belltt laut.",        target:"Der Hund bellt laut.",       tip:'Im Wort „belltt“ ist ein <b>t</b> zu viel. Klicke dahinter und drücke die <b>Rücktaste</b> (⌫).'},
+    {start:"Die Sonne scheint hell hell.", target:"Die Sonne scheint hell.",    tip:'Das Wort „hell“ steht <b>doppelt</b>. Lösche das zweite davon.'},
+    {start:"Wir gehen in die xSchule.",    target:"Wir gehen in die Schule.",   tip:'Klicke <b>vor</b> das falsche <b>x</b> und drücke die <b>Entf</b>-Taste – sie löscht nach rechts.'}
   ];
   let ti=0, done=false;
   const target=document.createElement("div");target.className="type-target";
   stage.appendChild(target);
-  const w=buildWord(stage,{tab:"start",editable:true,fname:"Korrektur – Word"});
+  const w=buildEditor(stage,{tab:"start",editable:true,fname:"Korrektur.txt"});
   function loadTask(){
     const t=TASKS[ti];done=false;
     setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe");
@@ -784,8 +1008,7 @@ SCREENS.s2=(stage)=>{
   }
   w.page.addEventListener("input",()=>{
     if(done)return;
-    const cur=w.page.textContent.replace(/ /g," ").replace(/\s+/g," ").trim();
-    const t=TASKS[ti];
+    const cur=pageText(w.page), t=TASKS[ti];
     w.setStatus(`Zeichen: ${cur.length}`,null);
     if(cur===t.target){
       sfx.good();mascotReact("happy");done=true;
@@ -800,32 +1023,54 @@ SCREENS.s2=(stage)=>{
 SCREENS.s3=(stage)=>{
   if(stationIntro("s3",stage))return;
   const st=STATIONS.find(s=>s.id==="s3");
-  setInstruction(`Station ${stationNumber("s3")} · ${st.title}`,"Zwei Versehen sind passiert. Nimm sie mit Rückgängig (↶) zurück.");
+  setInstruction(`Station ${stationNumber("s3")} · ${st.title}`,"Erst Versehen zurücknehmen (↶) – danach zu viel Zurückgenommenes wiederholen (↷).");
   const bar=document.createElement("div");
   bar.style.cssText="display:flex;gap:8px;justify-content:center;margin:0 0 12px;";
   bar.innerHTML=`
     <button class="rb-btn" id="undoBtn" title="Rückgängig (Strg+Z)" style="height:38px;font-size:1.05rem;">↶ Rückgängig</button>
     <button class="rb-btn" id="redoBtn" title="Wiederholen (Strg+Y)" style="height:38px;font-size:1.05rem;">↷ Wiederholen</button>`;
   stage.appendChild(bar);
-  const w=buildWord(stage,{tab:"start",fname:"Brief – Word"});
-  // Verlauf: [0]=guter Zustand, dann zwei „Versehen" obendrauf
-  const history=[
-    'Mein Lieblingstier ist der <span class="tok">Delfin</span>.',
-    'Mein Lieblingstier ist der <span class="tok">&nbsp;&nbsp;&nbsp;</span>.',
-    'Mein Lieblingstier ist der <span class="tok">&nbsp;&nbsp;&nbsp;</span>.<br><span style="font-size:1.8rem;letter-spacing:3px;color:#b9520b">qwhz!!</span>'
+  const w=buildEditor(stage,{tab:"start",fname:"Brief.txt"});
+  const ROUNDS=[
+    {hist:[
+       'Mein Lieblingstier ist der <span class="tok">Delfin</span>.',
+       'Mein Lieblingstier ist der <span class="tok">&nbsp;&nbsp;&nbsp;</span>.',
+       'Mein Lieblingstier ist der <span class="tok">&nbsp;&nbsp;&nbsp;</span>.<br><span style="font-size:1.8rem;letter-spacing:3px;color:var(--hint)">qwhz!!</span>'],
+     start:2, goal:0, dir:"undo",
+     label:'Zwei Versehen sind passiert. Klicke <b>2× auf Rückgängig (↶)</b> – oder drücke <b>Strg+Z</b>.',
+     ok:"Alles wieder in Ordnung! ↶"},
+    {hist:[
+       '<b>Mein Steckbrief</b>',
+       '<b>Mein Steckbrief</b><br>Name: Mia',
+       '<b>Mein Steckbrief</b><br>Name: Mia<br>Alter: 9 Jahre'],
+     start:0, goal:2, dir:"redo",
+     label:'Ups – hier wurde <b>zu viel</b> zurückgenommen. Hole die beiden Zeilen mit <b>2× Wiederholen (↷)</b> zurück.',
+     ok:"Zurückgeholt – Rückgängig und Wiederholen sitzen! ↷"}
   ];
-  let ptr=history.length-1;
+  let ri=0, hist=[], ptr=0;
   function render(){
-    w.page.innerHTML=history[ptr];
+    w.page.innerHTML=hist[ptr];
     $("#undoBtn").disabled = ptr<=0;
-    $("#redoBtn").disabled = ptr>=history.length-1;
+    $("#redoBtn").disabled = ptr>=hist.length-1;
+  }
+  function loadRound(){
+    const r=ROUNDS[ri];hist=r.hist;ptr=r.start;
+    setCounter(`${ri+1}/${ROUNDS.length}`,"Aufgabe");
+    setHint("👉 "+r.label,"");render();
   }
   function check(){
-    if(ptr===0) completeStation("s3","Alles wieder in Ordnung! ↶");
-    else setHint(`Gut – noch ${ptr}× Rückgängig.`,"");
+    const r=ROUNDS[ri];
+    if(ptr===r.goal){
+      sfx.good();mascotReact("happy");
+      if(ri<ROUNDS.length-1){ setHint(r.ok+" Weiter zur nächsten Aufgabe …","good"); later(()=>{ri++;loadRound();},1000); }
+      else completeStation("s3",r.ok);
+    } else {
+      const left=Math.abs(ptr-r.goal);
+      setHint(`Gut – noch ${left}× ${r.dir==="undo"?"Rückgängig (↶)":"Wiederholen (↷)"}.`,"");
+    }
   }
   function undo(){ if(ptr>0){ptr--;render();sfx.step();check();} }
-  function redo(){ if(ptr<history.length-1){ptr++;render();sfx.step();} }
+  function redo(){ if(ptr<hist.length-1){ptr++;render();sfx.step();check();} }
   $("#undoBtn").onclick=undo; $("#redoBtn").onclick=redo;
   w.page.tabIndex=0;
   w.page.addEventListener("keydown",e=>{
@@ -833,46 +1078,56 @@ SCREENS.s3=(stage)=>{
     if((e.ctrlKey||e.metaKey)&&k==="z"){ e.preventDefault(); undo(); }
     if((e.ctrlKey||e.metaKey)&&k==="y"){ e.preventDefault(); redo(); }
   });
-  render();
-  setHint("Klicke 2× auf <b>Rückgängig (↶)</b> – oder drücke <b>Strg+Z</b>.","");
+  loadRound();
 };
 
 /* ---- Station 4: Markieren ---- */
 SCREENS.s4=(stage)=>{
   if(stationIntro("s4",stage))return;
   const st=STATIONS.find(s=>s.id==="s4");
-  setInstruction(`Station ${stationNumber("s4")} · ${st.title}`,"Markiere genau das Gesuchte – per Doppelklick oder mit Strg+A.");
-  const w=buildWord(stage,{tab:"start",fname:"Markieren – Word"});
-  fillTokens(w.page,"Im Garten wachsen Äpfel, Birnen und süße Kirschen.");
+  setInstruction(`Station ${stationNumber("s4")} · ${st.title}`,"Markiere genau das Gesuchte – Wort, ganze Zeile oder alles.");
+  const w=buildEditor(stage,{tab:"start",fname:"Markieren.txt"});
+  w.page.innerHTML='<div class="docline" data-line="0"></div><div class="docline" data-line="1"></div>';
+  const lines=$$(".docline",w.page);
+  fillTokens(lines[0],"Im Garten wachsen Äpfel, Birnen und süße Kirschen.");
+  fillTokens(lines[1],"Am Zaun blühen gelbe Blumen.");
   w.page.tabIndex=0;
   const toks=$$(".tok",w.page);
+  const lineToks = n => $$(".tok",lines[n]);
   const TASKS=[
     {type:"word", word:"birnen", disp:"Birnen", label:'Markiere das Wort <b>Birnen</b> mit einem <b>Doppelklick</b>.'},
-    {type:"all",  label:'Markiere jetzt <b>alles</b> mit <b>Strg+A</b>.'}
+    {type:"line", line:1,        label:'Markiere die <b>ganze zweite Zeile</b> – mit einem <b>Dreifachklick</b> hinein.'},
+    {type:"all",                 label:'Markiere jetzt <b>alles</b> mit <b>Strg+A</b>.'}
   ];
   let ti=0;
   const clearSel=()=>toks.forEach(t=>t.classList.remove("sel"));
-  function setTask(){ const t=TASKS[ti]; setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+t.label,""); }
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+TASKS[ti].label,""); }
   function advance(){
     sfx.good();mascotReact("happy");
     if(ti<TASKS.length-1){ ti++; clearSel(); setTask(); w.page.focus(); }
-    else completeStation("s4","Super markiert! 🖍️");
+    else completeStation("s4","Wort, Zeile und alles – super markiert! 🖍️");
   }
   function check(){
     const sel=toks.filter(t=>t.classList.contains("sel"));
     const t=TASKS[ti];
     if(t.type==="word"){
       if(sel.length===1 && sel[0].dataset.word===t.word) advance();
-      else if(sel.length>=1) setHint(`Fast! Markiere genau das Wort „${t.disp}".`,"warn");
+      else if(sel.length>=1) setHint(`Fast! Markiere genau das Wort „${t.disp}“.`,"warn");
+    } else if(t.type==="line"){
+      const want=lineToks(t.line);
+      if(sel.length===want.length && want.every(x=>x.classList.contains("sel"))) advance();
+      else if(sel.length>=1) setHint("Fast! Ein <b>Dreifachklick</b> markiert die ganze Zeile.","warn");
     } else {
       if(sel.length===toks.length) advance();
     }
   }
   function pickOnly(tok){ clearSel(); tok.classList.add("sel"); sfx.step(); check(); }
-  toks.forEach(tok=>{
-    tok.addEventListener("dblclick",()=>pickOnly(tok));
-    tok.addEventListener("click",()=>{ if(TASKS[ti].type==="word") pickOnly(tok); }); // nachsichtig: Klick zählt wie Doppelklick
-  });
+  function pickLine(n){ clearSel(); lineToks(n).forEach(t=>t.classList.add("sel")); sfx.step(); check(); }
+  lines.forEach((ln,n)=>ln.addEventListener("click",e=>{
+    if(e.detail>=3){ pickLine(n); return; }
+    const tok=e.target.closest(".tok"); if(!tok) return;
+    if(e.detail===2 || TASKS[ti].type==="word") pickOnly(tok); // nachsichtig: Klick zählt wie Doppelklick
+  }));
   w.page.addEventListener("keydown",e=>{
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="a"){ e.preventDefault(); toks.forEach(t=>t.classList.add("sel")); sfx.step(); check(); }
   });
@@ -885,14 +1140,13 @@ SCREENS.s5=(stage)=>{
   if(stationIntro("s5",stage))return;
   const st=STATIONS.find(s=>s.id==="s5");
   setInstruction(`Station ${stationNumber("s5")} · ${st.title}`,"Erst das Wort anklicken (markieren), dann den richtigen Knopf im Menüband drücken.");
-  // kleine Aufgabenliste
   const TASKS=[
     {word:"sonne",  tool:"bold",      label:'Mache das Wort <b>Sonne</b> <b>fett</b>.'},
     {word:"meer",   tool:"italic",    label:'Mache das Wort <b>Meer</b> <i>kursiv</i>.'},
     {word:"strand", tool:"underline", label:'<u>Unterstreiche</u> das Wort <b>Strand</b>.'}
   ];
   let ti=0;
-  const w=buildWord(stage,{tab:"start",tools:["bold","italic","underline"],fname:"Sommer – Word"});
+  const w=buildEditor(stage,{tab:"start",tools:["bold","italic","underline"],fname:"Sommer.txt"});
   fillTokens(w.page,"Die Sonne, das Meer und der Strand machen Freude.");
   let selected=null;
 
@@ -940,7 +1194,7 @@ SCREENS.s6=(stage)=>{
   if(stationIntro("s6",stage))return;
   const st=STATIONS.find(s=>s.id==="s6");
   setInstruction(`Station ${stationNumber("s6")} · ${st.title}`,"Erst ein Wort markieren, dann oben Größe, Farbe oder Schriftart wählen.");
-  const w=buildWord(stage,{tab:"start",fontControls:true,fname:"Plakat – Word"});
+  const w=buildEditor(stage,{tab:"start",fontControls:true,fname:"Plakat.txt"});
   fillTokens(w.page,"Unser großes Sommerfest beginnt bald.");
   let selected=null;
   $$(".tok",w.page).forEach(t=>t.addEventListener("click",()=>{
@@ -973,13 +1227,14 @@ SCREENS.s7=(stage)=>{
   if(stationIntro("s7",stage))return;
   const st=STATIONS.find(s=>s.id==="s7");
   setInstruction(`Station ${stationNumber("s7")} · ${st.title}`,"Stelle die Ausrichtung des Absatzes mit den Knöpfen im Menüband ein.");
-  const w=buildWord(stage,{tab:"start",align:true,fname:"Einladung – Word"});
-  w.page.innerHTML='<div id="para">Herzliche Einladung<br>zu meinem Geburtstag<br>am Samstag um 15 Uhr!</div>';
+  const w=buildEditor(stage,{tab:"start",align:true,fname:"Einladung.txt"});
+  w.page.innerHTML='<div id="para">Herzliche Einladung zu meinem Geburtstag am Samstag um 15 Uhr. Bring gute Laune mit, dann wird es ein schöner Nachmittag!</div>';
   const para=$("#para",w.page); para.style.textAlign="left";
   const map={left:"align-left",center:"align-center",right:"align-right",justify:"align-justify"};
   const TASKS=[
-    {al:"center", label:'Stelle den Text auf <b>zentriert</b> (mittig).'},
-    {al:"right",  label:'Jetzt auf <b>rechtsbündig</b>.'}
+    {al:"center",  label:'Stelle den Text auf <b>zentriert</b> (mittig).'},
+    {al:"right",   label:'Jetzt auf <b>rechtsbündig</b>.'},
+    {al:"justify", label:'Und zum Schluss auf <b>Blocksatz</b> – dann sind beide Ränder gerade.'}
   ];
   let ti=0;
   function sync(){ Object.entries(map).forEach(([al,tool])=>w.ribbonBtn(tool).classList.toggle("active",para.style.textAlign===al)); }
@@ -998,13 +1253,14 @@ SCREENS.s8=(stage)=>{
   if(stationIntro("s8",stage))return;
   const st=STATIONS.find(s=>s.id==="s8");
   setInstruction(`Station ${stationNumber("s8")} · ${st.title}`,"Mach aus den Zeilen eine Liste – mit den Listen-Knöpfen oben.");
-  const w=buildWord(stage,{tab:"start",lists:true,fname:"Einkauf – Word"});
+  const w=buildEditor(stage,{tab:"start",lists:true,fname:"Einkauf.txt"});
   const items=["Äpfel","Brot","Milch"];
   w.page.innerHTML=`<div class="doclist" data-type="none">${items.map(i=>`<div class="li">${i}</div>`).join("")}</div>`;
   const list=$(".doclist",w.page);
   const TASKS=[
     {type:"bullet", label:'Mach aus der Einkaufsliste eine <b>Aufzählung</b> (• Punkte).'},
-    {type:"number", label:'Wandle sie jetzt in eine <b>Nummerierung</b> (1. 2. 3.) um.'}
+    {type:"number", label:'Wandle sie jetzt in eine <b>Nummerierung</b> (1. 2. 3.) um.'},
+    {type:"none",   label:'Schalte die Liste wieder <b>aus</b>: nochmal auf den Nummerierungs-Knopf klicken.'}
   ];
   let ti=0;
   function sync(){ w.ribbonBtn("bullet").classList.toggle("active",list.dataset.type==="bullet");
@@ -1013,7 +1269,7 @@ SCREENS.s8=(stage)=>{
   function apply(type){
     list.dataset.type = list.dataset.type===type ? "none" : type; sfx.step(); sync();
     if(list.dataset.type===TASKS[ti].type){ sfx.good();mascotReact("happy");
-      if(ti<TASKS.length-1){ ti++; setTask(); } else completeStation("s8","Liste fertig! 📋"); }
+      if(ti<TASKS.length-1){ ti++; setTask(); } else completeStation("s8","Listen an und aus – perfekt! 📋"); }
   }
   w.ribbonBtn("bullet").addEventListener("click",()=>apply("bullet"));
   w.ribbonBtn("number").addEventListener("click",()=>apply("number"));
@@ -1024,164 +1280,629 @@ SCREENS.s8=(stage)=>{
 SCREENS.s9=(stage)=>{
   if(stationIntro("s9",stage))return;
   const st=STATIONS.find(s=>s.id==="s9");
-  setInstruction(`Station ${stationNumber("s9")} · ${st.title}`,"Kopiere das Wort und füge es in die Lücke ein.");
-  const w=buildWord(stage,{tab:"start",clipboard:true,fname:"Notiz – Word"});
-  w.page.innerHTML=`Mein Lieblingseis ist <span class="tok" data-word="vanille">Vanille</span>.<br>Bitte hol mir <span class="slot" data-need="vanille">[ hier einfügen ]</span>!`;
+  setInstruction(`Station ${stationNumber("s9")} · ${st.title}`,"Kopiere das Wort und füge es in die Lücke ein – einmal mit den Tasten, einmal mit der rechten Maustaste.");
+  const w=buildEditor(stage,{tab:"start",clipboard:true,fname:"Notiz.txt"});
   w.page.tabIndex=0;
-  const tok=$(".tok",w.page), slot=$(".slot",w.page);
-  let clip=null, selected=null;
-  tok.addEventListener("click",()=>{
-    if(selected)selected.classList.remove("sel");selected=tok;tok.classList.add("sel");sfx.step();
-    setHint("Markiert! Jetzt <b>Kopieren</b> (Strg+C oder ⧉).","");
-  });
+  const ROUNDS=[
+    {html:'Mein Lieblingseis ist <span class="tok" data-word="vanille">Vanille</span>.<br>Bitte hol mir <span class="slot" data-need="vanille">[ hier einfügen ]</span>!',
+     label:'Klicke <b>Vanille</b> an, dann <b>Strg+C</b> und in der Lücke <b>Strg+V</b>. (Die Knöpfe ⧉ und 📋 gehen auch.)',
+     ctxOnly:false},
+    {html:'Am liebsten mag ich <span class="tok" data-word="erdbeere">Erdbeere</span>.<br>Bring bitte auch <span class="slot" data-need="erdbeere">[ hier einfügen ]</span> mit!',
+     label:'Jetzt mit der <b>rechten Maustaste</b>: Rechtsklick auf <b>Erdbeere</b> → <b>Kopieren</b>, dann Rechtsklick auf die Lücke → <b>Einfügen</b>.',
+     ctxOnly:true}
+  ];
+  let ri=0, clip=null, selected=null, tok=null, slot=null;
+  function loadRound(){
+    const r=ROUNDS[ri];clip=null;selected=null;
+    setCounter(`${ri+1}/${ROUNDS.length}`,"Aufgabe");
+    w.page.innerHTML=r.html;
+    tok=$(".tok",w.page); slot=$(".slot",w.page);
+    tok.addEventListener("click",()=>{
+      if(selected)selected.classList.remove("sel");
+      selected=tok;tok.classList.add("sel");sfx.step();
+      setHint(r.ctxOnly?"Markiert! Jetzt <b>Rechtsklick</b> auf das Wort → Kopieren.":"Markiert! Jetzt <b>Kopieren</b> (Strg+C oder ⧉).","");
+    });
+    tok.addEventListener("contextmenu",e=>{
+      e.preventDefault();
+      showCtx(e.clientX,e.clientY,[
+        {icon:"✂️",label:"Ausschneiden",key:"Strg+X",disabled:true},
+        {icon:"⧉",label:"Kopieren",key:"Strg+C",action:()=>{selected=tok;tok.classList.add("sel");copy();}},
+        {icon:"📋",label:"Einfügen",key:"Strg+V",disabled:true}
+      ]);
+    });
+    slot.addEventListener("contextmenu",e=>{
+      e.preventDefault();
+      showCtx(e.clientX,e.clientY,[
+        {icon:"✂️",label:"Ausschneiden",key:"Strg+X",disabled:true},
+        {icon:"⧉",label:"Kopieren",key:"Strg+C",disabled:true},
+        {icon:"📋",label:"Einfügen",key:"Strg+V",disabled:!clip,action:paste}
+      ]);
+    });
+    setHint("👉 "+r.label,"");
+    w.page.focus();
+  }
   function copy(){
-    if(!selected){ setHint("Markiere zuerst das Wort <b>Vanille</b>.","warn"); return; }
+    if(!selected){ setHint("Markiere zuerst das Wort.","warn"); return; }
     clip=selected.textContent; sfx.step();
-    setHint("Kopiert! Jetzt in die Lücke <b>Einfügen</b> (Strg+V).","");
+    setHint(ROUNDS[ri].ctxOnly?"Kopiert! Jetzt <b>Rechtsklick auf die Lücke</b> → Einfügen.":"Kopiert! Jetzt in die Lücke <b>Einfügen</b> (Strg+V).","");
   }
   function paste(){
-    if(!clip){ setHint("Erst <b>Kopieren</b> (Strg+C).","warn"); return; }
+    if(!clip){ setHint("Erst <b>Kopieren</b>.","warn"); return; }
     slot.textContent=clip; slot.classList.add("filled"); sfx.good();
-    if(clip.replace(/[.,!?]/g,"").toLowerCase()===slot.dataset.need){ mascotReact("happy"); completeStation("s9","Kopiert & eingefügt! 📋"); }
+    if(clip.replace(/[.,!?]/g,"").toLowerCase()===slot.dataset.need){
+      mascotReact("happy");
+      if(ri<ROUNDS.length-1){ setHint("Sitzt! Jetzt derselbe Trick mit der rechten Maustaste …","good"); later(()=>{ri++;loadRound();},1100); }
+      else completeStation("s9","Kopieren und Einfügen – mit Tasten und Maus! 📋");
+    }
   }
-  w.ribbonBtn("copy").addEventListener("click",copy);
-  w.ribbonBtn("paste").addEventListener("click",paste);
+  w.ribbonBtn("copy").addEventListener("click",()=>{ if(ROUNDS[ri].ctxOnly){ setHint("Diesmal bitte über den <b>Rechtsklick</b>.","warn"); return; } copy(); });
+  w.ribbonBtn("paste").addEventListener("click",()=>{ if(ROUNDS[ri].ctxOnly){ setHint("Diesmal bitte über den <b>Rechtsklick</b>.","warn"); return; } paste(); });
   w.page.addEventListener("keydown",e=>{
     const k=e.key.toLowerCase();
-    if((e.ctrlKey||e.metaKey)&&k==="c"){ e.preventDefault(); copy(); }
-    if((e.ctrlKey||e.metaKey)&&k==="v"){ e.preventDefault(); paste(); }
+    if(!(e.ctrlKey||e.metaKey))return;
+    if(k==="c"||k==="v"){
+      e.preventDefault();
+      if(ROUNDS[ri].ctxOnly){ setHint("Diesmal bitte über den <b>Rechtsklick</b>.","warn"); return; }
+      k==="c"?copy():paste();
+    }
   });
-  setHint("Klicke <b>Vanille</b> an, dann Strg+C, dann Strg+V in die Lücke.","");
+  loadRound();
 };
 
 /* ---- Station 10: Suchen & Ersetzen ---- */
 SCREENS.s10=(stage)=>{
   if(stationIntro("s10",stage))return;
   const st=STATIONS.find(s=>s.id==="s10");
-  setInstruction(`Station ${stationNumber("s10")} · ${st.title}`,"Öffne „Ersetzen“, tausche das Wort und klicke „Alle ersetzen“.");
-  const w=buildWord(stage,{tab:"start",edit:true,fname:"Geschichte – Word"});
-  w.page.textContent="Der Hund läuft. Der Hund bellt. Der Hund schläft.";
-  const ORIG=w.page.textContent, FIND="Hund", REPL="Katze";
+  setInstruction(`Station ${stationNumber("s10")} · ${st.title}`,"Öffne „Ersetzen“, trage die beiden Wörter ein und klicke „Alle ersetzen“.");
+  const w=buildEditor(stage,{tab:"start",edit:true,fname:"Geschichte.txt"});
+  const ROUNDS=[
+    {text:"Der Hund läuft. Der Hund bellt. Der Hund schläft.", find:"Hund", repl:"Katze"},
+    {text:"Der Baum ist groß. Am Baum hängt ein Nest. Unter dem Baum liegt Laub.", find:"Baum", repl:"Busch"}
+  ];
+  let ri=0, ORIG="";
   const dlg=document.createElement("div");dlg.className="wdialog";dlg.style.display="none";
   dlg.innerHTML=`
-    <div class="wdialog-head">Suchen und Ersetzen</div>
-    <label>Suchen nach:<input type="text" id="findInp" autocomplete="off"></label>
-    <label>Ersetzen durch:<input type="text" id="replInp" autocomplete="off"></label>
+    <div class="wdialog-head">🔍 Suchen und Ersetzen</div>
+    <label>Suchen nach:<input type="text" data-fld="find" autocomplete="off"></label>
+    <label>Ersetzen durch:<input type="text" data-fld="repl" autocomplete="off"></label>
     <div class="wdialog-btns">
-      <button class="btn btn-ghost btn-small" id="dlgClose">Schließen</button>
-      <button class="btn btn-primary btn-small" id="dlgReplace">Alle ersetzen</button>
+      <button class="btn btn-ghost btn-small" data-act="close">Schließen</button>
+      <button class="btn btn-primary btn-small" data-act="replace">Alle ersetzen</button>
     </div>`;
   stage.appendChild(dlg);
+  function loadRound(){
+    const r=ROUNDS[ri];ORIG=r.text;
+    setCounter(`${ri+1}/${ROUNDS.length}`,"Aufgabe");
+    w.page.textContent=ORIG;
+    $('[data-fld="find"]',dlg).value="";$('[data-fld="repl"]',dlg).value="";
+    setHint(`👉 Klicke oben rechts auf <b>Ersetzen</b> und tausche <b>${r.find}</b> gegen <b>${r.repl}</b>.`,"");
+  }
   w.ribbonBtn("replace").addEventListener("click",()=>{
-    dlg.style.display="block";$("#findInp",dlg).focus();
-    setHint('Tippe bei „Suchen nach“ <b>Hund</b> und bei „Ersetzen durch“ <b>Katze</b>.',"");
+    const r=ROUNDS[ri];
+    dlg.style.display="block";$('[data-fld="find"]',dlg).focus();
+    setHint(`Tippe bei „Suchen nach“ <b>${r.find}</b> und bei „Ersetzen durch“ <b>${r.repl}</b>.`,"");
   });
-  $("#dlgClose",dlg).onclick=()=>dlg.style.display="none";
-  $("#dlgReplace",dlg).onclick=()=>{
-    const f=$("#findInp",dlg).value.trim(), r=$("#replInp",dlg).value.trim();
+  $('[data-act="close"]',dlg).addEventListener("click",()=>{dlg.style.display="none";});
+  $('[data-act="replace"]',dlg).addEventListener("click",()=>{
+    const r=ROUNDS[ri];
+    const f=$('[data-fld="find"]',dlg).value.trim(), rp=$('[data-fld="repl"]',dlg).value.trim();
     if(!f){ setHint("Gib zuerst ein Suchwort ein.","warn"); return; }
-    w.page.textContent = ORIG.split(f).join(r);  // immer vom Original aus, ohne Fehler-Stapelung
+    w.page.textContent = ORIG.split(f).join(rp);  // immer vom Original aus, ohne Fehler-Stapelung
     sfx.step();
-    if(f===FIND && r===REPL){
+    if(f===r.find && rp===r.repl){
       dlg.style.display="none"; sfx.good(); mascotReact("happy");
-      completeStation("s10","Alle ersetzt! 🔍");
+      if(ri<ROUNDS.length-1){ setHint("Alle auf einen Schlag ersetzt! Noch eine Aufgabe …","good"); later(()=>{ri++;loadRound();},1100); }
+      else completeStation("s10","Suchen und Ersetzen sitzt! 🔍");
     } else {
-      setHint('Fast – suche nach „Hund“ und ersetze durch „Katze“.',"warn");
+      setHint(`Fast – suche nach „${r.find}“ und ersetze durch „${r.repl}“.`,"warn");
       later(()=>{ w.page.textContent=ORIG; },800);
     }
-  };
-  setHint("Klicke oben rechts auf <b>Ersetzen</b>, um den Dialog zu öffnen.","");
+  });
+  loadRound();
 };
 
 /* ---- Station 11: Bild einfügen ---- */
 SCREENS.s11=(stage)=>{
   if(stationIntro("s11",stage))return;
   const st=STATIONS.find(s=>s.id==="s11");
-  setInstruction(`Station ${stationNumber("s11")} · ${st.title}`,"Öffne „Bild“ und wähle ein Bild für dein Dokument.");
-  const w=buildWord(stage,{tab:"einfuegen",insertTools:["image"],fname:"Steckbrief – Word"});
-  w.page.innerHTML='<div>Mein Lieblingstier:</div>';
+  setInstruction(`Station ${stationNumber("s11")} · ${st.title}`,"Öffne im Reiter „Einfügen“ den Knopf „Bild“ und wähle das passende Bild aus.");
+  const w=buildEditor(stage,{tab:"einfuegen",insertTools:["image"],fname:"Steckbrief.txt"});
+  const TASKS=[
+    {line:"Mein Lieblingstier ist der Hund:", want:"🐶",
+     gallery:[["🐶","Hund"],["🐱","Katze"],["🐰","Hase"]],
+     label:'Füge das Bild vom <b>Hund</b> ein.'},
+    {line:"Mein Lieblingsessen ist Pizza:", want:"🍕",
+     gallery:[["🍎","Apfel"],["🍕","Pizza"],["🍰","Kuchen"]],
+     label:'Und jetzt das Bild von der <b>Pizza</b>.'}
+  ];
+  let ti=0;
   const dlg=document.createElement("div");dlg.className="wdialog";dlg.style.display="none";
-  dlg.innerHTML=`
-    <div class="wdialog-head">Bild einfügen</div>
-    <p style="font-size:.88rem;color:var(--ink-soft);margin:0 0 12px;">Wähle ein Bild aus:</p>
-    <div class="wgallery">
-      <button data-img="🐶" title="Hund">🐶</button>
-      <button data-img="🐱" title="Katze">🐱</button>
-      <button data-img="🐰" title="Hase">🐰</button>
-    </div>
-    <div class="wdialog-btns"><button class="btn btn-ghost btn-small" id="imgClose">Abbrechen</button></div>`;
   stage.appendChild(dlg);
-  w.ribbonBtn("image").addEventListener("click",()=>{ dlg.style.display="block"; setHint("Klicke eines der Bilder an.",""); });
-  $("#imgClose",dlg).onclick=()=>dlg.style.display="none";
-  $$(".wgallery button",dlg).forEach(btn=>btn.addEventListener("click",()=>{
-    const img=document.createElement("div");img.className="docimg";img.textContent=btn.dataset.img;
-    w.page.appendChild(img); dlg.style.display="none"; sfx.good(); mascotReact("happy");
-    completeStation("s11","Bild eingefügt! 🖼️");
-  }));
-  setHint("Klicke im Reiter <b>Einfügen</b> auf <b>Bild</b>.","");
+  function loadTask(){
+    const t=TASKS[ti];
+    setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe");
+    w.page.innerHTML=`<div>${t.line}</div>`;
+    dlg.innerHTML=`
+      <div class="wdialog-head">🖼️ Bild einfügen</div>
+      <p style="font-size:.88rem;color:var(--ink-soft);margin:0 0 12px;">Wähle ein Bild aus:</p>
+      <div class="wgallery">${t.gallery.map(([em,nm])=>`<button data-img="${em}" title="${nm}">${em}</button>`).join("")}</div>
+      <div class="wdialog-btns"><button class="btn btn-ghost btn-small" data-act="close">Abbrechen</button></div>`;
+    $('[data-act="close"]',dlg).addEventListener("click",()=>{dlg.style.display="none";});
+    $$(".wgallery button",dlg).forEach(btn=>btn.addEventListener("click",()=>{
+      if(btn.dataset.img!==t.want){ sfx.step(); setHint("Das ist ein anderes Bild – schau nochmal auf die Aufgabe.","warn"); return; }
+      const img=document.createElement("div");img.className="docimg";img.textContent=btn.dataset.img;
+      w.page.appendChild(img); dlg.style.display="none"; sfx.good(); mascotReact("happy");
+      if(ti<TASKS.length-1){ setHint("Bild eingefügt! Noch eines …","good"); later(()=>{ti++;loadTask();},1000); }
+      else completeStation("s11","Beide Bilder eingefügt! 🖼️");
+    }));
+    setHint("👉 "+t.label+' Klicke dazu im Reiter <b>Einfügen</b> auf <b>Bild</b>.',"");
+  }
+  w.ribbonBtn("image").addEventListener("click",()=>{ dlg.style.display="block"; setHint("Klicke das richtige Bild an.",""); });
+  loadTask();
 };
 
 /* ---- Station 12: Tabelle einfügen ---- */
 SCREENS.s12=(stage)=>{
   if(stationIntro("s12",stage))return;
   const st=STATIONS.find(s=>s.id==="s12");
-  setInstruction(`Station ${stationNumber("s12")} · ${st.title}`,"Öffne „Tabelle“ und wähle die Größe (mindestens 2×2).");
-  const w=buildWord(stage,{tab:"einfuegen",insertTools:["table"],fname:"Plan – Word"});
+  setInstruction(`Station ${stationNumber("s12")} · ${st.title}`,"Erst eine Tabelle einfügen, dann in die Zellen schreiben.");
+  const w=buildEditor(stage,{tab:"einfuegen",insertTools:["table"],fname:"Plan.txt"});
   w.page.innerHTML='<div>Mein Stundenplan:</div>';
   const dlg=document.createElement("div");dlg.className="wdialog";dlg.style.display="none";
   let grid="";
   for(let r=1;r<=5;r++) for(let c=1;c<=5;c++) grid+=`<div data-r="${r}" data-c="${c}"></div>`;
   dlg.innerHTML=`
-    <div class="wdialog-head">Tabelle einfügen</div>
+    <div class="wdialog-head">▦ Tabelle einfügen</div>
     <div class="tgrid">${grid}</div>
-    <div class="tgrid-label" id="tgLabel">Größe wählen …</div>
-    <div class="wdialog-btns"><button class="btn btn-ghost btn-small" id="tblClose">Abbrechen</button></div>`;
+    <div class="tgrid-label" data-fld="label">Größe wählen …</div>
+    <div class="wdialog-btns"><button class="btn btn-ghost btn-small" data-act="close">Abbrechen</button></div>`;
   stage.appendChild(dlg);
   const cells=$$(".tgrid div",dlg);
-  function hi(r,c){ cells.forEach(d=>d.classList.toggle("on",+d.dataset.r<=r&&+d.dataset.c<=c)); $("#tgLabel",dlg).textContent=`${c} × ${r} Tabelle`; }
+  setCounter("1/2","Aufgabe");
+  function hi(r,c){ cells.forEach(d=>d.classList.toggle("on",+d.dataset.r<=r&&+d.dataset.c<=c)); $('[data-fld="label"]',dlg).textContent=`${c} × ${r} Tabelle`; }
   function insert(r,c){
+    if(r<2||c<2){ setHint("Nimm bitte mindestens <b>2×2</b> Felder.","warn"); return; }
     let html='<table class="doctable"><tbody>';
-    for(let i=0;i<r;i++){ html+="<tr>"; for(let j=0;j<c;j++) html+="<td></td>"; html+="</tr>"; }
+    for(let i=0;i<r;i++){ html+="<tr>"; for(let j=0;j<c;j++) html+='<td contenteditable="true"></td>'; html+="</tr>"; }
     html+="</tbody></table>";
-    if(r>=2&&c>=2){ w.page.insertAdjacentHTML("beforeend",html); dlg.style.display="none"; sfx.good(); mascotReact("happy"); completeStation("s12","Tabelle eingefügt! ▦"); }
-    else setHint("Nimm bitte mindestens <b>2×2</b> Felder.","warn");
+    w.page.insertAdjacentHTML("beforeend",html); dlg.style.display="none"; sfx.good(); mascotReact("happy");
+    setCounter("2/2","Aufgabe");
+    setHint("Tabelle steht! 👉 Klicke jetzt in die <b>erste Zelle</b> (oben links) und tippe <b>Montag</b> hinein.","good");
+    const first=$(".doctable td",w.page); first.focus();
+    $$(".doctable td",w.page).forEach(td=>td.addEventListener("input",()=>{
+      if(pageText(first).toLowerCase()==="montag"){
+        sfx.good();mascotReact("happy");
+        completeStation("s12","Tabelle eingefügt und ausgefüllt! ▦");
+      }
+    }));
   }
   cells.forEach(d=>{
     d.addEventListener("mouseenter",()=>hi(+d.dataset.r,+d.dataset.c));
     d.addEventListener("click",()=>insert(+d.dataset.r,+d.dataset.c));
   });
   w.ribbonBtn("table").addEventListener("click",()=>{ dlg.style.display="block"; setHint("Fahre über das Gitter und klicke bei <b>2×2</b> (oder größer).",""); });
-  $("#tblClose",dlg).onclick=()=>dlg.style.display="none";
-  setHint("Klicke im Reiter <b>Einfügen</b> auf <b>Tabelle</b>.","");
+  $('[data-act="close"]',dlg).addEventListener("click",()=>{dlg.style.display="none";});
+  setHint("👉 Klicke im Reiter <b>Einfügen</b> auf <b>Tabelle</b>.","");
 };
 
 /* ---- Station 13: Überschriften (Formatvorlagen) ---- */
 SCREENS.s13=(stage)=>{
   if(stationIntro("s13",stage))return;
   const st=STATIONS.find(s=>s.id==="s13");
-  setInstruction(`Station ${stationNumber("s13")} · ${st.title}`,"Klicke die Titelzeile an und gib ihr die Formatvorlage „Überschrift 1“.");
-  const w=buildWord(stage,{tab:"start",styles:true,fname:"Aufsatz – Word"});
-  w.page.innerHTML='<div class="docline" data-line="title">Meine Sommerferien</div><div class="docline">Wir waren zwei Wochen am Meer.</div>';
-  let sel=null;
+  setInstruction(`Station ${stationNumber("s13")} · ${st.title}`,"Klicke eine Zeile an und gib ihr die passende Formatvorlage.");
+  const w=buildEditor(stage,{tab:"start",styles:true,fname:"Aufsatz.txt"});
+  w.page.innerHTML=
+    '<div class="docline" data-line="title">Meine Sommerferien</div>'+
+    '<div class="docline heading" data-line="text">Wir waren zwei Wochen am Meer.</div>'+
+    '<div class="docline" data-line="rest">Jeden Tag haben wir eine Sandburg gebaut.</div>';
+  const TASKS=[
+    {line:"title", style:"h1",     label:'Gib der Titelzeile <b>Meine Sommerferien</b> die Formatvorlage <b>Überschrift 1</b>.'},
+    {line:"text",  style:"normal", label:'Die zweite Zeile ist versehentlich eine Überschrift. Stelle sie auf <b>Standard</b> zurück.'}
+  ];
+  let ti=0, sel=null;
+  function setTask(){ setCounter(`${ti+1}/${TASKS.length}`,"Aufgabe"); setHint("👉 "+TASKS[ti].label,""); }
   $$(".docline",w.page).forEach(l=>l.addEventListener("click",()=>{
     if(sel)sel.classList.remove("sel");sel=l;l.classList.add("sel");sfx.step();
-    setHint("Zeile markiert! Jetzt oben <b>Überschrift 1</b> wählen.","");
+    setHint("Zeile markiert! Jetzt oben die Formatvorlage wählen.","");
   }));
-  w.ribbonBtn("style-h1").addEventListener("click",()=>{
+  function apply(style){
     if(!sel){ setHint("Klicke zuerst eine Zeile an.","warn"); return; }
-    sel.classList.add("heading"); sfx.step();
-    const title=$('.docline[data-line="title"]',w.page);
-    if(sel===title){ sfx.good(); mascotReact("happy"); completeStation("s13","Überschrift gesetzt! 🅷"); }
-    else setHint("Das ist nicht die Titelzeile – wähle die obere Zeile.","warn");
-  });
-  w.ribbonBtn("style-normal").addEventListener("click",()=>{
-    if(!sel){ setHint("Klicke zuerst eine Zeile an.","warn"); return; }
-    sel.classList.remove("heading"); sfx.step();
-  });
-  setHint("Klicke die obere Zeile <b>Meine Sommerferien</b> an.","");
+    sel.classList.toggle("heading",style==="h1"); sfx.step();
+    const t=TASKS[ti], want=$(`.docline[data-line="${t.line}"]`,w.page);
+    const ok = t.style==="h1" ? want.classList.contains("heading") : !want.classList.contains("heading");
+    if(sel!==want){ setHint("Das ist die falsche Zeile – lies die Aufgabe nochmal.","warn"); return; }
+    if(ok){
+      sfx.good();mascotReact("happy");
+      if(ti<TASKS.length-1){ ti++; sel.classList.remove("sel"); sel=null; setTask(); }
+      else completeStation("s13","Überschriften sitzen! 🅷");
+    }
+  }
+  w.ribbonBtn("style-h1").addEventListener("click",()=>apply("h1"));
+  w.ribbonBtn("style-normal").addEventListener("click",()=>apply("normal"));
+  setTask();
 };
 
-/* ---- Platzhalter für noch nicht umgesetzte Stationen ---- */
+/* ---- Station 14: Speichern ---- */
+SCREENS.s14=(stage)=>{
+  if(stationIntro("s14",stage))return;
+  const st=STATIONS.find(s=>s.id==="s14");
+  setInstruction(`Station ${stationNumber("s14")} · ${st.title}`,"Speichere den Steckbrief im Ordner „Dokumente“ unter dem Namen „Steckbrief“.");
+  const w=buildEditor(stage,{tab:"datei",fileTools:["save"],fname:"Dokument1 – nicht gespeichert"});
+  w.page.innerHTML='<div class="docline heading">Mein Steckbrief</div><div>Name: Mia</div><div>Alter: 9 Jahre</div><div>Lieblingstier: Delfin</div>';
+  w.page.tabIndex=0;
+  w.setStatus("Seite 1 von 1","Nicht gespeichert");
+  let opened=false;
+  setCounter("1/2","Schritt");
+  const dlg=saveDialog(stage,{
+    placeholder:"Steckbrief",
+    onSave:({place,name,close})=>{
+      if(place!=="dok"){ setHint("Wähle als Ort bitte <b>📁 Dokumente</b>.","warn"); return; }
+      if(!/^steckbrief$/i.test(name.replace(/\.txt$/i,""))){ setHint("Der Dateiname soll <b>Steckbrief</b> heißen.","warn"); return; }
+      close(); sfx.good(); mascotReact("happy");
+      w.setFname("Steckbrief.txt");
+      w.setStatus("Seite 1 von 1","Gespeichert ✓");
+      completeStation("s14","Gespeichert! Jetzt ist der Text sicher auf dem Computer. 💾");
+    }
+  });
+  function openDlg(){
+    dlg.open();
+    if(!opened){ opened=true; setCounter("2/2","Schritt"); }
+    setHint("👉 Wähle den Ort <b>📁 Dokumente</b>, tippe den Dateinamen <b>Steckbrief</b> und klicke auf <b>Speichern</b>.","");
+  }
+  w.ribbonBtn("save").addEventListener("click",openDlg);
+  w.page.addEventListener("keydown",e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){ e.preventDefault(); openDlg(); }
+  });
+  setHint("👉 Klicke im Reiter <b>Datei</b> auf <b>Speichern unter</b> (oder drücke Strg+S).","");
+};
+
+/* ---- Station 15: Öffnen & Neues Dokument ---- */
+SCREENS.s15=(stage)=>{
+  if(stationIntro("s15",stage))return;
+  const st=STATIONS.find(s=>s.id==="s15");
+  setInstruction(`Station ${stationNumber("s15")} · ${st.title}`,"Öffne deine gespeicherte Datei – und beginne danach ein neues, leeres Dokument.");
+  const w=buildEditor(stage,{tab:"datei",fileTools:["open","new"],fname:"Kein Dokument geöffnet"});
+  w.page.innerHTML='<div style="color:var(--ink-soft);font-style:italic;">Noch kein Dokument geöffnet.</div>';
+  w.page.tabIndex=0;
+  const FILES=[
+    {em:"📄",nm:"Einkaufsliste.txt"},{em:"🖼️",nm:"Urlaub.jpg"},
+    {em:"📄",nm:"Steckbrief.txt"},{em:"📄",nm:"Gedicht.txt"}
+  ];
+  const dlg=document.createElement("div");dlg.className="wdialog";dlg.style.display="none";
+  dlg.innerHTML=`
+    <div class="wdialog-head">📂 Öffnen</div>
+    <div style="font-size:.86rem;color:var(--ink-soft);margin-bottom:5px;">Ordner: 📁 Dokumente</div>
+    <div class="savelist">${FILES.map(f=>`<button data-file="${f.nm}"><span>${f.em}</span>${f.nm}</button>`).join("")}</div>
+    <div class="wdialog-btns"><button class="btn btn-ghost btn-small" data-act="close">Abbrechen</button></div>`;
+  stage.appendChild(dlg);
+  let step=0;
+  setCounter("1/2","Aufgabe");
+  $('[data-act="close"]',dlg).addEventListener("click",()=>{dlg.style.display="none";});
+  $$(".savelist button",dlg).forEach(b=>b.addEventListener("click",()=>{
+    if(b.dataset.file!=="Steckbrief.txt"){ sfx.step(); setHint("Das ist eine andere Datei – suche <b>Steckbrief.txt</b>.","warn"); return; }
+    dlg.style.display="none"; sfx.good(); mascotReact("happy"); step=1;
+    w.setFname("Steckbrief.txt");
+    w.page.innerHTML='<div class="docline heading">Mein Steckbrief</div><div>Name: Mia</div><div>Alter: 9 Jahre</div><div>Lieblingstier: Delfin</div>';
+    setCounter("2/2","Aufgabe");
+    setHint("Da ist dein Text wieder! 👉 Klicke jetzt auf <b>Neu</b> für ein leeres Dokument.","good");
+  }));
+  w.ribbonBtn("open").addEventListener("click",()=>{
+    if(step>=1){ setHint("Diese Aufgabe ist schon erledigt – klicke jetzt auf <b>Neu</b>.","warn"); return; }
+    dlg.style.display="block";
+    setHint("👉 Suche in der Liste die Datei <b>Steckbrief.txt</b> und klicke sie an.","");
+  });
+  w.ribbonBtn("new").addEventListener("click",()=>{
+    if(step<1){ setHint("Öffne zuerst deine gespeicherte Datei <b>Steckbrief.txt</b>.","warn"); return; }
+    w.setFname("Dokument2 – nicht gespeichert");
+    w.page.innerHTML='<div style="color:var(--ink-soft);font-style:italic;">Leeres Blatt – hier kannst du neu beginnen.</div>';
+    sfx.good();mascotReact("happy");
+    completeStation("s15","Datei geöffnet und neues Dokument begonnen! 📂");
+  });
+  w.page.addEventListener("keydown",e=>{
+    if(!(e.ctrlKey||e.metaKey))return;
+    const k=e.key.toLowerCase();
+    if(k==="o"){ e.preventDefault(); w.ribbonBtn("open").click(); }
+    if(k==="n"){ e.preventDefault(); w.ribbonBtn("new").click(); }
+  });
+  setHint("👉 Klicke im Reiter <b>Datei</b> auf <b>Öffnen</b>.","");
+};
+
+/* ---- Station 16: Drucken & Seitenansicht ---- */
+SCREENS.s16=(stage)=>{
+  if(stationIntro("s16",stage))return;
+  const st=STATIONS.find(s=>s.id==="s16");
+  setInstruction(`Station ${stationNumber("s16")} · ${st.title}`,"Schau dir die Seitenansicht an, stelle 2 Exemplare ein und drucke.");
+  const wrap=document.createElement("div");wrap.className="printwrap";
+  wrap.innerHTML=`
+    <div class="printprev">
+      <div class="printpage">
+        <h4>Einladung</h4>
+        <p>Ich lade dich herzlich zu meinem Geburtstag ein.</p>
+        <p>Wann: Samstag um 15 Uhr<br>Wo: bei mir zu Hause<br>Mitbringen: gute Laune</p>
+        <p style="text-align:right;margin-top:24px;">Deine Mia</p>
+      </div>
+    </div>
+    <div class="printopts">
+      <h3>🖨️ Drucken</h3>
+      <label>Drucker:<select data-fld="printer"><option>Schuldrucker A</option><option>Drucker Lehrerzimmer</option></select></label>
+      <label>Exemplare:<input type="number" data-fld="copies" min="1" max="9" value="1"></label>
+      <label>Seiten:<select data-fld="pages"><option>Alle Seiten</option><option>Nur Seite 1</option></select></label>
+      <button class="btn btn-primary" data-act="print" style="width:100%;">Drucken</button>
+      <div class="printsheet" data-fld="out" style="display:none;"></div>
+    </div>`;
+  stage.appendChild(wrap);
+  const copies=$('[data-fld="copies"]',wrap), out=$('[data-fld="out"]',wrap);
+  let seen=false;
+  setCounter("1/2","Schritt");
+  copies.addEventListener("input",()=>{
+    if(+copies.value===2 && !seen){ seen=true; sfx.step(); setCounter("2/2","Schritt");
+      setHint("Genau – 2 Exemplare. 👉 Jetzt auf <b>Drucken</b> klicken.","good"); }
+  });
+  $('[data-act="print"]',wrap).addEventListener("click",()=>{
+    const n=+copies.value;
+    if(n!==2){ setHint("Stelle zuerst bei <b>Exemplare</b> die Zahl <b>2</b> ein.","warn"); return; }
+    out.style.display="";out.innerHTML="📄📄 <b>2 Blätter</b> kommen aus dem Drucker.";
+    sfx.good();mascotReact("happy");
+    completeStation("s16","Geprüft, eingestellt, gedruckt! 🖨️");
+  });
+  setHint("👉 Schau links, wie die Seite aussieht. Stelle dann rechts <b>Exemplare</b> auf <b>2</b>.","");
+};
+
+/* ---- Station 17: Rechtschreibung ---- */
+SCREENS.s17=(stage)=>{
+  if(stationIntro("s17",stage))return;
+  const st=STATIONS.find(s=>s.id==="s17");
+  setInstruction(`Station ${stationNumber("s17")} · ${st.title}`,"Zwei Wörter sind rot unterringelt. Korrigiere sie mit einem Rechtsklick.");
+  const w=buildEditor(stage,{tab:"start",fname:"Aufsatz.txt"});
+  const WORDS=[
+    {wrong:"Fahrat",  right:"Fahrrad",  choices:["Fahrat","Fahrrad","Farrat"]},
+    {wrong:"gefahrn", right:"gefahren", choices:["gefaren","gefahrn","gefahren"]}
+  ];
+  w.page.innerHTML='Am Samstag bin ich mit dem <span class="misspell" data-i="0">Fahrat</span> zum See <span class="misspell" data-i="1">gefahrn</span>. Es war ein schöner Tag.';
+  let fixed=0;
+  setCounter(`0/${WORDS.length}`,"korrigiert");
+  w.page.addEventListener("contextmenu",e=>{
+    e.preventDefault();
+    const m=e.target.closest(".misspell");
+    if(!m){ setHint("Mache den <b>Rechtsklick genau auf das rot unterringelte Wort</b>.","warn"); return; }
+    if(m.classList.contains("fixed")){ setHint("Dieses Wort ist schon richtig geschrieben.",""); return; }
+    const cfg=WORDS[+m.dataset.i];
+    showCtx(e.clientX,e.clientY,
+      cfg.choices.map(c=>({icon:"✏️",label:c,suggest:true,action:()=>pick(m,cfg,c)}))
+      .concat([{sep:true},{icon:"🚫",label:"Alle ignorieren",disabled:true},{icon:"📖",label:"Zum Wörterbuch hinzufügen",disabled:true}]));
+  });
+  w.page.addEventListener("click",e=>{
+    if(e.target.closest(".misspell")) setHint("Für die Vorschläge brauchst du die <b>rechte</b> Maustaste.","warn");
+  });
+  function pick(m,cfg,choice){
+    if(choice!==cfg.right){ sfx.step(); setHint(`„${choice}“ ist leider auch falsch – versuch es nochmal.`,"warn"); return; }
+    m.textContent=cfg.right; m.classList.add("fixed"); fixed++;
+    sfx.good(); mascotReact("happy");
+    setCounter(`${fixed}/${WORDS.length}`,"korrigiert");
+    if(fixed===WORDS.length) completeStation("s17","Beide Fehler gefunden und verbessert! ✅");
+    else setHint("Richtig! Jetzt noch das zweite rot unterringelte Wort.","good");
+  }
+  setHint("👉 Mache einen <b>Rechtsklick</b> auf das erste rot unterringelte Wort.","");
+};
+
+/* ---- Projekt: Steckbrief schreiben ---- */
+SCREENS.project=(stage)=>{
+  if(stationIntro("project",stage))return;
+  const st=STATIONS.find(s=>s.id==="project");
+  setInstruction(`Station ${stationNumber("project")} · ${st.title}`,"Jetzt alles zusammen: Arbeite die fünf Schritte rechts ab.");
+  const wrap=document.createElement("div");wrap.className="examwrap";
+  wrap.innerHTML=`
+    <div class="examdoc" id="pDoc"></div>
+    <div class="checklist"><h3>Deine Aufgaben</h3><ol id="pSteps">
+      <li>Titelzeile <b>Mein Steckbrief</b> anklicken und <b>Überschrift 1</b> wählen.</li>
+      <li>Den Titel <b>zentriert</b> ausrichten.</li>
+      <li>Aus den drei Angaben eine <b>Aufzählung</b> (•) machen.</li>
+      <li>Über <b>Einfügen → Bild</b> ein Bild einfügen.</li>
+      <li>Alles unter dem Namen <b>Steckbrief</b> <b>speichern</b>.</li>
+    </ol></div>`;
+  stage.appendChild(wrap);
+  const w=buildEditor($("#pDoc",wrap),{tab:"start",styles:true,align:true,lists:true,
+    insertTools:["image"],fileTools:["save"],fname:"Dokument1 – nicht gespeichert"});
+  w.page.innerHTML=
+    '<div class="docline" data-line="title">Mein Steckbrief</div>'+
+    '<div class="doclist" data-type="none">'+
+      '<div class="li">Name: Mia</div><div class="li">Alter: 9 Jahre</div><div class="li">Hobby: Schwimmen</div>'+
+    '</div>';
+  const cl=buildChecklist($("#pSteps",wrap),5);
+  const title=$('.docline[data-line="title"]',w.page), list=$(".doclist",w.page);
+  let sel=null;
+  function hintNext(){
+    const n=cl.nextOpen();
+    if(n<0)return;
+    setCounter(`${n}/5`,"erledigt");
+    setHint("👉 Schritt "+(n+1)+": "+$$("#pSteps li",wrap)[n].innerHTML,"");
+  }
+  function done(i,msg){
+    if(!cl.tick(i))return;
+    sfx.good();mascotReact("happy");
+    if(cl.allDone()){ setCounter("5/5","erledigt"); completeStation("project","Dein Steckbrief ist fertig – alles angewendet! 📝"); }
+    else { setHint(msg,"good"); later(hintNext,1200); }
+  }
+  title.addEventListener("click",()=>{ if(sel)sel.classList.remove("sel"); sel=title; title.classList.add("sel"); sfx.step(); });
+  w.ribbonBtn("style-h1").addEventListener("click",()=>{
+    if(sel!==title){ setHint("Klicke zuerst die <b>Titelzeile</b> an.","warn"); return; }
+    title.classList.add("heading"); done(0,"Der Titel ist jetzt eine Überschrift!");
+  });
+  w.ribbonBtn("style-normal").addEventListener("click",()=>{ if(sel)sel.classList.remove("heading"); });
+  [["align-left","left"],["align-center","center"],["align-right","right"],["align-justify","justify"]].forEach(([tool,al])=>{
+    w.ribbonBtn(tool).addEventListener("click",()=>{
+      if(sel!==title){ setHint("Klicke zuerst die <b>Titelzeile</b> an.","warn"); return; }
+      title.style.textAlign=al; sfx.step();
+      if(al==="center") done(1,"Der Titel steht jetzt schön mittig!");
+    });
+  });
+  w.ribbonBtn("bullet").addEventListener("click",()=>{
+    list.dataset.type = list.dataset.type==="bullet" ? "none" : "bullet"; sfx.step();
+    if(list.dataset.type==="bullet") done(2,"Aus den Angaben ist eine Liste geworden!");
+  });
+  w.ribbonBtn("number").addEventListener("click",()=>{
+    list.dataset.type = list.dataset.type==="number" ? "none" : "number"; sfx.step();
+    setHint("Für den Steckbrief ist eine <b>Aufzählung</b> (•) gefragt.","warn");
+  });
+  const idlg=document.createElement("div");idlg.className="wdialog";idlg.style.display="none";
+  idlg.innerHTML=`
+    <div class="wdialog-head">🖼️ Bild einfügen</div>
+    <p style="font-size:.88rem;color:var(--ink-soft);margin:0 0 12px;">Wähle ein Bild für deinen Steckbrief:</p>
+    <div class="wgallery">
+      <button data-img="🐬" title="Delfin">🐬</button><button data-img="🏊" title="Schwimmen">🏊</button><button data-img="🌻" title="Blume">🌻</button>
+    </div>
+    <div class="wdialog-btns"><button class="btn btn-ghost btn-small" data-act="close">Abbrechen</button></div>`;
+  stage.appendChild(idlg);
+  $('[data-act="close"]',idlg).addEventListener("click",()=>{idlg.style.display="none";});
+  $$(".wgallery button",idlg).forEach(b=>b.addEventListener("click",()=>{
+    const img=document.createElement("div");img.className="docimg";img.textContent=b.dataset.img;
+    w.page.appendChild(img);idlg.style.display="none";
+    done(3,"Ein Bild macht den Steckbrief schöner!");
+  }));
+  w.ribbonBtn("image").addEventListener("click",()=>{idlg.style.display="block";});
+  const sdlg=saveDialog(stage,{placeholder:"Steckbrief",onSave:({place,name,close})=>{
+    if(place!=="dok"){ setHint("Wähle als Ort bitte <b>📁 Dokumente</b>.","warn"); return; }
+    if(!/^steckbrief$/i.test(name.replace(/\.txt$/i,""))){ setHint("Der Dateiname soll <b>Steckbrief</b> heißen.","warn"); return; }
+    close(); w.setFname("Steckbrief.txt"); w.setStatus(null,"Gespeichert ✓");
+    done(4,"Gespeichert!");
+  }});
+  w.ribbonBtn("save").addEventListener("click",()=>sdlg.open());
+  hintNext();
+};
+
+/* ---- Prüfung ---- */
+SCREENS.exam=(stage)=>{
+  setInstruction("🏆 Prüfung · Die Einladung",
+    "Jetzt alles zusammen! Bringe die Einladung in Form – Überschrift, Ausrichtung, Rechtschreibung, Fettdruck, Liste, Bild und Speichern. Die Reihenfolge darfst du selbst wählen.");
+  const wrap=document.createElement("div");wrap.className="examwrap";
+  wrap.innerHTML=`
+    <div class="examdoc" id="exDoc"></div>
+    <div class="checklist"><h3>Deine Aufgaben</h3><ol id="exSteps">
+      <li>Titelzeile anklicken und <b>Überschrift 1</b> wählen.</li>
+      <li>Den Titel <b>zentriert</b> ausrichten.</li>
+      <li>Das rot unterringelte Wort per <b>Rechtsklick</b> korrigieren.</li>
+      <li>Das Wort <b>Samstag</b> <b>fett</b> machen.</li>
+      <li>Die drei Zeilen in eine <b>Nummerierung</b> (1. 2. 3.) verwandeln.</li>
+      <li>Ein <b>Bild</b> einfügen.</li>
+      <li>Unter dem Namen <b>Einladung</b> <b>speichern</b>.</li>
+    </ol></div>`;
+  stage.appendChild(wrap);
+  const w=buildEditor($("#exDoc",wrap),{tab:"start",tools:["bold","italic","underline"],styles:true,align:true,
+    lists:true,insertTools:["image"],fileTools:["save"],fname:"Dokument1 – nicht gespeichert"});
+  w.page.innerHTML=
+    '<div class="docline" data-line="title">Einladung zum <span class="misspell" data-i="0">Geburstag</span></div>'+
+    '<div class="doclist" data-type="none">'+
+      '<div class="li">Wann: <span class="tok" data-word="samstag">Samstag</span> um 15 Uhr</div>'+
+      '<div class="li">Wo: bei mir zu Hause</div>'+
+      '<div class="li">Mitbringen: gute Laune</div>'+
+    '</div>';
+  const cl=buildChecklist($("#exSteps",wrap),7);
+  const title=$('.docline[data-line="title"]',w.page), list=$(".doclist",w.page);
+  const tok=$(".tok",w.page), miss=$(".misspell",w.page);
+  let sel=null, selTok=null;
+  function hintNext(){
+    const n=cl.nextOpen();
+    if(n<0)return;
+    setCounter(`${n}/7`,"erledigt");
+    setHint("👉 Aufgabe "+(n+1)+": "+$$("#exSteps li",wrap)[n].innerHTML,"");
+  }
+  function done(i,msg){
+    if(!cl.tick(i))return;
+    sfx.good();mascotReact("happy");
+    if(cl.allDone()){ setCounter("7/7","erledigt"); completeStation("exam","Bestanden! Die Einladung ist fertig – Führerschein geschafft! 🏆"); }
+    else { setHint(msg,"good"); later(hintNext,1200); }
+  }
+  title.addEventListener("click",()=>{ if(sel)sel.classList.remove("sel"); sel=title; title.classList.add("sel"); sfx.step(); });
+  tok.addEventListener("click",e=>{ e.stopPropagation(); if(selTok)selTok.classList.remove("sel"); selTok=tok; tok.classList.add("sel"); sfx.step(); });
+  w.ribbonBtn("style-h1").addEventListener("click",()=>{
+    if(sel!==title){ setHint("Klicke zuerst die <b>Titelzeile</b> an.","warn"); return; }
+    title.classList.add("heading"); done(0,"Überschrift gesetzt!");
+  });
+  w.ribbonBtn("style-normal").addEventListener("click",()=>{ if(sel)sel.classList.remove("heading"); });
+  [["align-left","left"],["align-center","center"],["align-right","right"],["align-justify","justify"]].forEach(([tool,al])=>{
+    w.ribbonBtn(tool).addEventListener("click",()=>{
+      if(sel!==title){ setHint("Klicke zuerst die <b>Titelzeile</b> an.","warn"); return; }
+      title.style.textAlign=al; sfx.step();
+      if(al==="center") done(1,"Der Titel steht mittig!");
+    });
+  });
+  w.page.addEventListener("contextmenu",e=>{
+    e.preventDefault();
+    const m=e.target.closest(".misspell");
+    if(!m||m.classList.contains("fixed")) return;
+    showCtx(e.clientX,e.clientY,[
+      {icon:"✏️",label:"Geburtstag",suggest:true,action:()=>{ m.textContent="Geburtstag";m.classList.add("fixed");done(2,"Fehler gefunden und verbessert!"); }},
+      {icon:"✏️",label:"Geburstage",suggest:true,action:()=>setHint("Das ist leider auch falsch geschrieben.","warn")},
+      {icon:"✏️",label:"Geburzstag",suggest:true,action:()=>setHint("Das ist leider auch falsch geschrieben.","warn")},
+      {sep:true},{icon:"🚫",label:"Alle ignorieren",disabled:true}
+    ]);
+  });
+  ["bold","italic","underline"].forEach(tool=>{
+    w.ribbonBtn(tool).addEventListener("click",()=>{
+      if(selTok!==tok){ setHint("Markiere zuerst das Wort <b>Samstag</b> mit einem Klick.","warn"); return; }
+      tok.classList.toggle(tool); sfx.step();
+      w.ribbonBtn(tool).classList.toggle("active",tok.classList.contains(tool));
+      if(tool==="bold"&&tok.classList.contains("bold")) done(3,"Samstag fällt jetzt auf!");
+    });
+  });
+  w.ribbonBtn("number").addEventListener("click",()=>{
+    list.dataset.type = list.dataset.type==="number" ? "none" : "number"; sfx.step();
+    if(list.dataset.type==="number") done(4,"Die Angaben sind jetzt durchnummeriert!");
+  });
+  w.ribbonBtn("bullet").addEventListener("click",()=>{
+    list.dataset.type = list.dataset.type==="bullet" ? "none" : "bullet"; sfx.step();
+    setHint("Für die Prüfung ist eine <b>Nummerierung</b> (1. 2. 3.) gefragt.","warn");
+  });
+  const idlg=document.createElement("div");idlg.className="wdialog";idlg.style.display="none";
+  idlg.innerHTML=`
+    <div class="wdialog-head">🖼️ Bild einfügen</div>
+    <p style="font-size:.88rem;color:var(--ink-soft);margin:0 0 12px;">Wähle ein Bild für die Einladung:</p>
+    <div class="wgallery">
+      <button data-img="🎂" title="Torte">🎂</button><button data-img="🎈" title="Luftballon">🎈</button><button data-img="🎁" title="Geschenk">🎁</button>
+    </div>
+    <div class="wdialog-btns"><button class="btn btn-ghost btn-small" data-act="close">Abbrechen</button></div>`;
+  stage.appendChild(idlg);
+  $('[data-act="close"]',idlg).addEventListener("click",()=>{idlg.style.display="none";});
+  $$(".wgallery button",idlg).forEach(b=>b.addEventListener("click",()=>{
+    const img=document.createElement("div");img.className="docimg";img.textContent=b.dataset.img;
+    w.page.appendChild(img);idlg.style.display="none";
+    done(5,"Ein Bild macht die Einladung schöner!");
+  }));
+  w.ribbonBtn("image").addEventListener("click",()=>{idlg.style.display="block";});
+  const sdlg=saveDialog(stage,{placeholder:"Einladung",onSave:({place,name,close})=>{
+    if(place!=="dok"){ setHint("Wähle als Ort bitte <b>📁 Dokumente</b>.","warn"); return; }
+    if(!/^einladung$/i.test(name.replace(/\.txt$/i,""))){ setHint("Der Dateiname soll <b>Einladung</b> heißen.","warn"); return; }
+    close(); w.setFname("Einladung.txt"); w.setStatus(null,"Gespeichert ✓");
+    done(6,"Gespeichert!");
+  }});
+  w.ribbonBtn("save").addEventListener("click",()=>sdlg.open());
+  hintNext();
+};
+
+/* ---- Urkunde ---- */
+SCREENS.exam_done=(stage)=>{
+  setInstruction("Geschafft! 🎉","Codi: „Riesenklasse! Du hast alle Stationen gemeistert. Trage deinen Namen ein und drucke deine Urkunde aus.“");
+  setHint("Trage deinen Namen ein und klicke auf „Drucken“.","good");
+  const today=new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"long",year:"numeric"});
+  const skillBadges=PLAYABLE.map(s=>`<span class="badge">${s.icon} ${s.short}</span>`).join("");
+  const earned=Object.keys(state.badges).filter(id=>BADGES[id]);
+  const achBadges=earned.length
+    ? earned.map(id=>`<span class="badge ach">${BADGES[id].icon} ${BADGES[id].title}</span>`).join("")
+    : `<span class="badge">Noch keine – beim nächsten Mal! 😊</span>`;
+  const {title}=levelForXp(state.xp);
+  stage.innerHTML=`<div class="urkunde" id="urkunde"><div class="seal">🏅</div>
+    <h1>Textverarbeitungs-Führerschein</h1>
+    <div class="sub">Diese Urkunde bestätigt, dass Texte am Computer sicher geschrieben und gestaltet werden können.</div>
+    <div class="nameline"><input type="text" placeholder="Dein Name" aria-label="Name"><div class="cap">Name</div>
+      <div class="privacy-note">Wird nur für die Urkunde verwendet – nicht gespeichert oder gesendet.</div></div>
+    <div class="badges">${skillBadges}</div>
+    <div style="font-size:.8rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin:14px 0 6px;">Gesammelte Abzeichen</div>
+    <div class="badges">${achBadges}</div>
+    <div class="foot"><span>Ausgestellt am ${today}</span><span>${title} · ${state.xp} XP · 🪙 ${state.coins}</span></div></div>`;
+  showReplay(false);showNext(true,"🖨️ Drucken");$("#nextBtn").onclick=()=>window.print();
+};
+
+/* ---- Sicherheitsnetz: Platzhalter, falls einmal eine Station ohne Screen ergänzt wird ---- */
 function placeholderScreen(id){
   return (stage)=>{
     const st=STATIONS.find(s=>s.id===id);
@@ -1199,10 +1920,9 @@ function placeholderScreen(id){
     $("#nextBtn").onclick=()=>go(next);
   };
 }
-/* Prüfung/Projekt vorläufig ebenfalls als Platzhalter */
 STATIONS.forEach(st=>{
   if(st.id==="start") return;
-  if(!IMPLEMENTED.includes(st.id)) SCREENS[st.id]=placeholderScreen(st.id);
+  if(!SCREENS[st.id]) SCREENS[st.id]=placeholderScreen(st.id);
 });
 
 /* ============================================================
@@ -1220,6 +1940,7 @@ $("#navBtn").addEventListener("click",openDrawer);
 $("#drawerClose").addEventListener("click",closeDrawer);
 $("#drawerBackdrop").addEventListener("click",closeDrawer);
 $("#stationNow").addEventListener("click",openDrawer);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeDrawer(); hideCtx(); $("#overlay").classList.remove("open"); } });
 
 buildProgress();
 refreshHUD();
