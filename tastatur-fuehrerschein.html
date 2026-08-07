@@ -422,7 +422,7 @@
   <p>© 2026 Wolfgang Schneider</p>
   <p>Dieses Werk ist lizenziert unter
     <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>
-    (Namensnennung – Nicht kommerziell – Weitergabe unter gleichen Bedingungen).</p>
+   </p>
 </footer>
 
 <div class="overlay" id="overlay">
@@ -468,23 +468,9 @@ const mk = (cls,html)=>{const d=document.createElement("div");if(cls)d.className
 const shuffle = a=>{for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
 
 /* ============================================================
-   Zehn-Finger-Lehrgang (Teil 2) – Lektionen
+   Zehn-Finger-Lehrgang (Teil 2) 
    ------------------------------------------------------------
-   Jede Lektion führt zwei neue Tasten ein. Der Übungsstoff wird über
-   learnedKeys()/lessonWords() auf die bis dahin gelernten Tasten
-   gefiltert: In einer Lektion kommt nie eine Taste vor, die noch nicht
-   dran war – sonst müsste das Kind zwangsläufig auf die Tastatur schauen.
-
-   Alles ist kleingeschrieben: Die Umschalttaste kommt erst in einer
-   späteren Lektion, vorher gibt es also weder Großbuchstaben noch echte
-   Sätze (die mit einem Großbuchstaben beginnen müssten). Statt eines
-   Satzes endet jede Lektion mit einer „Wortkette“ – die übt zugleich
-   die Leertaste.
-   ============================================================ */
-/* Gemeinsamer Wortvorrat des Lehrgangs: ausschließlich klein geschriebene
-   Wörter (Verben, Adjektive, Artikel, Partikeln). Der Filter blendet je
-   Lektion automatisch frei, was tippbar ist – späte Wörter tauchen also
-   von selbst auf, sobald ihre Tasten gelernt sind. */
+   
 const LESSON_WORDS = [
   /* Grundreihe (Lektion 1–6) */
   "als","lass","falls","dass","das","da","lag","half","sah",
@@ -639,8 +625,7 @@ function lessonWords(no){ const set=learnedKeys(no); return LESSON_WORDS.filter(
    Stationen
    ============================================================ */
 /* Teile: 1 = Tasten-Schule (Funktionstasten kennen & üben),
-          2 = Zehn-Finger-Training (Tippen üben).
-   Start und Prüfung sind teilübergreifend (kein part). */
+          2 = Zehn-Finger-Training (Tippen üben). */
 const PARTS = {
   1: {label:"Teil 1 · Tasten-Schule",       icon:"🔑"},
   2: {label:"Teil 2 · Zehn-Finger-Training", icon:"🖐️"}
@@ -676,10 +661,7 @@ const STATIONS = [
   {id:"kspace",    short:"Weltraum",     icon:"🚀", part:2, title:"Wort-Weltraum",    desc:"Wort-Asteroiden abtippen"},
   {id:"exam",      short:"Prüfung",      icon:"🏆", title:"Prüfung",          desc:"Alles zusammen!"}
 ];
-/* Nummerierung zählt nur echte Übungsstationen. Prüfungen, die Lektionen des
-   Lehrgangs (die zählen „Lektion x von y“) und die Landkarte als Übersichts-
-   seite bleiben aussen vor – so verschieben sich die Stationsnummern nicht,
-   wenn der Lehrgang wächst. */
+/* Nummerierung zählt nur echte Übungsstationen. */
 const isExamId = id => id==="exam" || id==="exam1";
 const isHubId  = id => id==="lessonmap" || id==="lrepeat";
 const stationNumber = id => STATIONS.filter(s=>s.id!=="start"&&!isExamId(s.id)&&!isLessonId(s.id)&&!isHubId(s.id)).findIndex(s=>s.id===id)+1;
@@ -697,7 +679,7 @@ const diff = () => DIFF[state.difficulty] || DIFF.mittel;
 const dCount = (base,min=2) => Math.max(min, Math.round(base*diff().count));
 
 /* ============================================================
-   Wort- und Satz-Vorrat (kindgerecht, deutsch)
+   Wort- und Satz-Vorrat 
    ============================================================ */
 /* Substantive groß, Verben/Adjektive/Artikel klein – korrekte Orthografie. */
 const WORDS_EASY = ["und","der","die","das","ist","auf","Ufo","Oma","Opa","Ball","Haus","Maus","Baum","Fisch","Hund","Katze","Sonne","Blume","Apfel","gelb","rot","Tor","See","Eis"];
